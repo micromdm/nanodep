@@ -23,8 +23,18 @@ type FileStorage struct {
 // New creates a new FileStorage backend.
 func New(path string) (*FileStorage, error) {
 	err := os.Mkdir(path, 0755)
-	if err != nil && !errors.Is(err, os.ErrExist) {
-		return nil, err
+	if err != nil {
+		if errors.Is(err, os.ErrExist) {
+			f, err := os.Stat(path)
+			if err != nil {
+				return nil, err
+			}
+			if !f.IsDir() {
+				return nil, errors.New("path is not a directory")
+			}
+		} else {
+			return nil, err
+		}
 	}
 	return &FileStorage{path: path}, nil
 }

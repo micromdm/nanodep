@@ -37,7 +37,7 @@ func NewDefaultConfigRetreiver(next ConfigRetriever) *DefaultConfigRetreiver {
 // it. If the config is empty a default config is returned.
 func (c *DefaultConfigRetreiver) RetrieveConfig(ctx context.Context, name string) (*Config, error) {
 	config, err := c.next.RetrieveConfig(ctx, name)
-	if err == nil && (config == nil || config.BaseURL == "") {
+	if config == nil || config.BaseURL == "" {
 		config = &Config{BaseURL: DefaultBaseURL}
 	}
 	return config, err
