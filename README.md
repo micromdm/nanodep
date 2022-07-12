@@ -28,7 +28,7 @@ See the [Operations Guide](docs/operations-guide.md) for more details and usage 
 
 NanoDEP is also a Go library for accessing the Apple DEP APIs. There are two components to the Go library:
 
-* The higher-level `godep` package implements Go methods and structures for talking to the individual DEP API endpoints.
-* The lower-level `client` package implements primitives, helpers, and middleware for authenticating to the DEP API and managing sessions tokens.
+* The higher-level [godep](https://pkg.go.dev/github.com/micromdm/nanodep/godep) package implements Go methods and structures for talking to the individual DEP API endpoints.
+* The lower-level [client](https://pkg.go.dev/github.com/micromdm/nanodep/client) package implements primitives, helpers, and middleware for authenticating to the DEP API and managing sessions tokens.
 
 See the [Go Reference documentation](https://pkg.go.dev/github.com/micromdm/nanodep) (or the Go source itself, of course) for details on these packages.
