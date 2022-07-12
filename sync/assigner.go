@@ -26,7 +26,7 @@ type Assigner struct {
 
 type AssignerOption func(*Assigner)
 
-// NewAssigned creates a new Assigner from client and uses store to lookup
+// NewAssigner creates a new Assigner from client and uses store to lookup
 // assigner profile UUIDs. DEP name is specified with name.
 func NewAssigner(client *godep.Client, name string, store AssignerProfileRetriever, opts ...AssignerOption) *Assigner {
 	assigner := &Assigner{
