@@ -27,7 +27,7 @@ func main() {
 		flKey      = flag.String("key", "cert.key", "path to key")
 		flPassword = flag.String("password", "", "password to encrypt/decrypt private key with")
 		flTokens   = flag.String("token", "", "path to tokens")
-		flForce    = flag.Bool("f", false, "force overwwriting the keypair")
+		flForce    = flag.Bool("f", false, "force overwriting the keypair")
 		flVersion  = flag.Bool("version", false, "print version")
 	)
 	flag.Parse()

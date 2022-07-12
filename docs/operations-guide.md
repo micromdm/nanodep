@@ -1,6 +1,6 @@
 # NanoDEP Operations Guide
 
-This is a breif overview of the various tools and utilities for working with NanoDEP.
+This is a brief overview of the various tools and utilities for working with NanoDEP.
 
 ## DEP names
 
@@ -12,7 +12,7 @@ Note that because the name string is used pervasively in URL API paths you proba
 
 The `depserver` serves two main purposes:
 
-1. Setup & configuration of the DEP name(s) — that is, the locally-named instances that correspond to the DEP "MDM servers" in the Apple Bussiness Manager (ABM), Apple School Manager (ASM), or Business Essentials (BE) portal. Configuration includes uploading the DEP authentication tokens, configuring the assigner, etc. See the "API endpoints" section below for more.
+1. Setup & configuration of the DEP name(s) — that is, the locally-named instances that correspond to the DEP "MDM servers" in the Apple Business Manager (ABM), Apple School Manager (ASM), or Business Essentials (BE) portal. Configuration includes uploading the DEP authentication tokens, configuring the assigner, etc. See the "API endpoints" section below for more.
 1. Accessing the actual DEP APIs using a transparently-authenticating reverse proxy. After you've configured the authentication tokens using the above APIs `depserver` provides a reverse proxy to talk to the Apple DEP endpoints where you don't have to worry about session management or token authentication: this's taken care of for you. All you need to do is use a special URL path and normal API (HTTP Basic) authentication and you can talk to the DEP APIs unfiltered. See the "Reverse proxy" section below for more.
 
 ### Switches
@@ -241,7 +241,7 @@ For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this 
 
 **The first argument is required** and specifies the serial number of the device you want to query.
 
-Note that the API itself supports querying multiple devices at a time if you're able to assemble the approrpraite JSON. This script only supports one serial number, however.
+Note that the API itself supports querying multiple devices at a time if you're able to assemble the appropriate JSON. This script only supports one serial number, however.
 
 ##### Example usage
 
@@ -289,7 +289,7 @@ For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this 
 
 **The first argument is required** and specifies the serial number of the device to remove DEP profile assignment from.
 
-Note that the API itself supports unassigning multiple devices at a time if you're able to assemble the approrpraite JSON. This script only supports one serial number, however.
+Note that the API itself supports un-assigning multiple devices at a time if you're able to assemble the appropriate JSON. This script only supports one serial number, however.
 
 ##### Example usage
 
@@ -504,7 +504,7 @@ The file path to read or save the X.509 certificate that contains the public key
 
 #### -f
 
-* force overwwriting the keypair
+* force overwriting the keypair
 
 By default `deptokens` tries not to overwrite the certificate or private key if a file exists at those paths. If this switch is provided it will happily overwrite them.
 
@@ -524,7 +524,7 @@ A password to encrypt or decrypt RSA private key on disk with. Note this is pass
 
 * path to tokens
 
-The file path to the ".p7m" file that Apple generates when retriving the encryptd OAuth tokens from the ABM/ASM/BE portal.
+The file path to the ".p7m" file that Apple generates when retrieving the encrypted OAuth tokens from the ABM/ASM/BE portal.
 
 If this switch is missing (the default) `deptokens` operates in "keypair generation" mode. If this switch is provided `deptokens` operates in "decrypt and decode tokens" mode. This follows the two-step upload-certificate then download-token process required for retrieving the DEP OAuth tokens.
 

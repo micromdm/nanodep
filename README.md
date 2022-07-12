@@ -10,13 +10,13 @@ NanoDEP is a set of tools and a Go library powering them for communicating with 
 A guide to get NanoDEP up and running quickly.
 
 - [Operations Guide](docs/operations-guide.md)  
-A breif overview of the various tools and utilities for working with NanoDEP.
+A brief overview of the various tools and utilities for working with NanoDEP.
 
 ## Tools and utilities
 
 NanoDEP contains a few tools and utilities. At a high level:
 
-- **DEP configuration & reverse proxy server.** The primary server component, called `depserver` is used for configurating NanoDEP and talking with Apple's DEP servers. It hosts its own API for configuring MDM server instances used with Apple's servers (called DEP names) and also hosts a transparently authenticating reverse proxy for talking 'directly' to Apple's DEP API endpoints.
+- **DEP configuration & reverse proxy server.** The primary server component, called `depserver` is used for configuring NanoDEP and talking with Apple's DEP servers. It hosts its own API for configuring MDM server instances used with Apple's servers (called DEP names) and also hosts a transparently authenticating reverse proxy for talking 'directly' to Apple's DEP API endpoints.
 - **Device sync & assigner.** The `depsyncer` tool handles the device fetch/sync cursor logic to continually retrieve the assigned devices from one or more Apple DEP MDM server instance(s).
 - **Scripts, tools, and helpers.**
   - A set of [tools](tools) and utilities for talking to the Apple DEP API services — mostly implemented as shell scripts that communicate to the `depserver`.
