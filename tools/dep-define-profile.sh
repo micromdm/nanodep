@@ -11,4 +11,5 @@ curl \
 	-X POST \
 	-H 'Content-type: application/json;charset=UTF8' \
 	-T "$1" \
+	-A "nanodep-tools/0" \
 	"$URL"

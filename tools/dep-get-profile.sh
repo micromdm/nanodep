@@ -8,4 +8,5 @@ URL="${BASE_URL}/proxy/${DEP_NAME}${DEP_ENDPOINT}?profile_uuid=$1"
 curl \
 		$CURL_OPTS \
 		-u "depserver:$APIKEY" \
+		-A "nanodep-tools/0" \
 		"$URL"

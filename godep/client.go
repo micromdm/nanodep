@@ -13,7 +13,10 @@ import (
 	depclient "github.com/micromdm/nanodep/client"
 )
 
-const mediaType = "application/json;charset=UTF8"
+const (
+	mediaType = "application/json;charset=UTF8"
+	userAgent = "nanodep-godep/0"
+)
 
 // HTTPError encapsulates an HTTP response error from the DEP requests.
 // The API returns error information in the request body.
@@ -103,6 +106,7 @@ func (c *Client) do(ctx context.Context, name, method, path string, in interface
 	if err != nil {
 		return err
 	}
+	req.Header.Set("User-Agent", userAgent)
 	if body != nil {
 		req.Header.Set("Content-Type", mediaType)
 	}

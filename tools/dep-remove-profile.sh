@@ -13,4 +13,5 @@ jq -n --arg device "$1" '.devices = [$device]' \
 		-X DELETE \
 		-H 'Content-type: application/json;charset=UTF8' \
 		--data-binary @- \
+		-A "nanodep-tools/0" \
 		"$URL"
