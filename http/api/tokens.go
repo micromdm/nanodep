@@ -72,18 +72,23 @@ func StoreAuthTokensHandler(store AuthTokensStorer, logger log.Logger) http.Hand
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
-		err = store.StoreAuthTokens(r.Context(), r.URL.Path, tokens)
-		if err != nil {
-			logger.Info("msg", "storing auth tokens", "err", err)
-			jsonError(w, err)
-			return
-		}
-		logger.Debug("msg", "stored auth tokens")
-		w.Header().Set("Content-type", "application/json")
-		err = json.NewEncoder(w).Encode(tokens)
-		if err != nil {
-			logger.Info("msg", "encoding response body", "err", err)
-			return
-		}
+		storeTokens(r.Context(), logger, r.URL.Path, tokens, store, w)
+	}
+}
+
+func storeTokens(ctx context.Context, logger log.Logger, name string, tokens *client.OAuth1Tokens, store AuthTokensStorer, w http.ResponseWriter) {
+	logger = logger.With("consumer_key", tokens.ConsumerKey)
+	err := store.StoreAuthTokens(ctx, name, tokens)
+	if err != nil {
+		logger.Info("msg", "storing auth tokens", "err", err)
+		jsonError(w, err)
+		return
+	}
+	logger.Debug("msg", "stored auth tokens")
+	w.Header().Set("Content-type", "application/json")
+	err = json.NewEncoder(w).Encode(tokens)
+	if err != nil {
+		logger.Info("msg", "encoding response body", "err", err)
+		return
 	}
 }
