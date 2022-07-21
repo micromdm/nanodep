@@ -28,7 +28,7 @@ jobs:
     - name: Start test docker containers
       if: matrix.platform == 'ubuntu-latest'
       run: |
-        docker-compose -f docker-compose-test.yml up &
+        docker-compose -f storage/mysql/docker-compose-test.yml up &
 
     - name: Set 
       if: matrix.platform == 'ubuntu-latest'
