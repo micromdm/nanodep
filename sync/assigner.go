@@ -12,7 +12,7 @@ import (
 )
 
 type AssignerProfileRetriever interface {
-	RetrieveAssignerProfile(context.Context, string) (string, time.Time, error)
+	RetrieveAssignerProfile(ctx context.Context, name string) (profileUUID string, modTime time.Time, err error)
 }
 
 // Assigner assigns devices synced from the Apple DEP APIs to a profile UUID.

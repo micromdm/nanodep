@@ -49,6 +49,15 @@ Configure the `file` storage backend. This backend manages DEP authentication an
 
 *Example:* `-storage file -storage-dsn /path/to/my/db`
 
+##### mysql storage backend
+
+* `-storage mysql`
+
+Configures the MySQL storage backend. The `-dsn` flag should be in the [format the SQL driver expects](https://github.com/go-sql-driver/mysql#dsn-data-source-name).
+Be sure to create the storage tables with the [schema.sql](../storage/mysql/schema.sql) file. MySQL 8.0.19 or later is required.
+
+*Example:* `-storage mysql -dsn nanodep:nanodep/mydepdb`
+
 #### -version
 
 * print version

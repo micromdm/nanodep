@@ -11,7 +11,7 @@ import (
 )
 
 type AuthTokensStorer interface {
-	StoreAuthTokens(context.Context, string, *client.OAuth1Tokens) error
+	StoreAuthTokens(ctx context.Context, name string, tokens *client.OAuth1Tokens) error
 }
 
 // RetrieveAuthTokensHandler returns the DEP server OAuth1 tokens for the DEP

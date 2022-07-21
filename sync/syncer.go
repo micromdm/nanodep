@@ -15,8 +15,8 @@ import (
 // CursorStorage is where the device fetch and sync cursor can be stored and
 // retrieved for a given DEP name.
 type CursorStorage interface {
-	RetrieveCursor(context.Context, string) (string, error)
-	StoreCursor(context.Context, string, string) error
+	RetrieveCursor(ctx context.Context, name string) (string, error)
+	StoreCursor(ctx context.Context, name string, cursor string) error
 }
 
 // DeviceResponseCallback is called every time a fetch or sync operation completes.

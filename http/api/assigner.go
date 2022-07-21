@@ -45,7 +45,7 @@ func RetrieveAssignerProfileHandler(store sync.AssignerProfileRetriever, logger 
 }
 
 type AssignerProfileStorer interface {
-	StoreAssignerProfile(context.Context, string, string) error
+	StoreAssignerProfile(ctx context.Context, name string, profileUUID string) error
 }
 
 // StoreAssignerProfileHandler saves the assigner profile UUID for the

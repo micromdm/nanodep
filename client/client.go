@@ -1,4 +1,4 @@
-// Package client implements HTTP privitives for talking with and authenticating with the Apple DEP APIs.
+// Package client implements HTTP primitives for talking with and authenticating with the Apple DEP APIs.
 package client
 
 import (

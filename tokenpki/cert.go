@@ -40,6 +40,15 @@ func SelfSignedRSAKeypair(cn string, days int) (*rsa.PrivateKey, *x509.Certifica
 	return key, cert, err
 }
 
+// PEMRSAPrivateKey returns key as a PEM block.
+func PEMRSAPrivateKey(key *rsa.PrivateKey) []byte {
+	block := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}
+	return pem.EncodeToMemory(block)
+}
+
 // PEMCertificate returns derBytes encoded as a PEM block.
 func PEMCertificate(derBytes []byte) []byte {
 	block := &pem.Block{

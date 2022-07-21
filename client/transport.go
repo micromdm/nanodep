@@ -41,7 +41,7 @@ func GetName(ctx context.Context) string {
 }
 
 type AuthTokensRetriever interface {
-	RetrieveAuthTokens(context.Context, string) (*OAuth1Tokens, error)
+	RetrieveAuthTokens(ctx context.Context, name string) (*OAuth1Tokens, error)
 }
 
 type SessionStore interface {
