@@ -67,6 +67,9 @@ func (s *FileStorage) RetrieveAuthTokens(_ context.Context, name string) (*clien
 	tokens := new(client.OAuth1Tokens)
 	err := decodeJSONfile(s.tokensFilename(name), tokens)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, storage.ErrNotFound
+		}
 		return nil, err
 	}
 	return tokens, nil
@@ -173,10 +176,16 @@ func (s *FileStorage) StoreTokenPKI(_ context.Context, name string, pemCert []by
 func (s *FileStorage) RetrieveTokenPKI(_ context.Context, name string) ([]byte, []byte, error) {
 	certBytes, err := os.ReadFile(s.tokenpkiFilename(name, "cert"))
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil, storage.ErrNotFound
+		}
 		return nil, nil, err
 	}
 	keyBytes, err := os.ReadFile(s.tokenpkiFilename(name, "key"))
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil, storage.ErrNotFound
+		}
 		return nil, nil, err
 	}
 	return certBytes, keyBytes, err

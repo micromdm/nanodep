@@ -77,7 +77,13 @@ func New(opts ...Option) (*MySQLStorage, error) {
 
 // RetrieveAuthTokens reads the DEP OAuth tokens for name DEP name.
 func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth1Tokens, error) {
-	tokens := new(client.OAuth1Tokens)
+	var (
+		consumerKey       sql.NullString
+		consumerSecret    sql.NullString
+		accessToken       sql.NullString
+		accessSecret      sql.NullString
+		accessTokenExpiry sql.NullTime
+	)
 	err := s.db.QueryRowContext(
 		ctx, `
 SELECT
@@ -92,16 +98,28 @@ WHERE
     name = ?;`,
 		name,
 	).Scan(
-		&tokens.ConsumerKey,
-		&tokens.ConsumerSecret,
-		&tokens.AccessToken,
-		&tokens.AccessSecret,
-		&tokens.AccessTokenExpiry,
+		&consumerKey,
+		&consumerSecret,
+		&accessToken,
+		&accessSecret,
+		&accessTokenExpiry,
 	)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrNotFound
+		}
 		return nil, err
 	}
-	return tokens, nil
+	if !consumerKey.Valid { // all auth token fields are set together
+		return nil, storage.ErrNotFound
+	}
+	return &client.OAuth1Tokens{
+		ConsumerKey:       consumerKey.String,
+		ConsumerSecret:    consumerSecret.String,
+		AccessToken:       accessToken.String,
+		AccessSecret:      accessSecret.String,
+		AccessTokenExpiry: accessTokenExpiry.Time,
+	}, nil
 }
 
 // StoreAuthTokens saves the DEP OAuth tokens for the DEP name.
@@ -284,7 +302,13 @@ func (s *MySQLStorage) RetrieveTokenPKI(ctx context.Context, name string) (pemCe
 	).Scan(
 		&pemCert, &pemKey,
 	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, storage.ErrNotFound
+		}
 		return nil, nil, err
+	}
+	if pemCert == nil { // tokenpki_cert_pem and tokenpki_key_pem are set together
+		return nil, nil, storage.ErrNotFound
 	}
 	return pemCert, pemKey, nil
 }
