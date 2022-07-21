@@ -67,16 +67,16 @@ func StoreAuthTokensHandler(store AuthTokensStorer, logger log.Logger) http.Hand
 			return
 		}
 		defer r.Body.Close()
-		if !tokens.Valid() {
-			logger.Info("msg", "checking auth token validity", "err", "invalid tokens")
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
 		storeTokens(r.Context(), logger, r.URL.Path, tokens, store, w)
 	}
 }
 
 func storeTokens(ctx context.Context, logger log.Logger, name string, tokens *client.OAuth1Tokens, store AuthTokensStorer, w http.ResponseWriter) {
+	if !tokens.Valid() {
+		logger.Info("msg", "checking auth token validity", "err", "invalid tokens")
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 	logger = logger.With("consumer_key", tokens.ConsumerKey)
 	err := store.StoreAuthTokens(ctx, name, tokens)
 	if err != nil {

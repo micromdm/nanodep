@@ -137,11 +137,6 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStorer
 			jsonError(w, err)
 			return
 		}
-		if !tokens.Valid() {
-			logger.Info("msg", "checking auth token validity", "err", "invalid tokens")
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
 		storeTokens(r.Context(), logger, r.URL.Path, tokens, tokenStore, w)
 	}
 }
