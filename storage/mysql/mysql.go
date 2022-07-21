@@ -156,9 +156,6 @@ func (s *MySQLStorage) RetrieveConfig(ctx context.Context, name string) (*client
 
 // StoreConfig saves the DEP config for name DEP name.
 func (s *MySQLStorage) StoreConfig(ctx context.Context, name string, config *client.Config) error {
-	if config == nil || config.BaseURL == "" {
-		return nil
-	}
 	_, err := s.db.ExecContext(
 		ctx, `
 INSERT INTO dep_names
