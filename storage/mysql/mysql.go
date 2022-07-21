@@ -81,10 +81,10 @@ func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*cl
 	err := s.db.QueryRowContext(
 		ctx, `
 SELECT
-    consumer_key,
-    consumer_secret,
-    access_token,
-    access_secret,
+	consumer_key,
+	consumer_secret,
+	access_token,
+	access_secret,
 	access_token_expiry
 FROM
     dep_names
