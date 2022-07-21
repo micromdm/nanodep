@@ -46,7 +46,6 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 			return
 		}
 		logger = logger.With("name", r.URL.Path)
-		// TODO(lucas): defaultDays is 1.
 		key, cert, err := tokenpki.SelfSignedRSAKeypair(defaultCN, defaultDays)
 		if err != nil {
 			logger.Info("msg", "generating token keypair", "err", err)
