@@ -75,6 +75,8 @@ func New(opts ...Option) (*MySQLStorage, error) {
 	return &MySQLStorage{db: cfg.db}, nil
 }
 
+const timestampFormat = "2006-01-02 15:04:05"
+
 // RetrieveAuthTokens reads the DEP OAuth tokens for name DEP name.
 func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth1Tokens, error) {
 	var (
@@ -82,7 +84,7 @@ func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*cl
 		consumerSecret    sql.NullString
 		accessToken       sql.NullString
 		accessSecret      sql.NullString
-		accessTokenExpiry sql.NullTime
+		accessTokenExpiry sql.NullString
 	)
 	err := s.db.QueryRowContext(
 		ctx, `
@@ -113,12 +115,16 @@ WHERE
 	if !consumerKey.Valid { // all auth token fields are set together
 		return nil, storage.ErrNotFound
 	}
+	accessTokenExpiryTime, err := time.Parse(timestampFormat, accessTokenExpiry.String)
+	if err != nil {
+		return nil, err
+	}
 	return &client.OAuth1Tokens{
 		ConsumerKey:       consumerKey.String,
 		ConsumerSecret:    consumerSecret.String,
 		AccessToken:       accessToken.String,
 		AccessSecret:      accessSecret.String,
-		AccessTokenExpiry: accessTokenExpiry.Time,
+		AccessTokenExpiry: accessTokenExpiryTime,
 	}, nil
 }
 
@@ -194,7 +200,7 @@ ON DUPLICATE KEY UPDATE
 func (s *MySQLStorage) RetrieveAssignerProfile(ctx context.Context, name string) (profileUUID string, modTime time.Time, err error) {
 	var (
 		profileUUID_ sql.NullString
-		modTime_     sql.NullTime
+		modTime_     sql.NullString
 	)
 	if err := s.db.QueryRowContext(
 		ctx,
@@ -213,7 +219,10 @@ func (s *MySQLStorage) RetrieveAssignerProfile(ctx context.Context, name string)
 		profileUUID = profileUUID_.String
 	}
 	if modTime_.Valid {
-		modTime = modTime_.Time
+		modTime, err = time.Parse(timestampFormat, modTime_.String)
+		if err != nil {
+			return "", time.Time{}, err
+		}
 	}
 	return profileUUID, modTime, nil
 }

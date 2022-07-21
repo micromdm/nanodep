@@ -22,7 +22,7 @@ func TestMySQLStorage(t *testing.T) {
 
 	storagetest.Run(t, func(t *testing.T) storage.AllStorage {
 		dbName := initTestDB(t)
-		testDSN := fmt.Sprintf("nanodep:insecure@tcp(localhost:4242)/%s?charset=utf8mb4&parseTime=true&loc=UTC", dbName)
+		testDSN := fmt.Sprintf("nanodep:insecure@tcp(localhost:4242)/%s?charset=utf8mb4&loc=UTC", dbName)
 		s, err := New(WithDSN(testDSN))
 		if err != nil {
 			t.Fatal(err)
@@ -33,7 +33,7 @@ func TestMySQLStorage(t *testing.T) {
 
 // initTestDB clears any existing data from the database.
 func initTestDB(t *testing.T) string {
-	rootDSN := "root:toor@tcp(localhost:4242)/?charset=utf8mb4&parseTime=true&loc=UTC"
+	rootDSN := "root:toor@tcp(localhost:4242)/?charset=utf8mb4&loc=UTC"
 	db, err := sql.Open("mysql", rootDSN)
 	if err != nil {
 		t.Fatal(err)
