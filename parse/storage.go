@@ -3,6 +3,7 @@ package parse
 import (
 	"fmt"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/micromdm/nanodep/storage"
 	"github.com/micromdm/nanodep/storage/file"
 	"github.com/micromdm/nanodep/storage/mysql"

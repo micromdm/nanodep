@@ -7,7 +7,6 @@ import (
 	"errors"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/micromdm/nanodep/client"
 	"github.com/micromdm/nanodep/storage"
 )
