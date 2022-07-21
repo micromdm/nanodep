@@ -30,8 +30,8 @@ func main() {
 		flLimit   = flag.Int("limit", 0, "limit fetch and sync calls to this many devices (0 for server default)")
 		flDebug   = flag.Bool("debug", false, "log debug messages")
 		flADebug  = flag.Bool("debug-assigner", false, "additional debug logging of the device assigner")
-		flStorage = flag.String("storage", "", "storage backend")
-		flDSN     = flag.String("storage-dsn", "file", "storage data source name")
+		flStorage = flag.String("storage", "file", "storage backend")
+		flDSN     = flag.String("storage-dsn", "", "storage data source name")
 		flWebhook = flag.String("webhook-url", "", "URL to send requests to")
 	)
 	flag.Usage = func() {
