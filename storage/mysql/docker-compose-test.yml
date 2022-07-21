@@ -2,7 +2,7 @@
 version: "2"
 services:
   mysql:
-    image: ${NANODEP_MYSQL_IMAGE:-mysql:5.7}
+    image: ${NANODEP_MYSQL_IMAGE:-mysql:8.0.19}
     platform: ${NANODEP_MYSQL_PLATFORM:-linux/x86_64}
     command:
       [
