@@ -1,0 +1,277 @@
+// Package storagetest offers a battery of tests for storage.AllStorage implementations.
+package storagetest
+
+import (
+	"bytes"
+	"context"
+	"testing"
+	"time"
+
+	"github.com/micromdm/nanodep/client"
+	"github.com/micromdm/nanodep/storage"
+	"github.com/micromdm/nanodep/tokenpki"
+)
+
+// Run runs a battery of tests on the storage.AllStorage returned by storageFn.
+func Run(t *testing.T, storageFn func(t *testing.T) storage.AllStorage) {
+	ctx := context.Background()
+
+	// Test retrieval methods on empty storage.
+	t.Run("empty", func(t *testing.T) {
+		const name = "empty"
+
+		storage := storageFn(t)
+
+		pemCert, pemKey, err := storage.RetrieveTokenPKI(ctx, name)
+		// Currently just checking that it returns an error when the resource is not found.
+		//
+		// TODO(lucas): Define an "resource not found" error type as part of the interface
+		// (to be returned by all implementations).
+		if err == nil {
+			t.Fatal("expected error")
+		}
+		if pemCert != nil {
+			t.Fatal("expected nil cert pem")
+		}
+		if pemKey != nil {
+			t.Fatal("expected nil key pem")
+		}
+
+		// Currently just checking that it returns an error when the resource is not found.
+		//
+		// TODO(lucas): Define an "resource not found" error type as part of the interface
+		// (to be returned by all implementations).
+		tokens, err := storage.RetrieveAuthTokens(ctx, name)
+		if err == nil {
+			t.Fatal("expected error")
+		}
+		if tokens != nil {
+			t.Fatal("expected nil tokens")
+		}
+
+		config, err := storage.RetrieveConfig(ctx, name)
+		checkErr(t, err)
+		emptyConfig := client.Config{}
+		if config == nil || *config != emptyConfig {
+			t.Fatalf("expected empty config: %+v", config)
+		}
+
+		// Profile assigner storing and retrieval.
+		profileUUID, modTime, err := storage.RetrieveAssignerProfile(ctx, name)
+		checkErr(t, err)
+		if profileUUID != "" {
+			t.Fatal("expected empty profileUUID")
+		}
+		if !modTime.IsZero() {
+			t.Fatal("expected zero modTime")
+		}
+
+		cursor, err := storage.RetrieveCursor(ctx, name)
+		checkErr(t, err)
+		if cursor != "" {
+			t.Fatal("expected empty cursor")
+		}
+	})
+
+	testWithName := func(t *testing.T, name string, storage storage.AllStorage) {
+
+		// PKI storing and retrieval.
+		pemCert, pemKey, err := storage.RetrieveTokenPKI(ctx, name)
+		// Currently just checking that it returns an error when the resource is not found.
+		//
+		// TODO(lucas): Define an "resource not found" error type as part of the interface
+		// (to be returned by all implementations).
+		if err == nil {
+			t.Fatal("expected error")
+		}
+		if pemCert != nil {
+			t.Fatal("expected nil cert pem")
+		}
+		if pemKey != nil {
+			t.Fatal("expected nil key pem")
+		}
+		pemCert, pemKey = generatePKI(t, "basicdn", 1)
+		err = storage.StoreTokenPKI(ctx, name, pemCert, pemKey)
+		checkErr(t, err)
+		pemCert2, pemKey2, err := storage.RetrieveTokenPKI(ctx, name)
+		checkErr(t, err)
+		if !bytes.Equal(pemCert, pemCert2) {
+			t.Fatalf("pem cert mismatch: %s vs. %s", pemCert, pemCert2)
+		}
+		if !bytes.Equal(pemKey, pemKey2) {
+			t.Fatalf("pem key mismatch: %s vs. %s", pemKey, pemKey2)
+		}
+
+		// Token storing and retrieval.
+		tokens, err := storage.RetrieveAuthTokens(ctx, name)
+		// Currently just checking that it returns an error when the resource is not found.
+		//
+		// TODO(lucas): Define an "resource not found" error type as part of the interface
+		// (to be returned by all implementations).
+		if err == nil {
+			t.Fatal("expected error")
+		}
+		if tokens != nil {
+			t.Fatal("expected nil tokens")
+		}
+		tokens = &client.OAuth1Tokens{
+			ConsumerKey:       "CK_9af2f8218b150c351ad802c6f3d66abe",
+			ConsumerSecret:    "CS_9af2f8218b150c351ad802c6f3d66abe",
+			AccessToken:       "AT_9af2f8218b150c351ad802c6f3d66abe",
+			AccessSecret:      "AS_9af2f8218b150c351ad802c6f3d66abe",
+			AccessTokenExpiry: time.Now().UTC(),
+		}
+		err = storage.StoreAuthTokens(ctx, name, tokens)
+		checkErr(t, err)
+		tokens2, err := storage.RetrieveAuthTokens(ctx, name)
+		checkErr(t, err)
+		checkTokens(t, tokens, tokens2)
+		tokens3 := &client.OAuth1Tokens{
+			ConsumerKey:       "foo_CK_9af2f8218b150c351ad802c6f3d66abe",
+			ConsumerSecret:    "foo_CS_9af2f8218b150c351ad802c6f3d66abe",
+			AccessToken:       "foo_AT_9af2f8218b150c351ad802c6f3d66abe",
+			AccessSecret:      "foo_AS_9af2f8218b150c351ad802c6f3d66abe",
+			AccessTokenExpiry: time.Now().Add(5 * time.Second).UTC(),
+		}
+		err = storage.StoreAuthTokens(ctx, name, tokens3)
+		checkErr(t, err)
+		tokens4, err := storage.RetrieveAuthTokens(ctx, name)
+		checkErr(t, err)
+		checkTokens(t, tokens3, tokens4)
+
+		// Config storing and retrieval.
+		config, err := storage.RetrieveConfig(ctx, name)
+		checkErr(t, err)
+		emptyConfig := client.Config{}
+		if config == nil || *config != emptyConfig {
+			t.Fatalf("expected empty config: %+v", config)
+		}
+		config = &client.Config{
+			BaseURL: "https://config.example.com",
+		}
+		err = storage.StoreConfig(ctx, name, config)
+		checkErr(t, err)
+		config2, err := storage.RetrieveConfig(ctx, name)
+		checkErr(t, err)
+		if *config != *config2 {
+			t.Fatalf("config mismatch: %+v vs. %+v", config, config2)
+		}
+		config2 = &client.Config{
+			BaseURL: "https://config2.example.com",
+		}
+		err = storage.StoreConfig(ctx, name, config2)
+		checkErr(t, err)
+		config3, err := storage.RetrieveConfig(ctx, name)
+		checkErr(t, err)
+		if *config2 != *config3 {
+			t.Fatalf("config mismatch: %+v vs. %+v", config2, config3)
+		}
+
+		// Profile assigner storing and retrieval.
+		profileUUID, modTime, err := storage.RetrieveAssignerProfile(ctx, name)
+		checkErr(t, err)
+		if profileUUID != "" {
+			t.Fatal("expected empty profileUUID")
+		}
+		if !modTime.IsZero() {
+			t.Fatal("expected zero modTime")
+		}
+		profileUUID = "43277A13FBCA0CFC"
+		err = storage.StoreAssignerProfile(ctx, name, profileUUID)
+		checkErr(t, err)
+		profileUUID2, modTime, err := storage.RetrieveAssignerProfile(ctx, name)
+		checkErr(t, err)
+		if profileUUID != profileUUID2 {
+			t.Fatalf("profileUUID mismatch: %s vs. %s", profileUUID, profileUUID2)
+		}
+		now := time.Now()
+		if modTime.Before(now.Add(-1*time.Minute)) || modTime.After(now.Add(1*time.Minute)) {
+			t.Fatalf("mismatch modTime, expected: %s (+/- 1m), actual: %s", now, modTime)
+		}
+		time.Sleep(1 * time.Second)
+		profileUUID3 := "foo_43277A13FBCA0CFC"
+		err = storage.StoreAssignerProfile(ctx, name, profileUUID3)
+		checkErr(t, err)
+		profileUUID4, modTime2, err := storage.RetrieveAssignerProfile(ctx, name)
+		checkErr(t, err)
+		if profileUUID3 != profileUUID4 {
+			t.Fatalf("profileUUID mismatch: %s vs. %s", profileUUID, profileUUID3)
+		}
+		if modTime2 == modTime {
+			t.Fatalf("expected time update: %s", modTime2)
+		}
+		now = time.Now()
+		if modTime2.Before(now.Add(-1*time.Minute)) || modTime2.After(now.Add(1*time.Minute)) {
+			t.Fatalf("mismatch modTime, expected: %s (+/- 1m), actual: %s", now, modTime)
+		}
+
+		cursor, err := storage.RetrieveCursor(ctx, name)
+		checkErr(t, err)
+		if cursor != "" {
+			t.Fatal("expected empty cursor")
+		}
+		cursor = "MTY1NzI2ODE5Ny0x"
+		err = storage.StoreCursor(ctx, name, cursor)
+		checkErr(t, err)
+		cursor2, err := storage.RetrieveCursor(ctx, name)
+		checkErr(t, err)
+		if cursor != cursor2 {
+			t.Fatalf("cursor mismatch: %s vs. %s", cursor, cursor2)
+		}
+		cursor2 = "foo_MTY1NzI2ODE5Ny0x"
+		err = storage.StoreCursor(ctx, name, cursor2)
+		checkErr(t, err)
+		cursor3, err := storage.RetrieveCursor(ctx, name)
+		checkErr(t, err)
+		if cursor2 != cursor3 {
+			t.Fatalf("cursor mismatch: %s vs. %s", cursor2, cursor3)
+		}
+	}
+
+	t.Run("basic", func(t *testing.T) {
+		storage := storageFn(t)
+		testWithName(t, "basic", storage)
+	})
+
+	t.Run("multiple-names", func(t *testing.T) {
+		storage := storageFn(t)
+		testWithName(t, "name1", storage)
+		testWithName(t, "name2", storage)
+	})
+}
+
+func checkTokens(t *testing.T, t1 *client.OAuth1Tokens, t2 *client.OAuth1Tokens) {
+	if t1.ConsumerKey != t2.ConsumerKey {
+		t.Fatalf("tokens consumer_key mismatch: %s vs. %s", t1.ConsumerKey, t2.ConsumerKey)
+	}
+	if t1.ConsumerSecret != t2.ConsumerSecret {
+		t.Fatalf("tokens consumer_secret mismatch: %s vs. %s", t1.ConsumerSecret, t2.ConsumerSecret)
+	}
+	if t1.AccessToken != t2.AccessToken {
+		t.Fatalf("tokens access_token mismatch: %s vs. %s", t1.AccessToken, t2.AccessToken)
+	}
+	if t1.AccessSecret != t2.AccessSecret {
+		t.Fatalf("tokens access_secret mismatch: %s vs. %s", t1.AccessSecret, t2.AccessSecret)
+	}
+	if t1.AccessTokenExpiry.Round(time.Second) != t2.AccessTokenExpiry.Round(time.Second) {
+		t.Fatalf("tokens expiry mismatch: %s vs. %s", t1.AccessTokenExpiry, t2.AccessTokenExpiry)
+	}
+}
+
+func checkErr(t *testing.T, err error) {
+	t.Helper()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func generatePKI(t *testing.T, cn string, days int) (pemCert []byte, pemKey []byte) {
+	key, cert, err := tokenpki.SelfSignedRSAKeypair(cn, days)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pemCert = tokenpki.PEMCertificate(cert.Raw)
+	pemKey = tokenpki.PEMRSAPrivateKey(key)
+	return pemCert, pemKey
+}

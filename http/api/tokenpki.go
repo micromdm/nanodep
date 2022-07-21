@@ -17,26 +17,17 @@ import (
 )
 
 type TokenPKIRetriever interface {
-	RetrieveTokenPKI(context.Context, string) ([]byte, []byte, error)
+	RetrieveTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error)
 }
 
 type TokenPKIStorer interface {
-	StoreTokenPKI(context.Context, string, []byte, []byte) error
+	StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error
 }
 
 const (
 	defaultCN   = "depserver"
 	defaultDays = 1
 )
-
-// PEMRSAPrivateKey returns key as a PEM block.
-func PEMRSAPrivateKey(key *rsa.PrivateKey) []byte {
-	block := &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
-	}
-	return pem.EncodeToMemory(block)
-}
 
 // GetCertTokenPKIHandler generates a new private key and certificate for
 // the token PKI exchange with the ABM/ASM/BE portal. Every call to this
@@ -55,6 +46,7 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 			return
 		}
 		logger = logger.With("name", r.URL.Path)
+		// TODO(lucas): defaultDays is 1.
 		key, cert, err := tokenpki.SelfSignedRSAKeypair(defaultCN, defaultDays)
 		if err != nil {
 			logger.Info("msg", "generating token keypair", "err", err)
@@ -62,7 +54,7 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 			return
 		}
 		pemCert := tokenpki.PEMCertificate(cert.Raw)
-		err = store.StoreTokenPKI(r.Context(), r.URL.Path, pemCert, PEMRSAPrivateKey(key))
+		err = store.StoreTokenPKI(r.Context(), r.URL.Path, pemCert, tokenpki.PEMRSAPrivateKey(key))
 		if err != nil {
 			logger.Info("msg", "storing token keypair", "err", err)
 			jsonError(w, err)
