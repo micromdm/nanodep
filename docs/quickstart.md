@@ -43,11 +43,10 @@ Note here the "DEP name" of `mdmserver1` is arbitrary and can be anything you li
 The ABM/ASM/BE portal uses a public key to encrypt the OAuth1 tokens. To generate a new keypair and retrieve the public key (in an X.509 Certificate):
 
 ```bash
-$ ./tools/cfg-get-cert.sh depserver 365 > $DEP_NAME.pem
+$ ./tools/cfg-get-cert.sh > $DEP_NAME.pem
 ```
 
 Note this should create a new file called "mdmserver1.pem" (or whatever you set `$DEP_NAME` to, above).
-The first argument of the tool is the Common Name and the second is the validity of the certificate in days.
 
 ### Upload the public key to ABM/ASM/BE
 

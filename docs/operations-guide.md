@@ -551,7 +551,7 @@ Print version and exit.
 #### Keypair generation
 
 ```bash
-$ ./deptokens-darwin-amd64 -password supersecret -validity-days 365
+$ ./deptokens-darwin-amd64 -password supersecret -validity-days 1
 wrote cert.pem, cert.key
 ```
 
