@@ -158,6 +158,19 @@ paths:
       description: Generate and store a new X.509 certificate and RSA private key (keypair) for exchanging the encrypted DEP OAuth1 tokens via the Apple ABM/ASM/BE portal. Each request generates a new (and overwrites the existing) keypair. The certificate is returned.
       security:
         - basicAuth: []
+      parameters:
+      - in: query
+        name: cn
+        required: false
+        schema:
+          type: string
+          example: "depserver"
+      - in: query
+        name: validity_days
+        required: true
+        schema:
+          type: integer
+          example: 365
       responses:
         '200':
           description: X.509 certificate of the keypair used to encrypted the OAuth1 tokens.

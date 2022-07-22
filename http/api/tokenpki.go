@@ -9,6 +9,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/micromdm/nanodep/client"
 	"github.com/micromdm/nanodep/log"
@@ -25,8 +26,7 @@ type TokenPKIStorer interface {
 }
 
 const (
-	defaultCN   = "depserver"
-	defaultDays = 1
+	defaultCN = "depserver"
 )
 
 // PEMRSAPrivateKey returns key as a PEM block.
@@ -55,7 +55,24 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 			return
 		}
 		logger = logger.With("name", r.URL.Path)
-		key, cert, err := tokenpki.SelfSignedRSAKeypair(defaultCN, defaultDays)
+		daysArg := r.URL.Query().Get("validity_days")
+		if daysArg == "" {
+			logger.Info("msg", "validity_days check", "err", "missing validity_days")
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		validityDays, err := strconv.ParseInt(daysArg, 10, 64)
+		if err != nil {
+			logger.Info("msg", "validity_days check", "err", err)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		cn := r.URL.Query().Get("cn")
+		if cn == "" {
+			logger.Debug("msg", "using default CN", "cn", defaultCN)
+			cn = defaultCN
+		}
+		key, cert, err := tokenpki.SelfSignedRSAKeypair(cn, validityDays)
 		if err != nil {
 			logger.Info("msg", "generating token keypair", "err", err)
 			jsonError(w, err)
