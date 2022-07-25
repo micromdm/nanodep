@@ -169,6 +169,10 @@ The [Quickstart Guide](quickstart.md) also documents some usage of these scripts
 
 For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script generates and retrieves the public key certificate for use when downloading the DEP authentication tokens from the ABM/ASM/BE portal. The `curl` call will dump the PEM-encoded certificate to stdout so you'll likely want to redirect it somewhere useful so it can be uploaded to the portal.
 
+This script has two optional arguments:
+- The first argument specifies the Common Name to set in the certificate (default "depserver").
+- The second argument specifies the validity of the certificate in days (default 1 day).
+
 ##### Example usage
 
 ```bash
@@ -526,7 +530,7 @@ A password to encrypt or decrypt RSA private key on disk with. Note this is pass
 
 A Common Name string to set in the certificate (default is "depserver").
 
-#### -validity-days
+#### -days
 
 * validity of the generated certificate in days
 
@@ -551,7 +555,7 @@ Print version and exit.
 #### Keypair generation
 
 ```bash
-$ ./deptokens-darwin-amd64 -password supersecret -validity-days 1
+$ ./deptokens-darwin-amd64 -password supersecret
 wrote cert.pem, cert.key
 ```
 

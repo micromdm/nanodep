@@ -167,7 +167,7 @@ paths:
           example: "depserver"
       - in: query
         name: validity_days
-        required: true
+        required: false
         schema:
           type: integer
           example: 365

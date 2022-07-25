@@ -1,8 +1,6 @@
 #!/bin/sh
 
-CN="${1:-depserver}"
-VALIDITY_DAYS="${2:-1}"
-URL="${BASE_URL}/v1/tokenpki/${DEP_NAME}?cn=$CN&validity_days=$VALIDITY_DAYS"
+URL="${BASE_URL}/v1/tokenpki/${DEP_NAME}?cn=$1&validity_days=$2"
 
 curl \
 	$CURL_OPTS \

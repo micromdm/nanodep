@@ -25,10 +25,6 @@ type TokenPKIStorer interface {
 	StoreTokenPKI(context.Context, string, []byte, []byte) error
 }
 
-const (
-	defaultCN = "depserver"
-)
-
 // PEMRSAPrivateKey returns key as a PEM block.
 func PEMRSAPrivateKey(key *rsa.PrivateKey) []byte {
 	block := &pem.Block{
@@ -48,6 +44,10 @@ func PEMRSAPrivateKey(key *rsa.PrivateKey) []byte {
 // errors to the output as this is meant for "API" users.
 func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		const (
+			defaultCN   = "depserver"
+			defaultDays = 1
+		)
 		logger := ctxlog.Logger(r.Context(), logger)
 		if r.URL.Path == "" {
 			logger.Info("msg", "DEP name check", "err", "missing DEP name")
@@ -55,17 +55,18 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 			return
 		}
 		logger = logger.With("name", r.URL.Path)
-		daysArg := r.URL.Query().Get("validity_days")
-		if daysArg == "" {
-			logger.Info("msg", "validity_days check", "err", "missing validity_days")
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
-		validityDays, err := strconv.ParseInt(daysArg, 10, 64)
-		if err != nil {
-			logger.Info("msg", "validity_days check", "err", err)
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
+		var validityDays int64
+		if daysArg := r.URL.Query().Get("validity_days"); daysArg == "" {
+			logger.Debug("msg", "using default validity days", "days", defaultDays)
+			validityDays = defaultDays
+		} else {
+			var err error
+			validityDays, err = strconv.ParseInt(daysArg, 10, 64)
+			if err != nil {
+				logger.Info("msg", "validity_days check", "err", err)
+				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+				return
+			}
 		}
 		cn := r.URL.Query().Get("cn")
 		if cn == "" {
