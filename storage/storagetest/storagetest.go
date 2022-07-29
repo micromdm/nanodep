@@ -241,7 +241,8 @@ func checkTokens(t *testing.T, t1 *client.OAuth1Tokens, t2 *client.OAuth1Tokens)
 	if t1.AccessSecret != t2.AccessSecret {
 		t.Fatalf("tokens access_secret mismatch: %s vs. %s", t1.AccessSecret, t2.AccessSecret)
 	}
-	if t1.AccessTokenExpiry.Round(time.Second) != t2.AccessTokenExpiry.Round(time.Second) {
+	diff := t1.AccessTokenExpiry.Sub(t2.AccessTokenExpiry)
+	if diff > 1*time.Second || diff < -1*time.Second {
 		t.Fatalf("tokens expiry mismatch: %s vs. %s", t1.AccessTokenExpiry, t2.AccessTokenExpiry)
 	}
 }

@@ -149,7 +149,7 @@ ON DUPLICATE KEY UPDATE
 		tokens.ConsumerSecret,
 		tokens.AccessToken,
 		tokens.AccessSecret,
-		tokens.AccessTokenExpiry,
+		tokens.AccessTokenExpiry.Format(timestampFormat),
 	)
 	return err
 }
