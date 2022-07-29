@@ -71,7 +71,7 @@ func initTestDB(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = db.Exec(schema)
+	_, err = db.Exec(Schema)
 	if err != nil {
 		t.Fatal(err)
 	}

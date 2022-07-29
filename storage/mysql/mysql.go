@@ -11,8 +11,10 @@ import (
 	"github.com/micromdm/nanodep/storage"
 )
 
+// Schema contains the MySQL schema for the DEP storage.
+//
 //go:embed schema.sql
-var schema string
+var Schema string
 
 // MySQLStorage implements a storage.AllStorage using MySQL.
 type MySQLStorage struct {
