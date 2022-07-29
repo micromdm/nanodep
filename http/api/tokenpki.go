@@ -2,11 +2,7 @@ package api
 
 import (
 	"context"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
-	"errors"
 	"io"
 	"net/http"
 
@@ -65,15 +61,6 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 	}
 }
 
-// RSAKeyFromPEM decodes a PEM RSA private key.
-func RSAKeyFromPEM(key []byte) (*rsa.PrivateKey, error) {
-	block, _ := pem.Decode(key)
-	if block.Type != "RSA PRIVATE KEY" {
-		return nil, errors.New("PEM type is not RSA PRIVATE KEY")
-	}
-	return x509.ParsePKCS1PrivateKey(block.Bytes)
-}
-
 // DecryptTokenPKIHandler reads the Apple-provided encrypted token ".p7m" file
 // from the request body and decrypts it with the keypair generated from
 // GetCertTokenPKIHandler.
@@ -109,7 +96,7 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStorer
 			jsonError(w, err)
 			return
 		}
-		key, err := RSAKeyFromPEM(keyBytes)
+		key, err := tokenpki.RSAKeyFromPEM(keyBytes)
 		if err != nil {
 			logger.Info("msg", "decoding retrieved private key", "err", err)
 			jsonError(w, err)
