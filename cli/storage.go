@@ -1,4 +1,5 @@
-package parse
+// Package cli contains shared command-line helpers and utilities.
+package cli
 
 import (
 	"fmt"

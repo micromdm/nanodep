@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/micromdm/nanodep/cli"
 	"github.com/micromdm/nanodep/godep"
 	"github.com/micromdm/nanodep/log/stdlogfmt"
-	"github.com/micromdm/nanodep/parse"
 	depsync "github.com/micromdm/nanodep/sync"
 )
 
@@ -53,7 +53,7 @@ func main() {
 
 	logger := stdlogfmt.New(stdlog.Default(), *flDebug)
 
-	storage, err := parse.Storage(*flStorage, *flDSN)
+	storage, err := cli.Storage(*flStorage, *flDSN)
 	if err != nil {
 		logger.Info("msg", "creating storage backend", "err", err)
 		os.Exit(1)
