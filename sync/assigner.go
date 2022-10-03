@@ -97,10 +97,7 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.Device
 				"profile_uuid", device.ProfileUUID,
 			)
 		}
-		if strings.ToLower(device.OpType) == "added" {
-			// we currently only listen for an op_type of "added." the other
-			// op_types are ambiguous and it would be needless to assign the
-			// profile UUID every single time we get an update.
+		if shouldProcessDevice(device.OpType) {
 			serials = append(serials, device.SerialNumber)
 		}
 	}
@@ -135,6 +132,27 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.Device
 	logger.Info(logs...)
 
 	return nil
+}
+
+// shouldProcessDevice returns whether the device's opType returned by
+// FetchDeviceRequest and SyncDeviceRequest should be processed
+// (and not ignored).
+//
+// From Apple docs in https://developer.apple.com/documentation/devicemanagement/device:
+//
+//	op_type indicates whether the device was added (assigned to the MDM server),
+//	modified, or deleted. Contains one of the following strings: added, modified,
+//	or deleted. This field is only applicable with the sync the list of devices command.
+//
+// Therefore currently only process the following:
+//   - "op_type" = "" (returned by FetchDeviceRequest)
+//   - "op_type" = "added"
+//
+// Other "op_type" values are considered ambiguous and it would be
+// needless to assign the profile UUID every single time we get
+// an update.
+func shouldProcessDevice(opType string) bool {
+	return opType == "" || strings.ToLower(opType) == "added"
 }
 
 // logCountsForResults tries to aggregate the result types and log the counts.

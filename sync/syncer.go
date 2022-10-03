@@ -4,6 +4,7 @@ package sync
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -172,11 +173,15 @@ func (s *Syncer) Run(ctx context.Context) error {
 				"phase", phaseLabel[doFetch],
 				"more", resp.MoreToFollow,
 				"cursor", resp.Cursor,
-				"devices", len(resp.Devices),
+				// "device-events" because there could be multiple events for the same device.
+				"device-events", len(resp.Devices),
 			}
 			if !resp.FetchedUntil.IsZero() {
 				// these just gunk up the logs if they're zero
 				logs = append(logs, "fetched_until", resp.FetchedUntil)
+			}
+			for _, device := range resp.Devices {
+				logger.Debug("returned-device", fmt.Sprintf("%+v", device))
 			}
 			logs = append(logs, logCountsForOpTypes(doFetch, resp.Devices)...)
 			logger.Info(logs...)
@@ -222,14 +227,14 @@ func (s *Syncer) Run(ctx context.Context) error {
 // logCountsForOpTypes tries to aggregate the various device "op_type"
 // attributes so they can be logged.
 func logCountsForOpTypes(isFetch bool, devices []godep.Device) []interface{} {
-	opTypes := map[string]int{"added": 0, "modified": 0, "deleted": 0, "other": 0}
+	// Empty op_type "" is returned by FetchDeviceRequest.
+	opTypes := map[string]int{"added": 0, "modified": 0, "deleted": 0, "other": 0, "empty": 0}
 	var opType string
 	for _, device := range devices {
 		// normalize API input
 		opType = strings.ToLower(device.OpType)
-		if isFetch && opType == "" {
-			// it seems no op_type is provided for a fetch sync
-			continue
+		if opType == "" {
+			opType = "empty"
 		}
 		// we don't want to necessarily trust arbitrary op_types so restrict
 		// our logging to some presets
