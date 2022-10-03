@@ -14,7 +14,7 @@ import (
 // SelfSignedRSAKeypair generates a 2048-bit RSA private key and self-signs an
 // X.509 certificate using it. You can set the Common Name in cn and the
 // validity duration with days.
-func SelfSignedRSAKeypair(cn string, days int) (*rsa.PrivateKey, *x509.Certificate, error) {
+func SelfSignedRSAKeypair(cn string, days int64) (*rsa.PrivateKey, *x509.Certificate, error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, nil, err

@@ -13,11 +13,6 @@ import (
 	"github.com/micromdm/nanodep/tokenpki"
 )
 
-const (
-	defaultCN   = "deptokens"
-	defaultDays = 1
-)
-
 // overridden by -ldflags -X
 var version = "unknown"
 
@@ -25,6 +20,8 @@ func main() {
 	var (
 		flCert     = flag.String("cert", "cert.pem", "path to certificate")
 		flKey      = flag.String("key", "cert.key", "path to key")
+		flCN       = flag.String("cn", "deptokens", "common name to use when creating the certificate")
+		flDays     = flag.Int64("days", 1, "validity of the certificate in days")
 		flPassword = flag.String("password", "", "password to encrypt/decrypt private key with")
 		flTokens   = flag.String("token", "", "path to tokens")
 		flForce    = flag.Bool("f", false, "force overwriting the keypair")
@@ -39,10 +36,14 @@ func main() {
 
 	var err error
 	if *flTokens == "" {
+		if *flDays <= 0 {
+			fmt.Println("ERROR: invalid -days flag")
+			os.Exit(1)
+		}
 		if *flPassword == "" {
 			fmt.Println("WARNING: no password provided, private key will be saved in clear text")
 		}
-		err = generateKeyPair(*flCert, *flKey, *flPassword, *flForce)
+		err = generateKeyPair(*flCert, *flKey, *flPassword, *flForce, *flCN, *flDays)
 		if err == nil {
 			fmt.Printf("wrote %s, %s\n", *flCert, *flKey)
 		}
@@ -101,7 +102,7 @@ func decodeEncryptedKeyPEM(pemBytes []byte, password string) (*rsa.PrivateKey, e
 }
 
 // generateKeyPair creates and saves a keypair checking whether they exist first.
-func generateKeyPair(certFile, keyFile, password string, force bool) error {
+func generateKeyPair(certFile, keyFile, password string, force bool, cn string, days int64) error {
 	if !force {
 		_, err := os.Stat(certFile)
 		certExists := err == nil
@@ -111,7 +112,7 @@ func generateKeyPair(certFile, keyFile, password string, force bool) error {
 			return errors.New("cert or key already exist, not overwriting")
 		}
 	}
-	key, cert, err := tokenpki.SelfSignedRSAKeypair(defaultCN, defaultDays)
+	key, cert, err := tokenpki.SelfSignedRSAKeypair(cn, days)
 	if err != nil {
 		return fmt.Errorf("generating keypair: %w", err)
 	}

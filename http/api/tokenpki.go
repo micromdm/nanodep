@@ -2,9 +2,13 @@ package api
 
 import (
 	"context"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/micromdm/nanodep/client"
 	"github.com/micromdm/nanodep/log"
@@ -20,10 +24,14 @@ type TokenPKIStorer interface {
 	StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error
 }
 
-const (
-	defaultCN   = "depserver"
-	defaultDays = 1
-)
+// PEMRSAPrivateKey returns key as a PEM block.
+func PEMRSAPrivateKey(key *rsa.PrivateKey) []byte {
+	block := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}
+	return pem.EncodeToMemory(block)
+}
 
 // GetCertTokenPKIHandler generates a new private key and certificate for
 // the token PKI exchange with the ABM/ASM/BE portal. Every call to this
@@ -35,6 +43,10 @@ const (
 // errors to the output as this is meant for "API" users.
 func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		const (
+			defaultCN   = "depserver"
+			defaultDays = 1
+		)
 		logger := ctxlog.Logger(r.Context(), logger)
 		if r.URL.Path == "" {
 			logger.Info("msg", "DEP name check", "err", "missing DEP name")
@@ -42,7 +54,25 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 			return
 		}
 		logger = logger.With("name", r.URL.Path)
-		key, cert, err := tokenpki.SelfSignedRSAKeypair(defaultCN, defaultDays)
+		var validityDays int64
+		if daysArg := r.URL.Query().Get("validity_days"); daysArg == "" {
+			logger.Debug("msg", "using default validity days", "days", defaultDays)
+			validityDays = defaultDays
+		} else {
+			var err error
+			validityDays, err = strconv.ParseInt(daysArg, 10, 64)
+			if err != nil {
+				logger.Info("msg", "validity_days check", "err", err)
+				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+				return
+			}
+		}
+		cn := r.URL.Query().Get("cn")
+		if cn == "" {
+			logger.Debug("msg", "using default CN", "cn", defaultCN)
+			cn = defaultCN
+		}
+		key, cert, err := tokenpki.SelfSignedRSAKeypair(cn, validityDays)
 		if err != nil {
 			logger.Info("msg", "generating token keypair", "err", err)
 			jsonError(w, err)
@@ -115,23 +145,6 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStorer
 			jsonError(w, err)
 			return
 		}
-		if !tokens.Valid() {
-			logger.Info("msg", "checking auth token validity", "err", "invalid tokens")
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
-		err = tokenStore.StoreAuthTokens(r.Context(), r.URL.Path, tokens)
-		if err != nil {
-			logger.Info("msg", "storing auth tokens", "err", err)
-			jsonError(w, err)
-			return
-		}
-		logger.Debug("msg", "stored auth tokens")
-		w.Header().Set("Content-type", "application/json")
-		err = json.NewEncoder(w).Encode(tokens)
-		if err != nil {
-			logger.Info("msg", "encoding response body", "err", err)
-			return
-		}
+		storeTokens(r.Context(), logger, r.URL.Path, tokens, tokenStore, w)
 	}
 }

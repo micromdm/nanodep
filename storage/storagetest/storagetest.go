@@ -227,7 +227,7 @@ func checkErr(t *testing.T, err error) {
 	}
 }
 
-func generatePKI(t *testing.T, cn string, days int) (pemCert []byte, pemKey []byte) {
+func generatePKI(t *testing.T, cn string, days int64) (pemCert []byte, pemKey []byte) {
 	key, cert, err := tokenpki.SelfSignedRSAKeypair(cn, days)
 	if err != nil {
 		t.Fatal(err)

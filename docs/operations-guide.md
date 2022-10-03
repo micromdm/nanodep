@@ -86,7 +86,7 @@ The `/v1/tokenpki/{name}` endpoints deal with the public key exchange using the 
 
 * Endpoint: `GET, PUT /v1/tokens/{name}`
 
-The `/v1/tokens/{name} ` endpoints deal with the raw DEP OAuth tokens in JSON form. I.e. after the PKI exchange you can query for the actual DEP OAuth tokens if you like. This also allows configuring the OAuth1 tokens for a DEP name if you already have the tokens in JSON format. I.e. if you used the `deptokens` tool or you're using the DEP simulator `depsim`.
+The `/v1/tokens/{name}` endpoints deal with the raw DEP OAuth tokens in JSON form. I.e. after the PKI exchange you can query for the actual DEP OAuth tokens if you like. This also allows configuring the OAuth1 tokens for a DEP name if you already have the tokens in JSON format. I.e. if you used the `deptokens` tool or you're using the DEP simulator `depsim`.
 
 #### Assigner
 
@@ -178,10 +178,14 @@ The [Quickstart Guide](quickstart.md) also documents some usage of these scripts
 
 For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script generates and retrieves the public key certificate for use when downloading the DEP authentication tokens from the ABM/ASM/BE portal. The `curl` call will dump the PEM-encoded certificate to stdout so you'll likely want to redirect it somewhere useful so it can be uploaded to the portal.
 
+This script has two optional arguments:
+- The first argument specifies the Common Name to set in the certificate (default "depserver").
+- The second argument specifies the validity of the certificate in days (default 1 day).
+
 ##### Example usage
 
 ```bash
-$ ./tools/cfg-get-cert.sh > $DEP_NAME.pem
+$ ./tools/cfg-get-cert.sh depserver 365 > $DEP_NAME.pem
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  1001  100  1001    0     0   4509      0 --:--:-- --:--:-- --:--:--  4509
@@ -528,6 +532,18 @@ The file path to read or save the RSA private key that corresponds to the public
 * password to encrypt/decrypt private key with
 
 A password to encrypt or decrypt RSA private key on disk with. Note this is password is just to protect the private key itself and does not play a role in the token PKI exchange with Apple.
+
+#### -cn
+
+* common name to set in the certificate
+
+A Common Name string to set in the certificate (default is "depserver").
+
+#### -days
+
+* validity of the generated certificate in days
+
+The generated certificate will expire after the provided days.
 
 #### -token string
 

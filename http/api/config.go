@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/micromdm/nanodep/client"
@@ -67,6 +68,14 @@ func StoreConfigHandler(store ConfigStorer, logger log.Logger) http.HandlerFunc 
 			return
 		}
 		defer r.Body.Close()
+		if config.BaseURL == "" {
+			err = errors.New("empty base URL")
+		}
+		if err != nil {
+			logger.Info("msg", "decoded config", "err", err)
+			jsonError(w, err)
+			return
+		}
 		err = store.StoreConfig(r.Context(), r.URL.Path, config)
 		if err != nil {
 			logger.Info("msg", "storing config", "err", err)
