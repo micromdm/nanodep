@@ -23,30 +23,18 @@ func Run(t *testing.T, storageFn func(t *testing.T) storage.AllStorage) {
 
 		s := storageFn(t)
 
-		pemCert, pemKey, err := s.RetrieveTokenPKI(ctx, name)
-		if !errors.Is(err, storage.ErrNotFound) {
+		if _, _, err := s.RetrieveTokenPKI(ctx, name); !errors.Is(err, storage.ErrNotFound) {
 			t.Fatalf("unexpected error: %s", err)
-		}
-		if pemCert != nil {
-			t.Fatal("expected nil cert pem")
-		}
-		if pemKey != nil {
-			t.Fatal("expected nil key pem")
 		}
 
-		tokens, err := s.RetrieveAuthTokens(ctx, name)
-		if !errors.Is(err, storage.ErrNotFound) {
+		if _, err := s.RetrieveAuthTokens(ctx, name); !errors.Is(err, storage.ErrNotFound) {
 			t.Fatalf("unexpected error: %s", err)
-		}
-		if tokens != nil {
-			t.Fatal("expected nil tokens")
 		}
 
 		config, err := s.RetrieveConfig(ctx, name)
 		checkErr(t, err)
-		emptyConfig := client.Config{}
-		if config == nil || *config != emptyConfig {
-			t.Fatalf("expected empty config: %+v", config)
+		if config != nil {
+			t.Fatalf("expected non-existent config: %+v", config)
 		}
 
 		// Profile assigner storing and retrieval.
@@ -67,23 +55,12 @@ func Run(t *testing.T, storageFn func(t *testing.T) storage.AllStorage) {
 	})
 
 	testWithName := func(t *testing.T, name string, s storage.AllStorage) {
-
 		// PKI storing and retrieval.
-		pemCert, pemKey, err := s.RetrieveTokenPKI(ctx, name)
-		if !errors.Is(err, storage.ErrNotFound) {
+		if _, _, err := s.RetrieveTokenPKI(ctx, name); !errors.Is(err, storage.ErrNotFound) {
 			t.Fatalf("unexpected error: %s", err)
 		}
-		if err == nil {
-			t.Fatal("expected error")
-		}
-		if pemCert != nil {
-			t.Fatal("expected nil cert pem")
-		}
-		if pemKey != nil {
-			t.Fatal("expected nil key pem")
-		}
-		pemCert, pemKey = generatePKI(t, "basicdn", 1)
-		err = s.StoreTokenPKI(ctx, name, pemCert, pemKey)
+		pemCert, pemKey := generatePKI(t, "basicdn", 1)
+		err := s.StoreTokenPKI(ctx, name, pemCert, pemKey)
 		checkErr(t, err)
 		pemCert2, pemKey2, err := s.RetrieveTokenPKI(ctx, name)
 		checkErr(t, err)
@@ -95,14 +72,10 @@ func Run(t *testing.T, storageFn func(t *testing.T) storage.AllStorage) {
 		}
 
 		// Token storing and retrieval.
-		tokens, err := s.RetrieveAuthTokens(ctx, name)
-		if !errors.Is(err, storage.ErrNotFound) {
+		if _, err := s.RetrieveAuthTokens(ctx, name); !errors.Is(err, storage.ErrNotFound) {
 			t.Fatalf("unexpected error: %s", err)
 		}
-		if tokens != nil {
-			t.Fatal("expected nil tokens")
-		}
-		tokens = &client.OAuth1Tokens{
+		tokens := &client.OAuth1Tokens{
 			ConsumerKey:       "CK_9af2f8218b150c351ad802c6f3d66abe",
 			ConsumerSecret:    "CS_9af2f8218b150c351ad802c6f3d66abe",
 			AccessToken:       "AT_9af2f8218b150c351ad802c6f3d66abe",
@@ -130,9 +103,8 @@ func Run(t *testing.T, storageFn func(t *testing.T) storage.AllStorage) {
 		// Config storing and retrieval.
 		config, err := s.RetrieveConfig(ctx, name)
 		checkErr(t, err)
-		emptyConfig := client.Config{}
-		if config == nil || *config != emptyConfig {
-			t.Fatalf("expected empty config: %+v", config)
+		if config != nil {
+			t.Fatalf("expected not-existing config: %+v", config)
 		}
 		config = &client.Config{
 			BaseURL: "https://config.example.com",

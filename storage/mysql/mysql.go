@@ -21,8 +21,6 @@ type MySQLStorage struct {
 	db *sql.DB
 }
 
-var _ storage.AllStorage = (*MySQLStorage)(nil)
-
 type config struct {
 	driver string
 	dsn    string
@@ -154,9 +152,10 @@ ON DUPLICATE KEY UPDATE
 	return err
 }
 
-// RetrieveConfig reads the DEP config for the DEP name.
+// RetrieveConfig reads the JSON DEP config of a DEP name.
 //
-// Returns an empty config if the config does not exist (to support a fallback default config).
+// Returns (nil, nil) if the DEP name does not exist, or if the config
+// for the DEP name does not exist.
 func (s *MySQLStorage) RetrieveConfig(ctx context.Context, name string) (*client.Config, error) {
 	var baseURL sql.NullString
 	err := s.db.QueryRowContext(
@@ -168,16 +167,18 @@ func (s *MySQLStorage) RetrieveConfig(ctx context.Context, name string) (*client
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// an 'empty' config is valid
-			return &client.Config{}, nil
+			// If the DEP name does not exist, then the config does not exist.
+			return nil, nil
 		}
 		return nil, err
 	}
-	var config client.Config
-	if baseURL.Valid {
-		config.BaseURL = baseURL.String
+	if !baseURL.Valid {
+		// If the config_base_url is NULL, then config does not exist.
+		return nil, nil
 	}
-	return &config, nil
+	return &client.Config{
+		BaseURL: baseURL.String,
+	}, nil
 }
 
 // StoreConfig saves the DEP config for name DEP name.

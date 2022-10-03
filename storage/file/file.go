@@ -21,8 +21,6 @@ type FileStorage struct {
 	path string
 }
 
-var _ storage.AllStorage = (*FileStorage)(nil)
-
 // New creates a new FileStorage backend.
 func New(path string) (*FileStorage, error) {
 	err := os.Mkdir(path, 0755)
@@ -66,13 +64,10 @@ func (s *FileStorage) tokenpkiFilename(name, kind string) string {
 func (s *FileStorage) RetrieveAuthTokens(_ context.Context, name string) (*client.OAuth1Tokens, error) {
 	tokens := new(client.OAuth1Tokens)
 	err := decodeJSONfile(s.tokensFilename(name), tokens)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, storage.ErrNotFound
-		}
-		return nil, err
+	if errors.Is(err, os.ErrNotExist) {
+		err = storage.ErrNotFound
 	}
-	return tokens, nil
+	return tokens, err
 }
 
 // StoreAuthTokens saves the DEP OAuth tokens to disk as JSON for name DEP name.
@@ -94,15 +89,16 @@ func decodeJSONfile(filename string, v interface{}) error {
 	return json.NewDecoder(f).Decode(v)
 }
 
-// RetrieveConfig reads the JSON DEP config from disk for name DEP name.
+// RetrieveConfig reads the JSON DEP config of a DEP name.
 //
-// Returns an empty config if the config does not exist (to support a fallback default config).
+// Returns (nil, nil) if the DEP name does not exist, or if the config
+// for the DEP name does not exist.
 func (s *FileStorage) RetrieveConfig(_ context.Context, name string) (*client.Config, error) {
 	config := new(client.Config)
 	err := decodeJSONfile(s.configFilename(name), config)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
-		// an 'empty' config is valid
-		return &client.Config{}, nil
+		// DEP name does not exist, or config for such DEP name does not exist.
+		return nil, nil
 	}
 	return config, err
 }
