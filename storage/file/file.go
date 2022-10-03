@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/micromdm/nanodep/client"
+	"github.com/micromdm/nanodep/storage"
 )
 
 const defaultFileMode = 0644
@@ -62,10 +63,14 @@ func (s *FileStorage) tokenpkiFilename(name, kind string) string {
 // RetrieveAuthTokens reads the JSON DEP OAuth tokens from disk for name DEP name.
 func (s *FileStorage) RetrieveAuthTokens(_ context.Context, name string) (*client.OAuth1Tokens, error) {
 	tokens := new(client.OAuth1Tokens)
-	return tokens, decodeJSONfile(s.tokensFilename(name), tokens)
+	err := decodeJSONfile(s.tokensFilename(name), tokens)
+	if errors.Is(err, os.ErrNotExist) {
+		err = storage.ErrNotFound
+	}
+	return tokens, err
 }
 
-// RetrieveAuthTokens saves the DEP OAuth tokens to disk as JSON for name DEP name.
+// StoreAuthTokens saves the DEP OAuth tokens to disk as JSON for name DEP name.
 func (s *FileStorage) StoreAuthTokens(_ context.Context, name string, tokens *client.OAuth1Tokens) error {
 	f, err := os.Create(s.tokensFilename(name))
 	if err != nil {
@@ -84,15 +89,16 @@ func decodeJSONfile(filename string, v interface{}) error {
 	return json.NewDecoder(f).Decode(v)
 }
 
-// RetrieveConfig reads the JSON DEP config from disk for name DEP name.
-// We return an empty config if the config does not exist on disk.
-// This is to support a fallback default config.
+// RetrieveConfig reads the JSON DEP config of a DEP name.
+//
+// Returns (nil, nil) if the DEP name does not exist, or if the config
+// for the DEP name does not exist.
 func (s *FileStorage) RetrieveConfig(_ context.Context, name string) (*client.Config, error) {
 	config := new(client.Config)
 	err := decodeJSONfile(s.configFilename(name), config)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
-		// an 'empty' config is valid
-		return &client.Config{}, nil
+		// DEP name does not exist, or config for such DEP name does not exist.
+		return nil, nil
 	}
 	return config, err
 }
@@ -109,6 +115,8 @@ func (s *FileStorage) StoreConfig(_ context.Context, name string, config *client
 
 // RetrieveAssignerProfile reads the assigner profile UUID and its configured
 // timestamp from disk for name DEP name.
+//
+// Returns an empty profile if it does not exist.
 func (s *FileStorage) RetrieveAssignerProfile(_ context.Context, name string) (string, time.Time, error) {
 	profileBytes, err := os.ReadFile(s.profileFilename(name))
 	if err != nil && errors.Is(err, os.ErrNotExist) {
@@ -119,7 +127,7 @@ func (s *FileStorage) RetrieveAssignerProfile(_ context.Context, name string) (s
 	if err == nil {
 		var stat fs.FileInfo
 		stat, err = os.Stat(s.profileFilename(name))
-		if err != nil {
+		if err == nil {
 			modTime = stat.ModTime()
 		}
 	}
@@ -164,10 +172,16 @@ func (s *FileStorage) StoreTokenPKI(_ context.Context, name string, pemCert []by
 func (s *FileStorage) RetrieveTokenPKI(_ context.Context, name string) ([]byte, []byte, error) {
 	certBytes, err := os.ReadFile(s.tokenpkiFilename(name, "cert"))
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil, storage.ErrNotFound
+		}
 		return nil, nil, err
 	}
 	keyBytes, err := os.ReadFile(s.tokenpkiFilename(name, "key"))
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil, storage.ErrNotFound
+		}
 		return nil, nil, err
 	}
 	return certBytes, keyBytes, err

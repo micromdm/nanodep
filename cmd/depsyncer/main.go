@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/micromdm/nanodep/cmd"
+	"github.com/micromdm/nanodep/cli"
 	"github.com/micromdm/nanodep/godep"
 	"github.com/micromdm/nanodep/log/stdlogfmt"
 	depsync "github.com/micromdm/nanodep/sync"
@@ -30,7 +30,7 @@ func main() {
 		flLimit   = flag.Int("limit", 0, "limit fetch and sync calls to this many devices (0 for server default)")
 		flDebug   = flag.Bool("debug", false, "log debug messages")
 		flADebug  = flag.Bool("debug-assigner", false, "additional debug logging of the device assigner")
-		flStorage = flag.String("storage", "", "storage backend")
+		flStorage = flag.String("storage", "file", "storage backend")
 		flDSN     = flag.String("storage-dsn", "", "storage data source name")
 		flWebhook = flag.String("webhook-url", "", "URL to send requests to")
 	)
@@ -53,7 +53,7 @@ func main() {
 
 	logger := stdlogfmt.New(stdlog.Default(), *flDebug)
 
-	storage, err := cmd.ParseStorage(*flStorage, *flDSN)
+	storage, err := cli.Storage(*flStorage, *flDSN)
 	if err != nil {
 		logger.Info("msg", "creating storage backend", "err", err)
 		os.Exit(1)

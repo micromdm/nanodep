@@ -24,6 +24,15 @@ jobs:
 
     - name: Build
       run: go build -v ./...
+    
+    - name: Start test docker containers
+      if: matrix.platform == 'ubuntu-latest'
+      run: |
+        docker-compose -f storage/mysql/docker-compose-test.yml up &
+
+    - name: Set 
+      if: matrix.platform == 'ubuntu-latest'
+      run: echo "NANODEP_MYSQL_STORAGE_TEST=1" >> $GITHUB_ENV
 
     - name: Test
       run: go test -v -race ./...

@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -18,11 +17,11 @@ import (
 )
 
 type TokenPKIRetriever interface {
-	RetrieveTokenPKI(context.Context, string) ([]byte, []byte, error)
+	RetrieveTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error)
 }
 
 type TokenPKIStorer interface {
-	StoreTokenPKI(context.Context, string, []byte, []byte) error
+	StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error
 }
 
 // PEMRSAPrivateKey returns key as a PEM block.
@@ -80,7 +79,7 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 			return
 		}
 		pemCert := tokenpki.PEMCertificate(cert.Raw)
-		err = store.StoreTokenPKI(r.Context(), r.URL.Path, pemCert, PEMRSAPrivateKey(key))
+		err = store.StoreTokenPKI(r.Context(), r.URL.Path, pemCert, tokenpki.PEMRSAPrivateKey(key))
 		if err != nil {
 			logger.Info("msg", "storing token keypair", "err", err)
 			jsonError(w, err)
@@ -90,15 +89,6 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 		w.Header().Set("Content-Disposition", `attachment; filename="`+r.URL.Path+`.pem"`)
 		w.Write(pemCert)
 	}
-}
-
-// RSAKeyFromPEM decodes a PEM RSA private key.
-func RSAKeyFromPEM(key []byte) (*rsa.PrivateKey, error) {
-	block, _ := pem.Decode(key)
-	if block.Type != "RSA PRIVATE KEY" {
-		return nil, errors.New("PEM type is not RSA PRIVATE KEY")
-	}
-	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
 // DecryptTokenPKIHandler reads the Apple-provided encrypted token ".p7m" file
@@ -136,7 +126,7 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStorer
 			jsonError(w, err)
 			return
 		}
-		key, err := RSAKeyFromPEM(keyBytes)
+		key, err := tokenpki.RSAKeyFromPEM(keyBytes)
 		if err != nil {
 			logger.Info("msg", "decoding retrieved private key", "err", err)
 			jsonError(w, err)

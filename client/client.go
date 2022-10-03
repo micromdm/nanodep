@@ -1,4 +1,4 @@
-// Package client implements HTTP privitives for talking with and authenticating with the Apple DEP APIs.
+// Package client implements HTTP primitives for talking with and authenticating with the Apple DEP APIs.
 package client
 
 import (
@@ -21,7 +21,11 @@ type Config struct {
 }
 
 type ConfigRetriever interface {
-	RetrieveConfig(context.Context, string) (*Config, error)
+	// RetrieveConfig reads the JSON DEP config of a DEP name.
+	//
+	// Returns (nil, nil) if the DEP name does not exist, or if the config
+	// for the DEP name does not exist.
+	RetrieveConfig(ctx context.Context, name string) (*Config, error)
 }
 
 // DefaultConfigRetreiver wraps a ConfigRetriever to return a default configuration.

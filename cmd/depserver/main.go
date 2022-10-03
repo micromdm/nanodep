@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/micromdm/nanodep/cli"
 	"github.com/micromdm/nanodep/client"
-	"github.com/micromdm/nanodep/cmd"
 	dephttp "github.com/micromdm/nanodep/http"
 	"github.com/micromdm/nanodep/http/api"
 	"github.com/micromdm/nanodep/log/stdlogfmt"
@@ -37,7 +37,7 @@ func main() {
 		flListen  = flag.String("listen", ":9001", "HTTP listen address")
 		flAPIKey  = flag.String("api", "", "API key for API endpoints")
 		flVersion = flag.Bool("version", false, "print version")
-		flStorage = flag.String("storage", "", "storage backend")
+		flStorage = flag.String("storage", "file", "storage backend")
 		flDSN     = flag.String("storage-dsn", "", "storage data source name")
 	)
 	flag.Parse()
@@ -55,7 +55,7 @@ func main() {
 
 	logger := stdlogfmt.New(stdlog.Default(), *flDebug)
 
-	storage, err := cmd.ParseStorage(*flStorage, *flDSN)
+	storage, err := cli.Storage(*flStorage, *flDSN)
 	if err != nil {
 		logger.Info("msg", "creating storage backend", "err", err)
 		os.Exit(1)
