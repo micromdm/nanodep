@@ -249,25 +249,36 @@ ON DUPLICATE KEY UPDATE
 
 // RetrieveCursor reads the reads the DEP fetch and sync cursor for name DEP name.
 //
-// Returns an empty cursor if the cursor does not exist.
-func (s *MySQLStorage) RetrieveCursor(ctx context.Context, name string) (string, error) {
-	var cursor sql.NullString
+// Returns an empty cursor with empty modTime if the cursor does not exist.
+func (s *MySQLStorage) RetrieveCursor(ctx context.Context, name string) (string, time.Time, error) {
+	var (
+		cursor    sql.NullString
+		cursorAt_ sql.NullString
+	)
 	if err := s.db.QueryRowContext(
 		ctx,
-		`SELECT syncer_cursor FROM dep_names WHERE name = ?;`,
+		`SELECT syncer_cursor, syncer_cursor_at FROM dep_names WHERE name = ?;`,
 		name,
 	).Scan(
-		&cursor,
+		&cursor, &cursorAt_,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", nil
+			return "", time.Time{}, nil
 		}
-		return "", err
+		return "", time.Time{}, err
 	}
 	if !cursor.Valid {
-		return "", nil
+		return "", time.Time{}, nil
 	}
-	return cursor.String, nil
+	var cursorAt time.Time
+	if cursorAt_.Valid {
+		var err error
+		cursorAt, err = time.Parse(timestampFormat, cursorAt_.String)
+		if err != nil {
+			return "", time.Time{}, err
+		}
+	}
+	return cursor.String, cursorAt, nil
 }
 
 // StoreCursor saves the DEP fetch and sync cursor for name DEP name.
@@ -275,11 +286,12 @@ func (s *MySQLStorage) StoreCursor(ctx context.Context, name, cursor string) err
 	_, err := s.db.ExecContext(
 		ctx, `
 INSERT INTO dep_names
-	(name, syncer_cursor)
+	(name, syncer_cursor, syncer_cursor_at)
 VALUES
-	(?, ?) as new
+	(?, ?, CURRENT_TIMESTAMP) as new
 ON DUPLICATE KEY UPDATE
-	syncer_cursor = new.syncer_cursor`,
+	syncer_cursor = new.syncer_cursor,
+	syncer_cursor_at = new.syncer_cursor_at;`,
 		name,
 		cursor,
 	)

@@ -139,16 +139,24 @@ func (s *FileStorage) StoreAssignerProfile(_ context.Context, name string, profi
 	return os.WriteFile(s.profileFilename(name), []byte(profileUUID+"\n"), defaultFileMode)
 }
 
-// RetrieveCursor reads the reads the DEP fetch and sync cursor from disk
-// for name DEP name. We return an empty cursor if the cursor does not exist
-// on disk.
-func (s *FileStorage) RetrieveCursor(_ context.Context, name string) (string, error) {
+// RetrieveCursor reads the reads the DEP fetch and sync cursor for name DEP name.
+//
+// Returns an empty cursor with empty modTime if the cursor does not exist.
+func (s *FileStorage) RetrieveCursor(_ context.Context, name string) (string, time.Time, error) {
 	cursorBytes, err := os.ReadFile(s.cursorFilename(name))
 	if err != nil && errors.Is(err, os.ErrNotExist) {
 		// an 'empty' cursor is valid
-		return "", nil
+		return "", time.Time{}, nil
 	}
-	return strings.TrimSpace(string(cursorBytes)), err
+	modTime := time.Time{}
+	if err == nil {
+		var stat fs.FileInfo
+		stat, err = os.Stat(s.cursorFilename(name))
+		if err == nil {
+			modTime = stat.ModTime()
+		}
+	}
+	return strings.TrimSpace(string(cursorBytes)), modTime, err
 }
 
 // StoreCursor saves the DEP fetch and sync cursor to disk for name DEP name.

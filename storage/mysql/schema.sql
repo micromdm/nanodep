@@ -17,7 +17,8 @@ CREATE TABLE dep_names (
 
     -- Syncer
     -- From Apple docs: "The string can be up to 1000 characters".
-    syncer_cursor VARCHAR(1024) NULL,
+    syncer_cursor    VARCHAR(1024) NULL,
+    syncer_cursor_at TIMESTAMP NULL,
 
     -- Assigner
     assigner_profile_uuid    TEXT NULL,

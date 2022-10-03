@@ -47,10 +47,13 @@ func Run(t *testing.T, storageFn func(t *testing.T) storage.AllStorage) {
 			t.Fatal("expected zero modTime")
 		}
 
-		cursor, err := s.RetrieveCursor(ctx, name)
+		cursor, modTime, err := s.RetrieveCursor(ctx, name)
 		checkErr(t, err)
 		if cursor != "" {
 			t.Fatal("expected empty cursor")
+		}
+		if !modTime.IsZero() {
+			t.Fatal("expected zero modTime")
 		}
 	})
 
@@ -165,26 +168,36 @@ func Run(t *testing.T, storageFn func(t *testing.T) storage.AllStorage) {
 			t.Fatalf("mismatch modTime, expected: %s (+/- 1m), actual: %s", now, modTime)
 		}
 
-		cursor, err := s.RetrieveCursor(ctx, name)
+		cursor, modTime, err := s.RetrieveCursor(ctx, name)
 		checkErr(t, err)
 		if cursor != "" {
 			t.Fatal("expected empty cursor")
 		}
+		if !modTime.IsZero() {
+			t.Fatal("expected empty modTime")
+		}
 		cursor = "MTY1NzI2ODE5Ny0x"
 		err = s.StoreCursor(ctx, name, cursor)
 		checkErr(t, err)
-		cursor2, err := s.RetrieveCursor(ctx, name)
+		cursor2, modTime2, err := s.RetrieveCursor(ctx, name)
 		checkErr(t, err)
 		if cursor != cursor2 {
 			t.Fatalf("cursor mismatch: %s vs. %s", cursor, cursor2)
 		}
+		if modTime2.IsZero() {
+			t.Fatalf("cursor modTime not set")
+		}
 		cursor2 = "foo_MTY1NzI2ODE5Ny0x"
+		time.Sleep(1 * time.Second)
 		err = s.StoreCursor(ctx, name, cursor2)
 		checkErr(t, err)
-		cursor3, err := s.RetrieveCursor(ctx, name)
+		cursor3, modTime3, err := s.RetrieveCursor(ctx, name)
 		checkErr(t, err)
 		if cursor2 != cursor3 {
 			t.Fatalf("cursor mismatch: %s vs. %s", cursor2, cursor3)
+		}
+		if !modTime3.After(modTime2) {
+			t.Fatalf("cursor modTime not set: %s vs. %s", modTime3, modTime2)
 		}
 	}
 
