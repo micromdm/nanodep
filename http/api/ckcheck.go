@@ -35,7 +35,7 @@ func (t *CKCheck) StoreAuthTokens(ctx context.Context, name string, tokens *clie
 	if err != nil {
 		return fmt.Errorf("retrieving auth tokens: %w", err)
 	}
-	if prevTokens.ConsumerKey != tokens.ConsumerKey {
+	if prevTokens.ConsumerKey != tokens.ConsumerKey && prevTokens.ConsumerKey != "" {
 		return CKMismatch
 	}
 	return t.AuthTokensStorer.StoreAuthTokens(ctx, name, tokens)
