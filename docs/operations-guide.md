@@ -82,11 +82,15 @@ Returns a JSON response with the version of the running NanoDEP server.
 
 The `/v1/tokenpki/{name}` endpoints deal with the public key exchange using the Apple ABM/ASM/BE portal for acquiring the authentication tokens for talking to the DEP API. For example usage please see the `./tools/cfg-get-cert.sh` and `./tools/cfg-decrypt-tokens.sh` scripts. These scripts are talked about under section "Tools and scripts" below.
 
+For the GET operation you can provide a "cn" and "validity_days" URL parameters. For the PUT operation you can supply a "force" URL parameter which will override the matching consumer key check.
+
 #### Tokens
 
 * Endpoint: `GET, PUT /v1/tokens/{name}`
 
 The `/v1/tokens/{name}` endpoints deal with the raw DEP OAuth tokens in JSON form. I.e. after the PKI exchange you can query for the actual DEP OAuth tokens if you like. This also allows configuring the OAuth1 tokens for a DEP name if you already have the tokens in JSON format. I.e. if you used the `deptokens` tool or you're using the DEP simulator `depsim`.
+
+For the PUT operation you can supply a "force" URL parameter which will override the matching consumer key check.
 
 #### Assigner
 
@@ -199,6 +203,9 @@ MIICtTCCAZ2gAwIBAgIBATANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDEwlkZXBz
 For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script uploads the encrypted tokens that were downloaded from the ABM/ASM/BE portal to `depserver` where it is decrypted and the resulting OAuth tokens stored with the MDM instance.
 
 **The first argument is required** and specifies the path to the token file downloaded from the Apple portal.
+
+This script has one optional argument:
+- If you spply a "1" as the second argument it will override ("force" mode) the consumer key check to be able to save a differing consumer key.
 
 ##### Example usage
 
