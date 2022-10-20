@@ -63,3 +63,11 @@ test:
 	go test -v -cover -race ./...
 
 .PHONY: my docker $(DEPTOKENS) $(DEPSERVER) $(DEPSYNCER) clean release test
+
+# Local Development
+export MONGO_ROOT_USER = root
+export MONGO_ROOT_PASSWORD = root
+
+.PHONY: docker-run-mongo
+docker-run-mongo:
+	@ docker-compose -f storage/mongodb/docker-compose.yml up -d

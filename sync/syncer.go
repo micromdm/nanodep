@@ -131,6 +131,7 @@ func (s *Syncer) Run(ctx context.Context) error {
 		}
 		if doFetch {
 			resp, err = s.client.FetchDevices(ctx, s.name, opts...)
+			logger.Debug("hidden2", err)
 			if err != nil && godep.IsCursorExhausted(err) {
 				logger.Debug(
 					"msg", "cursor returned all devices previously",
