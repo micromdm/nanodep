@@ -178,7 +178,7 @@ func (s *MongoDBStorage) RetrieveAuthTokens(_ context.Context, name string) (*cl
 	return tokens, nil
 }
 
-// StoreAuthTokens saves the DEP OAuth tokens to mongodb as JSON for name DEP name.
+// StoreAuthTokens saves the DEP OAuth tokens to mongodb for name DEP name.
 func (s *MongoDBStorage) StoreAuthTokens(_ context.Context, name string, tokens *client.OAuth1Tokens) error {
 	upsert := true
 	filter := bson.M{
@@ -227,7 +227,7 @@ func (s *MongoDBStorage) RetrieveConfig(_ context.Context, name string) (*client
 	return config, nil
 }
 
-// StoreConfig saves the DEP config to disk as JSON for name DEP name.
+// StoreConfig saves the DEP config to mongodb for name DEP name.
 func (s *MongoDBStorage) StoreConfig(_ context.Context, name string, config *client.Config) error {
 	upsert := true
 	filter := bson.M{
@@ -248,7 +248,7 @@ func (s *MongoDBStorage) StoreConfig(_ context.Context, name string, config *cli
 }
 
 // RetrieveAssignerProfile reads the assigner profile UUID and its configured
-// timestamp from disk for name DEP name.
+// timestamp from mongodb for name DEP name.
 //
 // Returns an empty profile if it does not exist.
 func (s *MongoDBStorage) RetrieveAssignerProfile(_ context.Context, name string) (string, time.Time, error) {
@@ -290,9 +290,9 @@ func (s *MongoDBStorage) StoreAssignerProfile(_ context.Context, name string, pr
 	return nil
 }
 
-// RetrieveCursor reads the reads the DEP fetch and sync cursor from disk
+// RetrieveCursor reads the reads the DEP fetch and sync cursor from mongodb
 // for name DEP name. We return an empty cursor if the cursor does not exist
-// on disk.
+// in the database.
 func (s *MongoDBStorage) RetrieveCursor(_ context.Context, name string) (string, error) {
 	resp := new(CursorRecord)
 
@@ -311,7 +311,7 @@ func (s *MongoDBStorage) RetrieveCursor(_ context.Context, name string) (string,
 	return resp.Cursor, nil
 }
 
-// StoreCursor saves the DEP fetch and sync cursor to disk for name DEP name.
+// StoreCursor saves the DEP fetch and sync cursor to mongodb for name DEP name.
 func (s *MongoDBStorage) StoreCursor(_ context.Context, name, cursor string) error {
 	upsert := true
 	filter := bson.M{
