@@ -98,7 +98,7 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 // Note the whole URL path is used as the DEP name. This necessitates
 // stripping the URL prefix before using this handler. Also note we expose Go
 // errors to the output as this is meant for "API" users.
-func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStorer, logger log.Logger) http.HandlerFunc {
+func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStore, logger log.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := ctxlog.Logger(r.Context(), logger)
 		if r.URL.Path == "" {
@@ -106,7 +106,8 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStorer
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
-		logger = logger.With("name", r.URL.Path)
+		force := r.URL.Query().Get("force") == "1"
+		logger = logger.With("name", r.URL.Path, "force", force)
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			logger.Info("msg", "reading request body", "err", err)
@@ -145,6 +146,6 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStorer
 			jsonError(w, err)
 			return
 		}
-		storeTokens(r.Context(), logger, r.URL.Path, tokens, tokenStore, w)
+		storeTokens(r.Context(), logger, r.URL.Path, tokens, tokenStore, w, false)
 	}
 }

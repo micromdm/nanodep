@@ -3,12 +3,20 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/micromdm/nanodep/client"
 	"github.com/micromdm/nanodep/log"
 	"github.com/micromdm/nanodep/log/ctxlog"
 )
+
+var CKMismatch = errors.New("mismatched consumer key")
+
+type AuthTokensStore interface {
+	client.AuthTokensRetriever
+	AuthTokensStorer
+}
 
 type AuthTokensStorer interface {
 	StoreAuthTokens(ctx context.Context, name string, tokens *client.OAuth1Tokens) error
@@ -50,7 +58,7 @@ func RetrieveAuthTokensHandler(store client.AuthTokensRetriever, logger log.Logg
 // Note the whole URL path is used as the DEP name. This necessitates
 // stripping the URL prefix before using this handler. Also note we expose Go
 // errors to the output as this is meant for "API" users.
-func StoreAuthTokensHandler(store AuthTokensStorer, logger log.Logger) http.HandlerFunc {
+func StoreAuthTokensHandler(store AuthTokensStore, logger log.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := ctxlog.Logger(r.Context(), logger)
 		if r.URL.Path == "" {
@@ -58,7 +66,8 @@ func StoreAuthTokensHandler(store AuthTokensStorer, logger log.Logger) http.Hand
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
-		logger = logger.With("name", r.URL.Path)
+		force := r.URL.Query().Get("force") == "1"
+		logger = logger.With("name", r.URL.Path, "force", force)
 		tokens := new(client.OAuth1Tokens)
 		err := json.NewDecoder(r.Body).Decode(tokens)
 		if err != nil {
@@ -67,17 +76,34 @@ func StoreAuthTokensHandler(store AuthTokensStorer, logger log.Logger) http.Hand
 			return
 		}
 		defer r.Body.Close()
-		storeTokens(r.Context(), logger, r.URL.Path, tokens, store, w)
+		storeTokens(r.Context(), logger, r.URL.Path, tokens, store, w, force)
 	}
 }
 
-func storeTokens(ctx context.Context, logger log.Logger, name string, tokens *client.OAuth1Tokens, store AuthTokensStorer, w http.ResponseWriter) {
+func storeTokens(ctx context.Context, logger log.Logger, name string, tokens *client.OAuth1Tokens, store AuthTokensStore, w http.ResponseWriter, force bool) {
 	if !tokens.Valid() {
 		logger.Info("msg", "checking auth token validity", "err", "invalid tokens")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 	logger = logger.With("consumer_key", tokens.ConsumerKey)
+	if !force {
+		prevTokens, err := store.RetrieveAuthTokens(ctx, name)
+		if err != nil {
+			logger.Debug(
+				"msg", "error retrieving auth tokens; proceeding to store",
+				"err", err,
+			)
+		} else if prevTokens != nil && prevTokens.ConsumerKey != tokens.ConsumerKey {
+			logger.Info(
+				"msg", "checking consumer key (use force to bypass)",
+				"err", CKMismatch,
+				"prev_consumer_key", prevTokens.ConsumerKey,
+			)
+			jsonError(w, CKMismatch)
+			return
+		}
+	}
 	err := store.StoreAuthTokens(ctx, name, tokens)
 	if err != nil {
 		logger.Info("msg", "storing auth tokens", "err", err)

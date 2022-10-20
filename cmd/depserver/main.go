@@ -72,7 +72,7 @@ func main() {
 	}
 
 	tokensMux := dephttp.NewMethodMux()
-	tokensMux.Handle("PUT", api.StoreAuthTokensHandler(api.NewCKCheck(storage), logger.With("handler", "store-auth-tokens")))
+	tokensMux.Handle("PUT", api.StoreAuthTokensHandler(storage, logger.With("handler", "store-auth-tokens")))
 	tokensMux.Handle("GET", api.RetrieveAuthTokensHandler(storage, logger.With("handler", "retrieve-auth-tokens")))
 	handleStrippedAPI(tokensMux, endpointTokens)
 
@@ -83,7 +83,7 @@ func main() {
 
 	tokenPKIMux := dephttp.NewMethodMux()
 	tokenPKIMux.Handle("GET", api.GetCertTokenPKIHandler(storage, logger.With("handler", "get-token-pki")))
-	tokenPKIMux.Handle("PUT", api.DecryptTokenPKIHandler(storage, api.NewCKCheck(storage), logger.With("handler", "put-token-pki")))
+	tokenPKIMux.Handle("PUT", api.DecryptTokenPKIHandler(storage, storage, logger.With("handler", "put-token-pki")))
 	handleStrippedAPI(tokenPKIMux, endpointTokenPKI)
 
 	assignerMux := dephttp.NewMethodMux()

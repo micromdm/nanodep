@@ -128,6 +128,14 @@ paths:
       description: Upload and store DEP OAuth1 tokens for the given DEP Name.
       security:
         - basicAuth: []
+      parameters:
+      - in: query
+        name: force
+        description: Bypass the Consumer Key mismatch check. This allows saving of tokens that have a mismatched consumer key. Specify a "1" as the value.
+        required: false
+        schema:
+          type: string
+          example: "1"
       externalDocs:
         description: Apple documentation describing the decrypted DEP server OAuth1 tokens.
         url: https://developer.apple.com/documentation/devicemanagement/device_assignment/authenticating_with_a_device_enrollment_program_dep_server/examining_server_tokens
@@ -199,6 +207,14 @@ paths:
       description: Decrypt the OAuth1 tokens from the Apple ABM/ASM/BE portal and store them.
       security:
         - basicAuth: []
+      parameters:
+      - in: query
+        name: force
+        description: Bypass the Consumer Key mismatch check. This allows saving of tokens that have a mismatched consumer key. Specify a "1" as the value.
+        required: false
+        schema:
+          type: string
+          example: "1"
       requestBody:
         description: The contents of the .p7m file that Apple provides on the ABM/ASM/BE portal after you've uploaded the public key certificate.
         required: true
