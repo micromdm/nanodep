@@ -70,7 +70,12 @@ type DefineProfileResponse struct {
 	Devices     []string `json:"devices"`
 }
 
-// TODO: DefineProfile
+// DefineProfile uses the Apple "Define a Profile" command to attempt to create a profile.
+// This service defines a profile with Apple's servers that can then be assigned to specific devices.
+// This command provides information about the MDM server that is assigned to manage one or more devices,
+// information about the host that the managed devices can pair with, and various attributes that control
+// the MDM association behavior of the device.
+// See https://developer.apple.com/documentation/devicemanagement/define_a_profile
 func (c *Client) DefineProfile(ctx context.Context, name string, profile *Profile) (*DefineProfileResponse, error) {
 	resp := new(DefineProfileResponse)
 	return resp, c.do(ctx, name, http.MethodPost, "/profile", profile, resp)
