@@ -30,6 +30,7 @@ func main() {
 		flLimit   = flag.Int("limit", 0, "limit fetch and sync calls to this many devices (0 for server default)")
 		flDebug   = flag.Bool("debug", false, "log debug messages")
 		flADebug  = flag.Bool("debug-assigner", false, "additional debug logging of the device assigner")
+		flSDebug  = flag.Bool("debug-syncer", false, "additional debug logging of the device syncer")
 		flStorage = flag.String("storage", "file", "storage backend")
 		flDSN     = flag.String("storage-dsn", "", "storage data source name")
 		flWebhook = flag.String("webhook-url", "", "URL to send requests to")
@@ -128,7 +129,7 @@ func main() {
 			depsync.WithAssignerLogger(logger.With("component", "assigner")),
 		}
 		if *flADebug {
-			assignerOpts = append(assignerOpts, depsync.WithDebug())
+			assignerOpts = append(assignerOpts, depsync.WithAssignerDebug())
 		}
 		assigner := depsync.NewAssigner(
 			client,
@@ -170,6 +171,9 @@ func main() {
 		}
 		if *flLimit > 0 {
 			syncerOpts = append(syncerOpts, depsync.WithLimit(*flLimit))
+		}
+		if *flSDebug {
+			syncerOpts = append(syncerOpts, depsync.WithDebug())
 		}
 		syncer := depsync.NewSyncer(
 			client,

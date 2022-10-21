@@ -51,8 +51,8 @@ func WithAssignerLogger(logger log.Logger) AssignerOption {
 	}
 }
 
-// WithDebug enables additional assigner-specific debug logging for troubleshooting.
-func WithDebug() AssignerOption {
+// WithAssignerDebug enables additional assigner-specific debug logging for troubleshooting.
+func WithAssignerDebug() AssignerOption {
 	return func(a *Assigner) {
 		a.debug = true
 	}
@@ -82,32 +82,22 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.Device
 		return nil
 	}
 
-	var serials []string
+	var serialsToAssign []string
 	for _, device := range resp.Devices {
 		if a.debug {
-			logger.Debug(
-				"msg", "device",
-				"serial_number", device.SerialNumber,
-				"device_assigned_by", device.DeviceAssignedBy,
-				"device_assigned_date", device.DeviceAssignedDate,
-				"op_date", device.OpDate,
-				"op_type", device.OpType,
-				"profile_assign_time", device.ProfileAssignTime,
-				"push_push_time", device.ProfilePushTime,
-				"profile_uuid", device.ProfileUUID,
-			)
+			logs := []interface{}{"msg", "device"}
+			logs = append(logs, logDevice(device)...)
+			logger.Debug(logs...)
 		}
-		if strings.ToLower(device.OpType) == "added" {
-			// we currently only listen for an op_type of "added." the other
-			// op_types are ambiguous and it would be needless to assign the
-			// profile UUID every single time we get an update.
-			serials = append(serials, device.SerialNumber)
+		// note that we may see multiple serial number "events"
+		if shouldAssignDevice(device) {
+			serialsToAssign = append(serialsToAssign, device.SerialNumber)
 		}
 	}
 
 	logger = logger.With("profile_uuid", profileUUID)
 
-	if len(serials) < 1 {
+	if len(serialsToAssign) < 1 {
 		if a.debug {
 			logger.Debug(
 				"msg", "no serials to assign",
@@ -117,11 +107,11 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.Device
 		return nil
 	}
 
-	apiResp, err := a.client.AssignProfile(ctx, a.name, profileUUID, serials...)
+	apiResp, err := a.client.AssignProfile(ctx, a.name, profileUUID, serialsToAssign...)
 	if err != nil {
 		logger.Info(
 			"msg", "assign profile",
-			"devices", len(serials),
+			"devices", len(serialsToAssign),
 			"err", err,
 		)
 		return fmt.Errorf("assign profile: %w", err)
@@ -129,12 +119,24 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.Device
 
 	logs := []interface{}{
 		"msg", "profile assigned",
-		"devices", len(serials),
+		"devices", len(serialsToAssign),
 	}
 	logs = append(logs, logCountsForResults(apiResp.Devices)...)
 	logger.Info(logs...)
 
 	return nil
+}
+
+// shouldAssignDevice decides whether a device "event" should be passed
+// off to the assigner.
+func shouldAssignDevice(device godep.Device) bool {
+	// we currently only listen for an op_type of "added." the other
+	// op_types are ambiguous and it would be needless to assign the
+	// profile UUID every single time we get an update.
+	if strings.ToLower(device.OpType) == "added" {
+		return true
+	}
+	return false
 }
 
 // logCountsForResults tries to aggregate the result types and log the counts.

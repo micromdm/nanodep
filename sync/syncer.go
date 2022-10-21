@@ -34,6 +34,7 @@ type Syncer struct {
 	duration time.Duration
 	limitOpt godep.DeviceRequestOption
 	callback DeviceResponseCallback
+	debug    bool
 	// in "continuous" mode this is a channel that is selected on to interrupt
 	// the duration wait to immediately perform the next sync operation(s).
 	syncNow <-chan struct{}
@@ -77,6 +78,13 @@ func WithLimit(limit int) SyncerOption {
 func WithCallback(cb DeviceResponseCallback) SyncerOption {
 	return func(s *Syncer) {
 		s.callback = cb
+	}
+}
+
+// WithDebug enables additional syncer-specific debug logging for troubleshooting.
+func WithDebug() SyncerOption {
+	return func(s *Syncer) {
+		s.debug = true
 	}
 }
 
@@ -181,6 +189,14 @@ func (s *Syncer) Run(ctx context.Context) error {
 			logs = append(logs, logCountsForOpTypes(doFetch, resp.Devices)...)
 			logger.Info(logs...)
 
+			if s.debug {
+				for _, device := range resp.Devices {
+					logs := []interface{}{"msg", "device"}
+					logs = append(logs, logDevice(device)...)
+					logger.Debug(logs...)
+				}
+			}
+
 			if s.callback != nil {
 				err = s.callback(ctx, doFetch, resp)
 				if err != nil {
@@ -243,6 +259,20 @@ func logCountsForOpTypes(isFetch bool, devices []godep.Device) []interface{} {
 		if v > 0 {
 			logs = append(logs, "op_type_"+k, v)
 		}
+	}
+	return logs
+}
+
+func logDevice(device godep.Device) []interface{} {
+	logs := []interface{}{
+		"serial_number", device.SerialNumber,
+		"device_assigned_by", device.DeviceAssignedBy,
+		"device_assigned_date", device.DeviceAssignedDate,
+		"op_date", device.OpDate,
+		"op_type", device.OpType,
+		"profile_assign_time", device.ProfileAssignTime,
+		"push_push_time", device.ProfilePushTime,
+		"profile_uuid", device.ProfileUUID,
 	}
 	return logs
 }
