@@ -389,6 +389,12 @@ Enable additional debug logging.
 
 Enable extra debug logging for the device assigner component specifically.
 
+#### -debug-syncer
+
+* additional debug logging of the device syncer
+
+Enable extra debug logging for the device syncer component specifically.
+
 #### -duration uint
 
 * duration in seconds between DEP syncs (0 for single sync) (default 1800)
