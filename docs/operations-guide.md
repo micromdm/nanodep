@@ -58,6 +58,14 @@ Be sure to create the storage tables with the [schema.sql](../storage/mysql/sche
 
 *Example:* `-storage mysql -dsn nanodep:nanodep/mydepdb`
 
+##### mongodb storage backend
+
+* `-storage mongodb`
+
+Configures the MongoDB storage backend. The `-dsn` flag should be in the [format the SQL driver expects](https://github.com/go-sql-driver/mysql#dsn-data-source-name).
+
+*Example:* `-storage=mongodb -storage-dsn=mongodb://root:root@127.0.0.1:27017`
+
 #### -version
 
 * print version

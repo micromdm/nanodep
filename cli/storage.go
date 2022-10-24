@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/micromdm/nanodep/storage"
 	"github.com/micromdm/nanodep/storage/file"
+	"github.com/micromdm/nanodep/storage/mongodb"
 	"github.com/micromdm/nanodep/storage/mysql"
 )
 
@@ -22,6 +23,8 @@ func Storage(storageName, dsn string) (storage.AllStorage, error) {
 		store, err = file.New(dsn)
 	case "mysql":
 		store, err = mysql.New(mysql.WithDSN(dsn))
+	case "mongodb":
+		store, err = mongodb.New(dsn)
 	default:
 		return nil, fmt.Errorf("unknown storage: %q", storageName)
 	}
