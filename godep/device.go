@@ -22,9 +22,13 @@ type Device struct {
 	DeviceAssignedBy   string    `json:"device_assigned_by,omitempty"`
 	OS                 string    `json:"os,omitempty"`
 	DeviceFamily       string    `json:"device_family,omitempty"`
-	// fetch/sync-only fields
+
+	// OpType and OpDate are only populated from the sync endpoint
 	OpType string    `json:"op_type,omitempty"`
 	OpDate time.Time `json:"op_date,omitempty"`
+
+	// ResponseStatus is only populated from the details endpoint
+	ResponseStatus string `json:"response_status,omitempty"`
 }
 
 // deviceRequest corresponds to the Apple DEP API "FetchDeviceRequest" and
