@@ -103,3 +103,11 @@ func (c *Client) RemoveProfile(ctx context.Context, name string, devices []strin
 	resp := new(ClearProfileResponse)
 	return resp, c.do(ctx, name, http.MethodDelete, "/profile/devices", req, resp)
 }
+
+// GetProfile uses the Apple "Get a Profile" API endpoint to return the
+// DEP profile named by the given UUID.
+// See https://developer.apple.com/documentation/devicemanagement/get_a_profile
+func (c *Client) GetProfile(ctx context.Context, name, uuid string) (*Profile, error) {
+	resp := new(Profile)
+	return resp, c.do(ctx, name, http.MethodGet, "/profile?profile_uuid="+uuid, nil, resp)
+}
