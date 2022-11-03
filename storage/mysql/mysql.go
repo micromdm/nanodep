@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/micromdm/nanodep/client"
@@ -108,12 +109,12 @@ WHERE
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrNotFound
+			return nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 		}
 		return nil, err
 	}
 	if !consumerKey.Valid { // all auth token fields are set together
-		return nil, storage.ErrNotFound
+		return nil, fmt.Errorf("consumer key not valid: %w", storage.ErrNotFound)
 	}
 	accessTokenExpiryTime, err := time.Parse(timestampFormat, accessTokenExpiry.String)
 	if err != nil {
@@ -315,12 +316,12 @@ func (s *MySQLStorage) RetrieveTokenPKI(ctx context.Context, name string) (pemCe
 		&pemCert, &pemKey,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil, storage.ErrNotFound
+			return nil, nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 		}
 		return nil, nil, err
 	}
 	if pemCert == nil { // tokenpki_cert_pem and tokenpki_key_pem are set together
-		return nil, nil, storage.ErrNotFound
+		return nil, nil, fmt.Errorf("empty certificate: %w", storage.ErrNotFound)
 	}
 	return pemCert, pemKey, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
@@ -65,7 +66,7 @@ func (s *FileStorage) RetrieveAuthTokens(_ context.Context, name string) (*clien
 	tokens := new(client.OAuth1Tokens)
 	err := decodeJSONfile(s.tokensFilename(name), tokens)
 	if errors.Is(err, os.ErrNotExist) {
-		err = storage.ErrNotFound
+		err = fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 	}
 	return tokens, err
 }
@@ -173,14 +174,14 @@ func (s *FileStorage) RetrieveTokenPKI(_ context.Context, name string) ([]byte, 
 	certBytes, err := os.ReadFile(s.tokenpkiFilename(name, "cert"))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, nil, storage.ErrNotFound
+			return nil, nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 		}
 		return nil, nil, err
 	}
 	keyBytes, err := os.ReadFile(s.tokenpkiFilename(name, "key"))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, nil, storage.ErrNotFound
+			return nil, nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 		}
 		return nil, nil, err
 	}
