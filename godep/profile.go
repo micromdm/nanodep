@@ -93,12 +93,12 @@ type ClearProfileResponse struct {
 // support it (nor does it appear to be used on the server-side).
 // The name parameter specifies the configured DEP name to use.
 // See https://developer.apple.com/documentation/devicemanagement/remove_a_profile-c2c
-func (c *Client) RemoveProfile(ctx context.Context, name string, devices []string) (*ClearProfileResponse, error) {
+func (c *Client) RemoveProfile(ctx context.Context, name string, serials ...string) (*ClearProfileResponse, error) {
 	req := &struct {
 		// ProfileUUID string `json:"profile_uuid,omitempty"`
 		Devices []string `json:"devices"`
 	}{
-		Devices: devices,
+		Devices: serials,
 	}
 	resp := new(ClearProfileResponse)
 	return resp, c.do(ctx, name, http.MethodDelete, "/profile/devices", req, resp)
