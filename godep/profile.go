@@ -37,6 +37,9 @@ type Profile struct {
 
 // ProfileResponse corresponds to the Apple DEP API "AssignProfileResponse" structure.
 // See https://developer.apple.com/documentation/devicemanagement/assignprofileresponse
+// Note that the "DefineProfileResponse" structure documents an array of devices
+// when the service itself returns a map/dictionary/hash.
+// See https://developer.apple.com/documentation/devicemanagement/defineprofileresponse
 type ProfileResponse struct {
 	ProfileUUID string            `json:"profile_uuid"`
 	Devices     map[string]string `json:"devices"`
@@ -63,21 +66,14 @@ func (c *Client) AssignProfile(ctx context.Context, name, uuid string, serials .
 	return resp, c.do(ctx, name, http.MethodPut, "/profile/devices", req, resp)
 }
 
-// DefineProfileResponse corresponds to the Apple DEP API "DefineProfileResponse" structure.
-// See https://developer.apple.com/documentation/devicemanagement/defineprofileresponse
-type DefineProfileResponse struct {
-	ProfileUUID string   `json:"profile_uuid"`
-	Devices     []string `json:"devices"`
-}
-
 // DefineProfile uses the Apple "Define a Profile" command to attempt to create a profile.
 // This service defines a profile with Apple's servers that can then be assigned to specific devices.
 // This command provides information about the MDM server that is assigned to manage one or more devices,
 // information about the host that the managed devices can pair with, and various attributes that control
 // the MDM association behavior of the device.
 // See https://developer.apple.com/documentation/devicemanagement/define_a_profile
-func (c *Client) DefineProfile(ctx context.Context, name string, profile *Profile) (*DefineProfileResponse, error) {
-	resp := new(DefineProfileResponse)
+func (c *Client) DefineProfile(ctx context.Context, name string, profile *Profile) (*ProfileResponse, error) {
+	resp := new(ProfileResponse)
 	return resp, c.do(ctx, name, http.MethodPost, "/profile", profile, resp)
 }
 
