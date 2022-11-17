@@ -267,12 +267,21 @@ func logDevice(device godep.Device) []interface{} {
 	logs := []interface{}{
 		"serial_number", device.SerialNumber,
 		"device_assigned_by", device.DeviceAssignedBy,
-		"device_assigned_date", device.DeviceAssignedDate,
-		"op_date", device.OpDate,
 		"op_type", device.OpType,
-		"profile_assign_time", device.ProfileAssignTime,
-		"push_push_time", device.ProfilePushTime,
 		"profile_uuid", device.ProfileUUID,
+		"profile_status", device.ProfileStatus,
+	}
+	if !device.OpDate.IsZero() {
+		logs = append(logs, "op_date", device.OpDate)
+	}
+	if !device.DeviceAssignedDate.IsZero() {
+		logs = append(logs, "device_assigned_date", device.DeviceAssignedDate)
+	}
+	if !device.ProfileAssignTime.IsZero() {
+		logs = append(logs, "profile_assign_time", device.ProfileAssignTime)
+	}
+	if !device.ProfilePushTime.IsZero() {
+		logs = append(logs, "push_push_time", device.ProfilePushTime)
 	}
 	return logs
 }
