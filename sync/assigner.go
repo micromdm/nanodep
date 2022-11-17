@@ -130,12 +130,17 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.Device
 // shouldAssignDevice decides whether a device "event" should be passed
 // off to the assigner.
 func shouldAssignDevice(device godep.Device) bool {
-	// we currently only listen for an op_type of "added." the other
-	// op_types are ambiguous and it would be needless to assign the
-	// profile UUID every single time we get an update.
+	// op_type of "added" indicates a net new device was added to a dep name
 	if strings.ToLower(device.OpType) == "added" {
 		return true
 	}
+
+	// op_type of "modified" with profile status of "removed" indicates an existing
+	// device that was moved to a new dep name
+	if strings.ToLower(device.OpType) == "modified" && strings.ToLower(device.ProfileStatus) == "removed" {
+		return true
+	}
+
 	return false
 }
 
