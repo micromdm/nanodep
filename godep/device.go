@@ -123,11 +123,11 @@ type DeviceListResponse struct {
 // DeviceDetails uses the Apple "Get Device Details" API endpoint to get the
 // details on a set of devices.
 // See https://developer.apple.com/documentation/devicemanagement/get_device_details
-func (c *Client) DeviceDetails(ctx context.Context, name string, devices ...string) (*DeviceListResponse, error) {
+func (c *Client) DeviceDetails(ctx context.Context, name string, serials ...string) (*DeviceListResponse, error) {
 	req := struct {
 		Devices []string `json:"devices"`
 	}{
-		Devices: devices,
+		Devices: serials,
 	}
 	resp := new(DeviceListResponse)
 	return resp, c.do(ctx, name, http.MethodPost, "/devices", req, resp)
