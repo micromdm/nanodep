@@ -255,13 +255,31 @@ $ ./dep-define-profile.sh ../docs/dep-profile.example.json
 }
 ```
 
+#### dep-assign-profile.sh
+
+For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script calls to the Apple DEP API [Assign a Profile](https://developer.apple.com/documentation/devicemanagement/assign_a_profile) endpoint to assign a DEP profile UUID to one or more serial numbers.
+
+This is the same task that `depsyncer` performs, in a script that can be used to assign different DEP profiles to specific devices for testing or varying use cases.
+
+**At least two arguments are required**, with the first argument being the DEP profile UUID obtained when the profile was defined (see above) and the second and any subsequent arguments being the serial number(s) the DEP profile should be assigned to.
+
+##### Example usage
+
+```bash
+$ ./dep-assign-profile.sh 43277A13FBCA0CFC 07AAD449616F566C12
+{
+  "profile_uuid": "43277A13FBCA0CFC",
+  "devices": {
+    "07AAD449616F566C12": "SUCCESS"
+  }
+}
+```
+
 #### dep-device-details.sh
 
 For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script queries the Apple DEP API [Get Device Details](https://developer.apple.com/documentation/devicemanagement/get_device_details) endpoint for a given serial number.
 
-**The first argument is required** and specifies the serial number of the device you want to query.
-
-Note that the API itself supports querying multiple devices at a time if you're able to assemble the appropriate JSON. This script only supports one serial number, however.
+**At least one argument is required** and specifies the serial number(s) of the device(s) you want to query.
 
 ##### Example usage
 
@@ -281,7 +299,7 @@ For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this 
 
 **The first argument is required** and specifies the UUID of the profile that was previously defined via the API.
 
-#####
+##### Example usage
 
 ```bash
 $ ./dep-get-profile.sh 43277A13FBCA0CFC
@@ -307,9 +325,7 @@ $ ./cfg-set-assigner.sh 43277A13FBCA0CFC
 
 For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script calls to the Apple DEP API [Remove a Profile](https://developer.apple.com/documentation/devicemanagement/remove_a_profile-c2c) endpoint to remove a serial number from being assigned to a DEP profile UUID. Note this is **NOT** the [disown](https://developer.apple.com/documentation/devicemanagement/disown_devices) endpoint and profiles can be re-assigned at any time after using this script.
 
-**The first argument is required** and specifies the serial number of the device to remove DEP profile assignment from.
-
-Note that the API itself supports un-assigning multiple devices at a time if you're able to assemble the appropriate JSON. This script only supports one serial number, however.
+**At least one argument is required** and specifies the serial number(s) of the device(s) to remove DEP profile assignment(s) from.
 
 ##### Example usage
 

@@ -5,7 +5,7 @@
 DEP_ENDPOINT=/devices
 URL="${BASE_URL}/proxy/${DEP_NAME}${DEP_ENDPOINT}"
 
-jq -n --arg device "$1" '.devices = [$device]' \
+jq -n --arg devices "$*" '{devices: ($devices|split(" "))}' \
 	| curl \
 		$CURL_OPTS \
 		-u "depserver:$APIKEY" \
