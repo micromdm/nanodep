@@ -1,16 +1,18 @@
 #!/bin/sh
 
-# See https://developer.apple.com/documentation/devicemanagement/remove_a_profile-c2c
-# Note that while the docs contain a profile_uuid field it is not required.
+# See https://developer.apple.com/documentation/devicemanagement/assign_a_profile
 
 DEP_ENDPOINT=/profile/devices
 URL="${BASE_URL}/proxy/${DEP_NAME}${DEP_ENDPOINT}"
 
-jq -n --arg devices "$*" '{devices: ($devices|split(" "))}' \
+PROFILE_UUID="$1"
+shift
+
+jq -n --arg profile_uuid "$PROFILE_UUID" --arg devices "$*" '{profile_uuid: $profile_uuid, devices: ($devices|split(" "))}' \
 	| curl \
 		$CURL_OPTS \
 		-u "depserver:$APIKEY" \
-		-X DELETE \
+		-X POST \
 		-H 'Content-type: application/json;charset=UTF8' \
 		--data-binary @- \
 		-A "nanodep-tools/0" \
