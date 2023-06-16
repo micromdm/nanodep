@@ -246,6 +246,27 @@ paths:
            $ref: '#/components/responses/JSONAPIError'
     parameters:
       - $ref: '#/components/parameters/depName'
+  /v1/maidjwt/{name}:
+    get:
+      description: Generate Managed Apple ID Managed Access JWT. This JWT is for use in response to a device's MDM `GetToken` Check-in message with a `TokenServiceType` of `com.apple.maid`. Note this endpoint queries the DEP Account Details endpoint to retrieve the Server UUID.
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: JWT which includes a claim containing the DEP server UUID and is signed by the private key of the DEP OAuth tokens.
+          content:
+            application/jwt:
+              schema:
+                type: string
+              example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2ODY5MzE5NzIsImlzcyI6IjdERDczOUEyQTQ3MjRBMzI4MkFBODY0RUJBRDMwRkZGIiwianRpIjoiYmJiOGFkYWYtMDRiZS00NWNiLWFlMjgtNWI2NTc4NTdkZDg4Iiwic2VydmljZV90eXBlIjoiY29tLmFwcGxlLm1haWQifQ.IhPEK_jgJe3hxSyzBNYxGyqgeqmiT24MFJa5z6GQa-0vJ1FyEah8uG2ui9bfFKBM7HfbY122pKjEBbsv-oYMiRm9kOWvLb-GzDIb0WCx2c12al5OgIyR6c0cGINVALIDhm7vchMu-MrRS6TYp79FcXUcxHe8i2JxPlKJA9I4De4fCHZb4pgbMVpXbAklglCl7REwnP62BGEJUjSyqYNJTHTsgTFkEmLUgBulw99Yz1tXcJEgu5vnKtEWINVALIDcEyK9e6ek4GhfkzeEHd6WlML0wvZiiFG_8XUI4X3a4GfaAXHwTWHbOxyOGbD5GjhE1tPkT9tt5u6w
+        '401':
+           $ref: '#/components/responses/UnauthorizedError'
+        '400':
+           $ref: '#/components/responses/BadRequest'
+        '500':
+           $ref: '#/components/responses/JSONAPIError'
+    parameters:
+      - $ref: '#/components/parameters/depName'
 components:
   parameters:
     depName:

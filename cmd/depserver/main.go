@@ -29,6 +29,7 @@ const (
 	endpointConfig   = "/v1/config/"
 	endpointTokenPKI = "/v1/tokenpki/"
 	endpointAssigner = "/v1/assigner/"
+	endpointMAIDJWT  = "/v1/maidjwt/"
 	endpointProxy    = "/proxy/"
 )
 
@@ -95,6 +96,11 @@ func main() {
 	assignerMux.Handle("GET", api.RetrieveAssignerProfileHandler(storage, logger.With("handler", "retrieve-assigner-profile")))
 	assignerMux.Handle("PUT", api.StoreAssignerProfileHandler(storage, logger.With("handler", "store-assigner-profile")))
 	handleStrippedAPI(assignerMux, endpointAssigner)
+
+	handleStrippedAPI(
+		api.MAIDJWTHandler(storage, logger.With("handler", "get-maid-jwt")),
+		endpointMAIDJWT,
+	)
 
 	p := proxy.New(
 		client.NewTransport(http.DefaultTransport, http.DefaultClient, storage, nil),
