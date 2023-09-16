@@ -1,5 +1,5 @@
-// Package storagetest offers a battery of tests for storage.AllStorage implementations.
-package storagetest
+// Package test offers a battery of tests for storage.AllStorage implementations.
+package test
 
 import (
 	"bytes"

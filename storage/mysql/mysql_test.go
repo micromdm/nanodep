@@ -11,7 +11,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/micromdm/nanodep/storage"
-	"github.com/micromdm/nanodep/storage/storagetest"
+	"github.com/micromdm/nanodep/storage/test"
 )
 
 func TestMySQLStorage(t *testing.T) {
@@ -20,7 +20,7 @@ func TestMySQLStorage(t *testing.T) {
 		t.Skip("NANODEP_MYSQL_STORAGE_TEST not set")
 	}
 
-	storagetest.Run(t, func(t *testing.T) storage.AllStorage {
+	test.Run(t, func(t *testing.T) storage.AllStorage {
 		dbName := initTestDB(t)
 		testDSN := fmt.Sprintf("nanodep:insecure@tcp(localhost:4242)/%s?charset=utf8mb4&loc=UTC", dbName)
 		s, err := New(WithDSN(testDSN))
