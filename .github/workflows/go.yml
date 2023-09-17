@@ -25,18 +25,55 @@ jobs:
     - name: Build
       run: go build -v ./...
     
-    - name: Start test docker containers
-      if: matrix.platform == 'ubuntu-latest'
-      run: |
-        docker-compose -f storage/mysql/docker-compose-test.yml up &
-
-    - name: Set 
-      if: matrix.platform == 'ubuntu-latest'
-      run: echo "NANODEP_MYSQL_STORAGE_TEST=1" >> $GITHUB_ENV
-
     - name: Test
       run: go test -v -race ./...
 
     - name: Format
       if: matrix.platform == 'ubuntu-latest'
       run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+
+  mysql-integration-test:
+    name: Integration tests for the MySQL backend.
+    runs-on: 'ubuntu-latest'
+    needs: build-test
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: yes
+          MYSQL_DATABASE: nanodep
+          MYSQL_USER: nanodep
+          MYSQL_PASSWORD: nanodep
+        ports:
+          - 3800:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+    defaults:
+      run:
+        shell: bash
+    env:
+      MYSQL_PWD: nanodep
+      PORT: 3800
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: setup go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.17.x'
+
+    - name: Verify MySQL connection
+      run: |
+        while ! mysqladmin ping --host=localhost --port=$PORT --protocol=TCP --silent; do
+          sleep 1
+        done
+
+    - name: Set up schema
+      run: |
+        mysql --version
+        mysql --user=nanodep --host=localhost --port=$PORT --protocol=TCP nanodep < ./storage/mysql/schema.sql
+
+    - name: Set 
+      run: echo "NANODEP_MYSQL_STORAGE_TEST_DSN=nanodep:nanodep@tcp(localhost:$PORT)/nanodep" >> $GITHUB_ENV
+
+    - name: Test
+      run: go test -v ./storage/mysql
