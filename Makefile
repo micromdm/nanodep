@@ -6,18 +6,24 @@ DEPTOKENS=\
 	deptokens-darwin-arm64 \
 	deptokens-darwin-amd64 \
 	deptokens-linux-amd64 \
+	deptokens-linux-arm64 \
+	deptokens-linux-arm \
 	deptokens-windows-amd64.exe
 
 DEPSERVER=\
 	depserver-darwin-arm64 \
 	depserver-darwin-amd64 \
 	depserver-linux-amd64 \
+	depserver-linux-arm64 \
+	depserver-linux-arm \
 	depserver-windows-amd64.exe
 
 DEPSYNCER=\
 	depsyncer-darwin-arm64 \
 	depsyncer-darwin-amd64 \
 	depsyncer-linux-amd64 \
+	depsyncer-linux-arm64 \
+	depsyncer-linux-arm \
 	depsyncer-windows-amd64.exe
 
 SUPPLEMENTAL=\
@@ -54,10 +60,7 @@ nanodep-%-$(VERSION).zip: depserver-%.exe depsyncer-%.exe deptokens-%.exe $(SUPP
 clean:
 	rm -f deptokens-* depserver-* depsyncer-* nanodep-*.zip
 
-release: \
-	nanodep-darwin-amd64-$(VERSION).zip \
-	nanodep-darwin-arm64-$(VERSION).zip \
-	nanodep-linux-amd64-$(VERSION).zip
+release: $(foreach bin,$(DEPSERVER),$(subst .exe,,$(subst depserver,nanodep,$(bin)))-$(VERSION).zip)
 
 test:
 	go test -v -cover -race ./...

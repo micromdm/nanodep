@@ -1,10 +1,14 @@
 FROM gcr.io/distroless/static
 
-COPY depserver-linux-amd64 /depserver
-COPY depsyncer-linux-amd64 /depsyncer
+ARG TARGETOS TARGETARCH
+
+COPY depserver-$TARGETOS-$TARGETARCH /app/depserver
+COPY depsyncer-$TARGETOS-$TARGETARCH /app/depsyncer
 
 EXPOSE 9001
 
-VOLUME ["/db"]
+VOLUME ["/app/db"]
 
-ENTRYPOINT ["/depserver"]
+WORKDIR /app
+
+ENTRYPOINT ["/app/depserver"]
