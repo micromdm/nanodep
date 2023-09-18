@@ -33,6 +33,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b  # v3.2.0
+        with:
+          fetch-depth: 0
 
       - uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc  # v2.2.0
         with:
@@ -68,6 +70,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b  # v3.2.0
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568  # v3.5.0
         with:

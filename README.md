@@ -12,6 +12,15 @@ A guide to get NanoDEP up and running quickly.
 - [Operations Guide](docs/operations-guide.md)  
 A brief overview of the various tools and utilities for working with NanoDEP.
 
+## Getting the latest version
+
+* Release `.zip` files containing the project should be attached to every [GitHub release](https://github.com/micromdm/nanodep/releases).
+  * Release zips are also [published](https://github.com/micromdm/nanodep/actions) for every `main` branch commit.
+* A Docker container is built and [published to the GHCR.io registry](http://ghcr.io/micromdm/nanodep) for every release.
+  * `docker pull ghcr.io/micromdm/nanodep:latest` — `docker run ghcr.io/micromdm/nanodep:latest`
+  * A Docker container is also published for every `main` branch commit (and tagged with `:main`)
+* If you have a [Go toolchain installed](https://go.dev/doc/install) you can checkout the source and simply run `make`.
+
 ## Tools and utilities
 
 NanoDEP contains a few tools and utilities. At a high level:
