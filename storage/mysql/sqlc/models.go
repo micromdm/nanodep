@@ -14,13 +14,13 @@ type DepName struct {
 	ConsumerSecret        sql.NullString
 	AccessToken           sql.NullString
 	AccessSecret          sql.NullString
-	AccessTokenExpiry     sql.NullTime
+	AccessTokenExpiry     sql.NullString
 	ConfigBaseUrl         sql.NullString
 	TokenpkiCertPem       []byte
 	TokenpkiKeyPem        []byte
 	SyncerCursor          sql.NullString
 	AssignerProfileUuid   sql.NullString
-	AssignerProfileUuidAt sql.NullTime
+	AssignerProfileUuidAt sql.NullString
 	CreatedAt             sql.NullTime
 	UpdatedAt             sql.NullTime
 }

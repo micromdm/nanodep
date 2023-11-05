@@ -82,51 +82,25 @@ const timestampFormat = "2006-01-02 15:04:05"
 
 // RetrieveAuthTokens reads the DEP OAuth tokens for name DEP name.
 func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth1Tokens, error) {
-	var (
-		consumerKey       sql.NullString
-		consumerSecret    sql.NullString
-		accessToken       sql.NullString
-		accessSecret      sql.NullString
-		accessTokenExpiry sql.NullString
-	)
-	err := s.db.QueryRowContext(
-		ctx, `
-SELECT
-	consumer_key,
-	consumer_secret,
-	access_token,
-	access_secret,
-	access_token_expiry
-FROM
-    dep_names
-WHERE
-    name = ?;`,
-		name,
-	).Scan(
-		&consumerKey,
-		&consumerSecret,
-		&accessToken,
-		&accessSecret,
-		&accessTokenExpiry,
-	)
+	tokenRow, err := s.q.GetAuthTokens(ctx, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 		}
 		return nil, err
 	}
-	if !consumerKey.Valid { // all auth token fields are set together
+	if !tokenRow.ConsumerKey.Valid { // all auth token fields are set together
 		return nil, fmt.Errorf("consumer key not valid: %w", storage.ErrNotFound)
 	}
-	accessTokenExpiryTime, err := time.Parse(timestampFormat, accessTokenExpiry.String)
+	accessTokenExpiryTime, err := time.Parse(timestampFormat, tokenRow.AccessTokenExpiry.String)
 	if err != nil {
 		return nil, err
 	}
 	return &client.OAuth1Tokens{
-		ConsumerKey:       consumerKey.String,
-		ConsumerSecret:    consumerSecret.String,
-		AccessToken:       accessToken.String,
-		AccessSecret:      accessSecret.String,
+		ConsumerKey:       tokenRow.ConsumerKey.String,
+		ConsumerSecret:    tokenRow.ConsumerSecret.String,
+		AccessToken:       tokenRow.AccessToken.String,
+		AccessSecret:      tokenRow.AccessSecret.String,
 		AccessTokenExpiry: accessTokenExpiryTime,
 	}, nil
 }
@@ -195,35 +169,23 @@ ON DUPLICATE KEY UPDATE
 
 // RetrieveAssignerProfile reads the assigner profile UUID and its timestamp for name DEP name.
 //
-// Returns an empty profile if it does not exist.
+// Returns an empty profile UUID if it does not exist.
 func (s *MySQLStorage) RetrieveAssignerProfile(ctx context.Context, name string) (profileUUID string, modTime time.Time, err error) {
-	var (
-		profileUUID_ sql.NullString
-		modTime_     sql.NullString
-	)
-	if err := s.db.QueryRowContext(
-		ctx,
-		`SELECT assigner_profile_uuid, assigner_profile_uuid_at FROM dep_names WHERE name = ?;`,
-		name,
-	).Scan(
-		&profileUUID_, &modTime_,
-	); err != nil {
+	assignerRow, err := s.q.GetAssignerProfile(ctx, name)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// an 'empty' profile is valid
+			// an 'empty' profile UUID is valid, return nil error
 			return "", time.Time{}, nil
 		}
 		return "", time.Time{}, err
 	}
-	if profileUUID_.Valid {
-		profileUUID = profileUUID_.String
+	if assignerRow.AssignerProfileUuid.Valid {
+		profileUUID = assignerRow.AssignerProfileUuid.String
 	}
-	if modTime_.Valid {
-		modTime, err = time.Parse(timestampFormat, modTime_.String)
-		if err != nil {
-			return "", time.Time{}, err
-		}
+	if assignerRow.AssignerProfileUuidAt.Valid {
+		modTime, err = time.Parse(timestampFormat, assignerRow.AssignerProfileUuidAt.String)
 	}
-	return profileUUID, modTime, nil
+	return
 }
 
 // StoreAssignerProfile saves the assigner profile UUID for name DEP name.

@@ -10,6 +10,62 @@ import (
 	"database/sql"
 )
 
+const getAssignerProfile = `-- name: GetAssignerProfile :one
+SELECT
+  assigner_profile_uuid,
+  assigner_profile_uuid_at
+FROM
+  dep_names
+WHERE
+  name = ?
+`
+
+type GetAssignerProfileRow struct {
+	AssignerProfileUuid   sql.NullString
+	AssignerProfileUuidAt sql.NullString
+}
+
+func (q *Queries) GetAssignerProfile(ctx context.Context, name string) (GetAssignerProfileRow, error) {
+	row := q.db.QueryRowContext(ctx, getAssignerProfile, name)
+	var i GetAssignerProfileRow
+	err := row.Scan(&i.AssignerProfileUuid, &i.AssignerProfileUuidAt)
+	return i, err
+}
+
+const getAuthTokens = `-- name: GetAuthTokens :one
+SELECT
+  consumer_key,
+  consumer_secret,
+  access_token,
+  access_secret,
+  access_token_expiry
+FROM
+  dep_names
+WHERE
+  name = ?
+`
+
+type GetAuthTokensRow struct {
+	ConsumerKey       sql.NullString
+	ConsumerSecret    sql.NullString
+	AccessToken       sql.NullString
+	AccessSecret      sql.NullString
+	AccessTokenExpiry sql.NullString
+}
+
+func (q *Queries) GetAuthTokens(ctx context.Context, name string) (GetAuthTokensRow, error) {
+	row := q.db.QueryRowContext(ctx, getAuthTokens, name)
+	var i GetAuthTokensRow
+	err := row.Scan(
+		&i.ConsumerKey,
+		&i.ConsumerSecret,
+		&i.AccessToken,
+		&i.AccessSecret,
+		&i.AccessTokenExpiry,
+	)
+	return i, err
+}
+
 const getConfigBaseURL = `-- name: GetConfigBaseURL :one
 SELECT config_base_url FROM dep_names WHERE name = ?
 `
