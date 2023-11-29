@@ -10,6 +10,7 @@ import (
 
 	"github.com/micromdm/nanodep/client"
 	"github.com/micromdm/nanodep/storage"
+	"github.com/micromdm/nanodep/storage/mysql/sqlc"
 )
 
 // Schema contains the MySQL schema for the DEP storage.
@@ -20,6 +21,7 @@ var Schema string
 // MySQLStorage implements a storage.AllStorage using MySQL.
 type MySQLStorage struct {
 	db *sql.DB
+	q  *sqlc.Queries
 }
 
 type config struct {
@@ -73,58 +75,32 @@ func New(opts ...Option) (*MySQLStorage, error) {
 	if err = cfg.db.Ping(); err != nil {
 		return nil, err
 	}
-	return &MySQLStorage{db: cfg.db}, nil
+	return &MySQLStorage{db: cfg.db, q: sqlc.New(cfg.db)}, nil
 }
 
 const timestampFormat = "2006-01-02 15:04:05"
 
 // RetrieveAuthTokens reads the DEP OAuth tokens for name DEP name.
 func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth1Tokens, error) {
-	var (
-		consumerKey       sql.NullString
-		consumerSecret    sql.NullString
-		accessToken       sql.NullString
-		accessSecret      sql.NullString
-		accessTokenExpiry sql.NullString
-	)
-	err := s.db.QueryRowContext(
-		ctx, `
-SELECT
-	consumer_key,
-	consumer_secret,
-	access_token,
-	access_secret,
-	access_token_expiry
-FROM
-    dep_names
-WHERE
-    name = ?;`,
-		name,
-	).Scan(
-		&consumerKey,
-		&consumerSecret,
-		&accessToken,
-		&accessSecret,
-		&accessTokenExpiry,
-	)
+	tokenRow, err := s.q.GetAuthTokens(ctx, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 		}
 		return nil, err
 	}
-	if !consumerKey.Valid { // all auth token fields are set together
+	if !tokenRow.ConsumerKey.Valid { // all auth token fields are set together
 		return nil, fmt.Errorf("consumer key not valid: %w", storage.ErrNotFound)
 	}
-	accessTokenExpiryTime, err := time.Parse(timestampFormat, accessTokenExpiry.String)
+	accessTokenExpiryTime, err := time.Parse(timestampFormat, tokenRow.AccessTokenExpiry.String)
 	if err != nil {
 		return nil, err
 	}
 	return &client.OAuth1Tokens{
-		ConsumerKey:       consumerKey.String,
-		ConsumerSecret:    consumerSecret.String,
-		AccessToken:       accessToken.String,
-		AccessSecret:      accessSecret.String,
+		ConsumerKey:       tokenRow.ConsumerKey.String,
+		ConsumerSecret:    tokenRow.ConsumerSecret.String,
+		AccessToken:       tokenRow.AccessToken.String,
+		AccessSecret:      tokenRow.AccessSecret.String,
 		AccessTokenExpiry: accessTokenExpiryTime,
 	}, nil
 }
@@ -158,14 +134,7 @@ ON DUPLICATE KEY UPDATE
 // Returns (nil, nil) if the DEP name does not exist, or if the config
 // for the DEP name does not exist.
 func (s *MySQLStorage) RetrieveConfig(ctx context.Context, name string) (*client.Config, error) {
-	var baseURL sql.NullString
-	err := s.db.QueryRowContext(
-		ctx,
-		`SELECT config_base_url FROM dep_names WHERE name = ?;`,
-		name,
-	).Scan(
-		&baseURL,
-	)
+	baseURL, err := s.q.GetConfigBaseURL(ctx, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// If the DEP name does not exist, then the config does not exist.
@@ -200,35 +169,23 @@ ON DUPLICATE KEY UPDATE
 
 // RetrieveAssignerProfile reads the assigner profile UUID and its timestamp for name DEP name.
 //
-// Returns an empty profile if it does not exist.
+// Returns an empty profile UUID if it does not exist.
 func (s *MySQLStorage) RetrieveAssignerProfile(ctx context.Context, name string) (profileUUID string, modTime time.Time, err error) {
-	var (
-		profileUUID_ sql.NullString
-		modTime_     sql.NullString
-	)
-	if err := s.db.QueryRowContext(
-		ctx,
-		`SELECT assigner_profile_uuid, assigner_profile_uuid_at FROM dep_names WHERE name = ?;`,
-		name,
-	).Scan(
-		&profileUUID_, &modTime_,
-	); err != nil {
+	assignerRow, err := s.q.GetAssignerProfile(ctx, name)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// an 'empty' profile is valid
+			// an 'empty' profile UUID is valid, return nil error
 			return "", time.Time{}, nil
 		}
 		return "", time.Time{}, err
 	}
-	if profileUUID_.Valid {
-		profileUUID = profileUUID_.String
+	if assignerRow.AssignerProfileUuid.Valid {
+		profileUUID = assignerRow.AssignerProfileUuid.String
 	}
-	if modTime_.Valid {
-		modTime, err = time.Parse(timestampFormat, modTime_.String)
-		if err != nil {
-			return "", time.Time{}, err
-		}
+	if assignerRow.AssignerProfileUuidAt.Valid {
+		modTime, err = time.Parse(timestampFormat, assignerRow.AssignerProfileUuidAt.String)
 	}
-	return profileUUID, modTime, nil
+	return
 }
 
 // StoreAssignerProfile saves the assigner profile UUID for name DEP name.
@@ -252,14 +209,8 @@ ON DUPLICATE KEY UPDATE
 //
 // Returns an empty cursor if the cursor does not exist.
 func (s *MySQLStorage) RetrieveCursor(ctx context.Context, name string) (string, error) {
-	var cursor sql.NullString
-	if err := s.db.QueryRowContext(
-		ctx,
-		`SELECT syncer_cursor FROM dep_names WHERE name = ?;`,
-		name,
-	).Scan(
-		&cursor,
-	); err != nil {
+	cursor, err := s.q.GetSyncerCursor(ctx, name)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", nil
 		}
@@ -308,20 +259,15 @@ ON DUPLICATE KEY UPDATE
 // RetrieveTokenPKI reads the PEM bytes for the DEP token exchange certificate
 // and private key using name DEP name.
 func (s *MySQLStorage) RetrieveTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error) {
-	if err := s.db.QueryRowContext(
-		ctx,
-		`SELECT tokenpki_cert_pem, tokenpki_key_pem FROM dep_names WHERE name = ?;`,
-		name,
-	).Scan(
-		&pemCert, &pemKey,
-	); err != nil {
+	keypair, err := s.q.GetKeypair(ctx, name)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 		}
 		return nil, nil, err
 	}
-	if pemCert == nil { // tokenpki_cert_pem and tokenpki_key_pem are set together
+	if keypair.TokenpkiCertPem == nil { // tokenpki_cert_pem and tokenpki_key_pem are set together
 		return nil, nil, fmt.Errorf("empty certificate: %w", storage.ErrNotFound)
 	}
-	return pemCert, pemKey, nil
+	return keypair.TokenpkiCertPem, keypair.TokenpkiKeyPem, nil
 }
