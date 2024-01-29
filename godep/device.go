@@ -149,5 +149,5 @@ type DeviceStatusResponse struct {
 func (c *Client) DisownDevices(ctx context.Context, name string, serials ...string) (*DeviceStatusResponse, error) {
 	req := DeviceListRequest{Devices: serials}
 	resp := new(DeviceStatusResponse)
-	return resp, c.do(ctx, name, http.MethodPost, "/devices", req, resp)
+	return resp, c.do(ctx, name, http.MethodPost, "/devices/disown", req, resp)
 }
