@@ -114,6 +114,12 @@ func IsCursorExpired(err error) bool {
 	return httpErrorContains(err, http.StatusBadRequest, "EXPIRED_CURSOR")
 }
 
+// DeviceListRequest corresponds to the Apple API "DeviceListRequest" structure.
+// See https://developer.apple.com/documentation/devicemanagement/devicelistrequest
+type DeviceListRequest struct {
+	Devices []string `json:"devices"`
+}
+
 // DeviceListResponse corresponds to the Apple API "DeviceListResponse" structure.
 // See https://developer.apple.com/documentation/devicemanagement/devicelistresponse
 type DeviceListResponse struct {
@@ -124,11 +130,24 @@ type DeviceListResponse struct {
 // details on a set of devices.
 // See https://developer.apple.com/documentation/devicemanagement/get_device_details
 func (c *Client) DeviceDetails(ctx context.Context, name string, serials ...string) (*DeviceListResponse, error) {
-	req := struct {
-		Devices []string `json:"devices"`
-	}{
-		Devices: serials,
-	}
+	req := DeviceListRequest{Devices: serials}
 	resp := new(DeviceListResponse)
+	return resp, c.do(ctx, name, http.MethodPost, "/devices", req, resp)
+}
+
+// DeviceStatusResponse corresponds to the Apple API "DeviceStatusRepoonse" structure.
+// See https://developer.apple.com/documentation/devicemanagement/devicestatusresponse
+type DeviceStatusResponse struct {
+	Devices map[string]string `json:"devices"`
+}
+
+// DisownDevices uses the Apple "Disown Devices" API endpoint to disclaim
+// ownership of device serial numbers.
+// WARNING: This will permanantly remove devices from the ABM/ASM/ABE instance.
+// Use with caution.
+// See https://developer.apple.com/documentation/devicemanagement/disown_devices
+func (c *Client) DisownDevices(ctx context.Context, name string, serials ...string) (*DeviceStatusResponse, error) {
+	req := DeviceListRequest{Devices: serials}
+	resp := new(DeviceStatusResponse)
 	return resp, c.do(ctx, name, http.MethodPost, "/devices", req, resp)
 }
