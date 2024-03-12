@@ -81,17 +81,17 @@ func WithUserAgent(ua string) Option {
 }
 
 // WithClient configures the HTTP client to be used.
+// The provided client is copied and modified by wrapping its
+// transport in a new NanoDEP transport (which transparently handles
+// authentication and session management). If not set then
+// http.DefaultClient is used.
 func WithClient(client *http.Client) Option {
 	return func(c *Client) {
 		c.client = client
 	}
 }
 
-// NewClient creates new Client and reads authentication and config data
-// from store. The provided client is copied and modified by wrapping its
-// transport in a new NanoDEP transport (which transparently handles
-// authentication and session management). If client is nil then
-// http.DefaultClient is used.
+// NewClient creates new Client and reads authentication and config data from store.
 func NewClient(store ClientStorage, opts ...Option) *Client {
 	c := &Client{
 		store:  store,
