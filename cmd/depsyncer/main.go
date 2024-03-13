@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	stdlog "log"
-	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -34,6 +33,7 @@ func main() {
 		flStorage = flag.String("storage", "file", "storage backend")
 		flDSN     = flag.String("storage-dsn", "", "storage data source name")
 		flWebhook = flag.String("webhook-url", "", "URL to send requests to")
+		flUA      = flag.String("user-agent", godep.UserAgent, "User-Agent string to use")
 	)
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags] <DEPname1> [DEPname2 [...]]\nFlags:\n", os.Args[0])
@@ -118,7 +118,7 @@ func main() {
 		}
 	}()
 
-	client := godep.NewClient(storage, http.DefaultClient)
+	client := godep.NewClient(storage, godep.WithUserAgent(*flUA))
 
 	var wg sync.WaitGroup
 

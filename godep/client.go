@@ -15,7 +15,7 @@ import (
 
 const (
 	mediaType = "application/json;charset=UTF8"
-	userAgent = "nanodep-godep/0"
+	UserAgent = "nanodep-g-o-dep/0"
 )
 
 // HTTPError encapsulates an HTTP response error from the DEP requests.
@@ -65,27 +65,45 @@ type ClientStorage interface {
 
 // Client represents an Apple DEP API client identified by a single DEP name.
 type Client struct {
-	store ClientStorage
-
-	// an HTTP client that handles DEP API authentication and session management
-	client *http.Client
+	store  ClientStorage
+	client *http.Client // for DEP API authentication and session management
+	ua     string       // HTTP User-Agent
 }
 
-// NewClient creates new Client and reads authentication and config data
-// from store. The provided client is copied and modified by wrapping its
+// Options change the configuration of the godep Client.
+type Option func(*Client)
+
+// WithUserAgent sets the the HTTP User-Agent string to be used on each request.
+func WithUserAgent(ua string) Option {
+	return func(c *Client) {
+		c.ua = ua
+	}
+}
+
+// WithClient configures the HTTP client to be used.
+// The provided client is copied and modified by wrapping its
 // transport in a new NanoDEP transport (which transparently handles
-// authentication and session management). If client is nil then
+// authentication and session management). If not set then
 // http.DefaultClient is used.
-func NewClient(store ClientStorage, client *http.Client) *Client {
-	if client == nil {
-		client = http.DefaultClient
+func WithClient(client *http.Client) Option {
+	return func(c *Client) {
+		c.client = client
 	}
-	t := depclient.NewTransport(client.Transport, client, store, nil)
-	client = depclient.NewClient(client, t)
-	return &Client{
+}
+
+// NewClient creates new Client and reads authentication and config data from store.
+func NewClient(store ClientStorage, opts ...Option) *Client {
+	c := &Client{
 		store:  store,
-		client: client,
+		client: http.DefaultClient,
+		ua:     UserAgent,
 	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	t := depclient.NewTransport(c.client.Transport, c.client, store, nil)
+	c.client = depclient.NewClient(c.client, t)
+	return c
 }
 
 // do executes the HTTP request using the client's HTTP client which
@@ -106,7 +124,9 @@ func (c *Client) do(ctx context.Context, name, method, path string, in interface
 	if err != nil {
 		return err
 	}
-	req.Header.Set("User-Agent", userAgent)
+	if c.ua != "" {
+		req.Header.Set("User-Agent", c.ua)
+	}
 	if body != nil {
 		req.Header.Set("Content-Type", mediaType)
 	}
