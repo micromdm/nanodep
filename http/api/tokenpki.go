@@ -146,6 +146,6 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStore,
 			jsonError(w, err)
 			return
 		}
-		storeTokens(r.Context(), logger, r.URL.Path, tokens, tokenStore, w, false)
+		storeTokens(r.Context(), logger, r.URL.Path, tokens, tokenStore, w, force)
 	}
 }
