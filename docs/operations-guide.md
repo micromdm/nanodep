@@ -375,7 +375,7 @@ Other than the switches (flags) documented below you just specify the DEP names 
 
 Examples in the "Example usage" section are below.
 
-## Signals
+### Signals
 
 When run in "continuous" mode (the default) `depsyncer` waits for a duration between syncing devices. During this wait period you can request an explicit sync by sending the `depsyncer` process a Signal hangup (SIGHUP). For example if your system has the `killall` command and your `depsyncer` binary is called `depsyncer-darwin-amd64` you could:
 
@@ -453,6 +453,12 @@ The data is sent as an HTTP POST method with JSON data as the raw body. The JSON
   * The key "device_response" will be an object that corresponds to the Apple DEP API [FetchDeviceResponse](https://developer.apple.com/documentation/devicemanagement/fetchdeviceresponse) structure and includes the list of [Device](https://developer.apple.com/documentation/devicemanagement/device)(s) that were synced, if any.
 
 With this information you could, for example, take device-specific actions by calling back into the `depserver` DEP APIs. For example to assign different DEP profiles depending on groups of serial numbers that you maintain or *not* assigning some serial numbers. It's all up to you with the DEP sync data provided.
+
+#### -user-agent string
+
+* User-Agent string to use (default "nanodep-g-o-dep/0")
+
+Sets the HTTP `User-Agent` header in the godep module when making DEP API requests.
 
 ##### Example data
 
