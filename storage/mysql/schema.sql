@@ -12,8 +12,10 @@ CREATE TABLE dep_names (
     config_base_url VARCHAR(255) NULL,
 
     -- Token PKI
-    tokenpki_cert_pem TEXT NULL,
-    tokenpki_key_pem  TEXT NULL,
+    tokenpki_cert_pem         TEXT NULL,
+    tokenpki_key_pem          TEXT NULL,
+    tokenpki_staging_cert_pem TEXT NULL,
+    tokenpki_staging_key_pem  TEXT NULL,
 
     -- Syncer
     -- From Apple docs: "The string can be up to 1000 characters".

@@ -238,17 +238,17 @@ ON DUPLICATE KEY UPDATE
 	return err
 }
 
-// StoreTokenPKI stores the PEM bytes in pemCert and pemKey for name DEP name.
+// StoreTokenPKI stores the staging PEM bytes in pemCert and pemKey for name DEP name.
 func (s *MySQLStorage) StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error {
 	_, err := s.db.ExecContext(
 		ctx, `
 INSERT INTO dep_names
-	(name, tokenpki_cert_pem, tokenpki_key_pem)
+	(name, tokenpki_staging_cert_pem, tokenpki_staging_key_pem)
 VALUES
 	(?, ?, ?) as new
 ON DUPLICATE KEY UPDATE
-	tokenpki_cert_pem = new.tokenpki_cert_pem,
-	tokenpki_key_pem = new.tokenpki_key_pem;`,
+	tokenpki_staging_cert_pem = new.tokenpki_staging_cert_pem,
+	tokenpki_staging_key_pem = new.tokenpki_staging_key_pem;`,
 		name,
 		pemCert,
 		pemKey,
@@ -256,10 +256,36 @@ ON DUPLICATE KEY UPDATE
 	return err
 }
 
-// RetrieveTokenPKI reads the PEM bytes for the DEP token exchange certificate
-// and private key using name DEP name.
-func (s *MySQLStorage) RetrieveTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error) {
-	keypair, err := s.q.GetKeypair(ctx, name)
+// UpstageTokenPKI copies the staging PKI certificate and private key to the
+// current PKI certificate and private key.
+func (s *MySQLStorage) UpstageTokenPKI(ctx context.Context, name string) error {
+	err := s.q.UpstageKeypair(ctx, name)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("%v: %w", err, storage.ErrNotFound)
+	}
+	return err
+}
+
+// RetrieveStagingTokenPKI returns the PEM bytes for the staged DEP
+// token exchange certificate and private key using name DEP name.
+func (s *MySQLStorage) RetrieveStagingTokenPKI(ctx context.Context, name string) ([]byte, []byte, error) {
+	keypair, err := s.q.GetStagingKeypair(ctx, name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
+		}
+		return nil, nil, err
+	}
+	if keypair.TokenpkiStagingCertPem == nil { // tokenpki_staging_cert_pem and tokenpki_staging_key_pem are set together
+		return nil, nil, fmt.Errorf("empty certificate: %w", storage.ErrNotFound)
+	}
+	return keypair.TokenpkiStagingCertPem, keypair.TokenpkiStagingKeyPem, nil
+}
+
+// RetrieveCurrentTokenPKI returns the PEM bytes for the previously-upstaged DEP
+// token exchange certificate and private key using name DEP name.
+func (s *MySQLStorage) RetrieveCurrentTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error) {
+	keypair, err := s.q.GetCurrentKeypair(ctx, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -159,26 +160,73 @@ func (s *FileStorage) StoreCursor(_ context.Context, name, cursor string) error 
 
 // StoreTokenPKI stores the PEM bytes in pemCert and pemKey to disk for name DEP name.
 func (s *FileStorage) StoreTokenPKI(_ context.Context, name string, pemCert []byte, pemKey []byte) error {
-	if err := os.WriteFile(s.tokenpkiFilename(name, "cert"), pemCert, 0664); err != nil {
+	if err := os.WriteFile(s.tokenpkiFilename(name, "staging.cert"), pemCert, 0664); err != nil {
 		return err
 	}
-	if err := os.WriteFile(s.tokenpkiFilename(name, "key"), pemKey, 0664); err != nil {
+	if err := os.WriteFile(s.tokenpkiFilename(name, "staging.key"), pemKey, 0664); err != nil {
 		return err
 	}
 	return nil
 }
 
-// RetrieveTokenPKI reads and returns the PEM bytes for the DEP token exchange
-// certificate and private key from disk using name DEP name.
-func (s *FileStorage) RetrieveTokenPKI(_ context.Context, name string) ([]byte, []byte, error) {
-	certBytes, err := os.ReadFile(s.tokenpkiFilename(name, "cert"))
+// copyFile non-atomically copies file at path src to file at path dst.
+func copyFile(dst, src string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, srcFile)
+	return err
+}
+
+// UpstageTokenPKI copies the staging PKI certificate and key to the current PKI certificate and key.
+// Warning: this operation is not atomic.
+func (s *FileStorage) UpstageTokenPKI(ctx context.Context, name string) error {
+	err := copyFile(
+		s.tokenpkiFilename(name, "cert"),
+		s.tokenpkiFilename(name, "staging.cert"),
+	)
+	if err != nil {
+		return err
+	}
+	return copyFile(
+		s.tokenpkiFilename(name, "key"),
+		s.tokenpkiFilename(name, "staging.key"),
+	)
+}
+
+// RetrieveStagingTokenPKI reads and returns the PEM bytes for the staged
+// DEP token exchange certificate and private key from disk using name DEP name.
+func (s *FileStorage) RetrieveStagingTokenPKI(ctx context.Context, name string) ([]byte, []byte, error) {
+	return s.retrieveTokenPKIExtn(name, "staging.")
+}
+
+// RetrieveCurrentTokenPKI reads and returns the PEM bytes for the previously-
+// upstaged DEP token exchange certificate and private key from disk using
+// name DEP name.
+func (s *FileStorage) RetrieveCurrentTokenPKI(_ context.Context, name string) ([]byte, []byte, error) {
+	return s.retrieveTokenPKIExtn(name, "")
+}
+
+// retrieveTokenPKIExtn reads and returns the PEM bytes for the DEP token exchange
+// certificate and private key from disk using name DEP name and extn type.
+func (s *FileStorage) retrieveTokenPKIExtn(name, extn string) ([]byte, []byte, error) {
+	certBytes, err := os.ReadFile(s.tokenpkiFilename(name, extn+"cert"))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)
 		}
 		return nil, nil, err
 	}
-	keyBytes, err := os.ReadFile(s.tokenpkiFilename(name, "key"))
+	keyBytes, err := os.ReadFile(s.tokenpkiFilename(name, extn+"key"))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil, fmt.Errorf("%v: %w", err, storage.ErrNotFound)

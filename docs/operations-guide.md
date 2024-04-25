@@ -92,6 +92,8 @@ The `/v1/tokens/{name}` endpoints deal with the raw DEP OAuth tokens in JSON for
 
 For the PUT operation you can supply a "force" URL parameter which will override the matching consumer key check.
 
+The PUT endpoint is discouraged; instead you should perform the full PKI exchange with the "tokenpki" endpoints. If you import only the "raw" OAuth tokens then NanoDEP will not have access to the correct private key for the associated DEP name. This private key is used for some modern DEP operations and won't be possible.
+
 #### Assigner
 
 * Endpoint: `GET, PUT /v1/assigner/{name}`
@@ -205,7 +207,7 @@ For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this 
 **The first argument is required** and specifies the path to the token file downloaded from the Apple portal.
 
 This script has one optional argument:
-- If you spply a "1" as the second argument it will override ("force" mode) the consumer key check to be able to save a differing consumer key.
+- If you supply a "1" as the second argument it will override ("force" mode) the consumer key check to be able to save a differing consumer key.
 
 ##### Example usage
 
@@ -539,6 +541,8 @@ In "keypair generation" mode (that is, without specifying the `-token` switch) i
 In "decrypt and decode tokens" mode (that is, by specifying the path to the downloaded tokens file with the `-token` switch) it will attempt to use the certificate and key on disk (specified by `-cert` and `-key` switches, respectively, with an optional password for an encrypted private key specified with `-password`) to decrypt the tokens and display them. They can then be stored in `depserver` by using the "raw" token API (documented above).
 
 **Note: `deptokens` is not required to use NanoDEP: `depserver` contains this functionality built-in using the tools/scripts (or via the API) directly. See above documentation.**
+
+**Note: `deptokens` is discouraged for use with NanoDEP's `depserver`. The private key and certificate for the PKI exchange is not preserved when only uploading OAuth tokens. Some modern DEP functionality will not be possible. See the note above regarding the Tokens API.**
 
 ### Switches
 

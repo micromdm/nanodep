@@ -20,6 +20,8 @@ type AllStorage interface {
 	api.AuthTokensStorer
 	api.ConfigStorer
 	api.TokenPKIStorer
-	api.TokenPKIRetriever
+	api.TokenPKIStagingRetriever
+	api.TokenPKICurrentRetriever
+	api.TokenPKIUpstager
 	api.AssignerProfileStorer
 }

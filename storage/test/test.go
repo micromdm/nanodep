@@ -33,7 +33,7 @@ func TestWithStorages(t *testing.T, ctx context.Context, store storage.AllStorag
 
 // TestEmpty tests retrieval methods on an empty/missing name.
 func TestEmpty(t *testing.T, ctx context.Context, name string, s storage.AllStorage) {
-	if _, _, err := s.RetrieveTokenPKI(ctx, name); !errors.Is(err, storage.ErrNotFound) {
+	if _, _, err := s.RetrieveStagingTokenPKI(ctx, name); !errors.Is(err, storage.ErrNotFound) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
@@ -65,19 +65,30 @@ func TestEmpty(t *testing.T, ctx context.Context, name string, s storage.AllStor
 
 func TestWitName(t *testing.T, ctx context.Context, name string, s storage.AllStorage) {
 	// PKI storing and retrieval.
-	if _, _, err := s.RetrieveTokenPKI(ctx, name); !errors.Is(err, storage.ErrNotFound) {
+	if _, _, err := s.RetrieveStagingTokenPKI(ctx, name); !errors.Is(err, storage.ErrNotFound) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 	pemCert, pemKey := generatePKI(t, "basicdn", 1)
 	err := s.StoreTokenPKI(ctx, name, pemCert, pemKey)
 	checkErr(t, err)
-	pemCert2, pemKey2, err := s.RetrieveTokenPKI(ctx, name)
+	pemCert2, pemKey2, err := s.RetrieveStagingTokenPKI(ctx, name)
 	checkErr(t, err)
 	if !bytes.Equal(pemCert, pemCert2) {
 		t.Fatalf("pem cert mismatch: %s vs. %s", pemCert, pemCert2)
 	}
 	if !bytes.Equal(pemKey, pemKey2) {
 		t.Fatalf("pem key mismatch: %s vs. %s", pemKey, pemKey2)
+	}
+
+	err = s.UpstageTokenPKI(ctx, name)
+	checkErr(t, err)
+	pemCert3, pemKey3, err := s.RetrieveCurrentTokenPKI(ctx, name)
+	checkErr(t, err)
+	if !bytes.Equal(pemCert, pemCert3) {
+		t.Fatalf("pem cert mismatch: %s vs. %s", pemCert, pemCert3)
+	}
+	if !bytes.Equal(pemKey, pemKey3) {
+		t.Fatalf("pem key mismatch: %s vs. %s", pemKey, pemKey3)
 	}
 
 	// Token storing and retrieval.

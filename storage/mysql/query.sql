@@ -4,12 +4,30 @@ SELECT config_base_url FROM dep_names WHERE name = ?;
 -- name: GetSyncerCursor :one
 SELECT syncer_cursor FROM dep_names WHERE name = ?;
 
--- name: GetKeypair :one
+-- name: GetCurrentKeypair :one
 SELECT
   tokenpki_cert_pem,
   tokenpki_key_pem
 FROM
   dep_names
+WHERE
+  name = ?;
+
+-- name: GetStagingKeypair :one
+SELECT
+  tokenpki_staging_cert_pem,
+  tokenpki_staging_key_pem
+FROM
+  dep_names
+WHERE
+  name = ?;
+
+-- name: UpstageKeypair :exec
+UPDATE
+  dep_names
+SET
+  tokenpki_cert_pem = tokenpki_staging_cert_pem,
+  tokenpki_key_pem = tokenpki_staging_key_pem
 WHERE
   name = ?;
 
