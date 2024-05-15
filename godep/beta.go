@@ -30,6 +30,6 @@ func (c *Client) OSBetaEnrollmentTokens(ctx context.Context, name string) (*GetS
 }
 
 // IsAppleSeedForITTurnedOff returns true if err indicates your organization doesn't allow beta access.
-func IsAppleSeedTurnedOff(err error) bool {
+func IsAppleSeedForITTurnedOff(err error) bool {
 	return httpErrorContains(err, http.StatusForbidden, "APPLE_SEED_FOR_IT_TURNED_OFF")
 }
