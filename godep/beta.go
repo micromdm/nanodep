@@ -24,7 +24,7 @@ type GetSeedBuildTokenResponse struct {
 // OS beta enrollment tokens. These are for later use during ADE
 // enrollment of devices to force enrollment into beta software enrollment.
 // See https://developer.apple.com/documentation/devicemanagement/get_beta_enrollment_tokens
-func (c *Client) OSBetaEnrollmentTokens(ctx context.Context, name string) (*OSBetaEnrollmentTokensResponse, error) {
-	resp := new(OSBetaEnrollmentTokens)
+func (c *Client) OSBetaEnrollmentTokens(ctx context.Context, name string) (*GetSeedBuildTokenResponse, error) {
+	resp := new(GetSeedBuildTokenResponse)
 	return resp, c.do(ctx, name, http.MethodGet, "/os-beta-enrollment/tokens", nil, resp)
 }
