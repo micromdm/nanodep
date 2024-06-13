@@ -7,8 +7,9 @@ import (
 	"net/http"
 
 	"github.com/micromdm/nanodep/client"
-	"github.com/micromdm/nanodep/log"
-	"github.com/micromdm/nanodep/log/ctxlog"
+
+	"github.com/micromdm/nanolib/log"
+	"github.com/micromdm/nanolib/log/ctxlog"
 )
 
 // RetrieveConfigHandler returns the DEP server config for the DEP

@@ -13,8 +13,9 @@ import (
 
 	"github.com/micromdm/nanodep/cli"
 	"github.com/micromdm/nanodep/godep"
-	"github.com/micromdm/nanodep/log/stdlogfmt"
 	depsync "github.com/micromdm/nanodep/sync"
+
+	"github.com/micromdm/nanolib/log/stdlogfmt"
 )
 
 // overridden by -ldflags -X
@@ -52,7 +53,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := stdlogfmt.New(stdlog.Default(), *flDebug)
+	logger := stdlogfmt.New(
+		stdlogfmt.WithLogger(stdlog.Default()),
+		stdlogfmt.WithDebugFlag(*flDebug),
+	)
 
 	storage, err := cli.Storage(*flStorage, *flDSN)
 	if err != nil {

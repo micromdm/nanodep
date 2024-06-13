@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/micromdm/nanodep/godep"
-	"github.com/micromdm/nanodep/log"
-	"github.com/micromdm/nanodep/log/ctxlog"
+
+	"github.com/micromdm/nanolib/log"
+	"github.com/micromdm/nanolib/log/ctxlog"
 )
 
 // CursorStorage is where the device fetch and sync cursor can be stored and
