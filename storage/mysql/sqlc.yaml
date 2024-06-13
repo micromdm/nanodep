@@ -16,6 +16,14 @@ sql:
             go_type:
               type: "byte"
               slice: true
+          - column: "dep_names.tokenpki_staging_cert_pem"
+            go_type:
+              type: "byte"
+              slice: true
+          - column: "dep_names.tokenpki_staging_key_pem"
+            go_type:
+              type: "byte"
+              slice: true
           - column: "dep_names.access_token_expiry"
             go_type:
               type: "sql.NullString"

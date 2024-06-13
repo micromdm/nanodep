@@ -16,12 +16,25 @@ import (
 	"github.com/micromdm/nanodep/tokenpki"
 )
 
-type TokenPKIRetriever interface {
-	RetrieveTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error)
+type TokenPKIStagingRetriever interface {
+	RetrieveStagingTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error)
+}
+
+type TokenPKICurrentRetriever interface {
+	RetrieveCurrentTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error)
+}
+
+type TokenPKIUpstager interface {
+	UpstageTokenPKI(ctx context.Context, name string) error
 }
 
 type TokenPKIStorer interface {
 	StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error
+}
+
+type DecryptTokenPKIStorage interface {
+	TokenPKIStagingRetriever
+	TokenPKIUpstager
 }
 
 // PEMRSAPrivateKey returns key as a PEM block.
@@ -98,7 +111,7 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 // Note the whole URL path is used as the DEP name. This necessitates
 // stripping the URL prefix before using this handler. Also note we expose Go
 // errors to the output as this is meant for "API" users.
-func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStore, logger log.Logger) http.HandlerFunc {
+func DecryptTokenPKIHandler(store DecryptTokenPKIStorage, tokenStore AuthTokensStore, logger log.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := ctxlog.Logger(r.Context(), logger)
 		if r.URL.Path == "" {
@@ -115,7 +128,7 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStore,
 			return
 		}
 		defer r.Body.Close()
-		certBytes, keyBytes, err := store.RetrieveTokenPKI(r.Context(), r.URL.Path)
+		certBytes, keyBytes, err := store.RetrieveStagingTokenPKI(r.Context(), r.URL.Path)
 		if err != nil {
 			logger.Info("msg", "retrieving token keypair", "err", err)
 			jsonError(w, err)
@@ -143,6 +156,14 @@ func DecryptTokenPKIHandler(store TokenPKIRetriever, tokenStore AuthTokensStore,
 		err = json.Unmarshal(tokenJSON, tokens)
 		if err != nil {
 			logger.Info("msg", "decoding decrypted auth tokens", "err", err)
+			jsonError(w, err)
+			return
+		}
+		// decryption and unmarshal of tokens successful, now "upgrade"
+		// our staging token PKI to the real thing.
+		err = store.UpstageTokenPKI(r.Context(), r.URL.Path)
+		if err != nil {
+			logger.Info("msg", "upstaging token PKI", "err", err)
 			jsonError(w, err)
 			return
 		}
