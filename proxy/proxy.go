@@ -11,8 +11,9 @@ import (
 	"sync"
 
 	"github.com/micromdm/nanodep/client"
-	"github.com/micromdm/nanodep/log"
-	"github.com/micromdm/nanodep/log/ctxlog"
+
+	"github.com/micromdm/nanolib/log"
+	"github.com/micromdm/nanolib/log/ctxlog"
 )
 
 // New creates new NanoDEP ReverseProxy. It dispatches requests using transport

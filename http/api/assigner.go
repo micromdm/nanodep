@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/micromdm/nanodep/log"
-	"github.com/micromdm/nanodep/log/ctxlog"
 	"github.com/micromdm/nanodep/sync"
+
+	"github.com/micromdm/nanolib/log"
+	"github.com/micromdm/nanolib/log/ctxlog"
 )
 
 // RetrieveAssignerProfileHandler returns the assigner profile UUID for the

@@ -13,8 +13,9 @@ import (
 	"github.com/micromdm/nanodep/client"
 	dephttp "github.com/micromdm/nanodep/http"
 	"github.com/micromdm/nanodep/http/api"
-	"github.com/micromdm/nanodep/log/stdlogfmt"
 	"github.com/micromdm/nanodep/proxy"
+
+	"github.com/micromdm/nanolib/log/stdlogfmt"
 )
 
 // overridden by -ldflags -X
@@ -53,7 +54,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := stdlogfmt.New(stdlog.Default(), *flDebug)
+	logger := stdlogfmt.New(
+		stdlogfmt.WithLogger(stdlog.Default()),
+		stdlogfmt.WithDebugFlag(*flDebug),
+	)
 
 	storage, err := cli.Storage(*flStorage, *flDSN)
 	if err != nil {

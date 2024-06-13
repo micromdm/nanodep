@@ -11,9 +11,10 @@ import (
 	"strconv"
 
 	"github.com/micromdm/nanodep/client"
-	"github.com/micromdm/nanodep/log"
-	"github.com/micromdm/nanodep/log/ctxlog"
 	"github.com/micromdm/nanodep/tokenpki"
+
+	"github.com/micromdm/nanolib/log"
+	"github.com/micromdm/nanolib/log/ctxlog"
 )
 
 type TokenPKIStagingRetriever interface {
