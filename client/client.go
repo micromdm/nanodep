@@ -21,10 +21,9 @@ type Config struct {
 }
 
 type ConfigRetriever interface {
-	// RetrieveConfig reads the JSON DEP config of a DEP name.
-	//
-	// Returns (nil, nil) if the DEP name does not exist, or if the config
-	// for the DEP name does not exist.
+	// RetrieveConfig reads the DEP name config of name.
+	// If the DEP name or config does not exist then a nil config and
+	// nil error should be returned.
 	RetrieveConfig(ctx context.Context, name string) (*Config, error)
 }
 

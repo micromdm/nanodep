@@ -25,6 +25,8 @@ type AuthTokensStore interface {
 }
 
 type AuthTokensStorer interface {
+	// StoreAuthTokens saves the DEP OAuth tokens for name (DEP name).
+	// Note the staging DEP certificate and key should also be upstaged at the same time.
 	StoreAuthTokens(ctx context.Context, name string, tokens *client.OAuth1Tokens) error
 }
 
