@@ -12,7 +12,12 @@ import (
 	"github.com/micromdm/nanolib/log/ctxlog"
 )
 
-var CKMismatch = errors.New("mismatched consumer key")
+// ErrCKMismatch occurs when an incoming consumer key does not match the
+// previous consumer key. It is intended to catch an accidental overwrite
+// of an existing DEP name's tokens during a renewal.
+// However note that a different DEP username renewing the tokens can
+// also trigger it for a legitimate renewal.
+var ErrCKMismatch = errors.New("mismatched consumer key")
 
 type AuthTokensStore interface {
 	client.AuthTokensRetriever
@@ -98,10 +103,10 @@ func storeTokens(ctx context.Context, logger log.Logger, name string, tokens *cl
 		} else if prevTokens != nil && prevTokens.ConsumerKey != tokens.ConsumerKey {
 			logger.Info(
 				"msg", "checking consumer key (use force to bypass)",
-				"err", CKMismatch,
+				"err", ErrCKMismatch,
 				"prev_consumer_key", prevTokens.ConsumerKey,
 			)
-			jsonError(w, CKMismatch)
+			jsonError(w, ErrCKMismatch)
 			return
 		}
 	}
