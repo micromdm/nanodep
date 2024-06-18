@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/micromdm/nanodep/storage"
+	"github.com/micromdm/nanodep/storage/diskv"
 	"github.com/micromdm/nanodep/storage/file"
 	"github.com/micromdm/nanodep/storage/inmem"
 	"github.com/micromdm/nanodep/storage/mysql"
@@ -21,6 +22,11 @@ func Storage(storageName, dsn string) (storage.AllStorage, error) {
 			dsn = "db"
 		}
 		store, err = file.New(dsn)
+	case "diskv":
+		if dsn == "" {
+			dsn = "diskv"
+		}
+		store = diskv.New(dsn)
 	case "inmem":
 		store = inmem.New()
 	case "mysql":

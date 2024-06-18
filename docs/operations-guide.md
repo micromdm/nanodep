@@ -41,6 +41,14 @@ Specifies the listen address (interface and port number) for the server to liste
 
 The `-storage` and `-storage-dsn` flags together configure the storage backend. `-storage` specifies the name of backend type while `-storage-dsn` specifies the backend data source name (e.g. the connection string). If no `-storage` backend is specified then `file` is used as a default.
 
+##### diskv storage backend
+
+* `-storage diskv`
+
+Configure the `diskv` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `diskv` is used as a default.
+
+*Example:* `-storage diskv -storage-dsn /path/to/my/db`
+
 ##### file storage backend
 
 * `-storage file`
