@@ -41,21 +41,30 @@ Specifies the listen address (interface and port number) for the server to liste
 
 The `-storage` and `-storage-dsn` flags together configure the storage backend. `-storage` specifies the name of backend type while `-storage-dsn` specifies the backend data source name (e.g. the connection string). If no `-storage` backend is specified then `file` is used as a default.
 
-##### diskv storage backend
-
-* `-storage diskv`
-
-Configure the `diskv` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `diskv` is used as a default.
-
-*Example:* `-storage diskv -storage-dsn /path/to/my/db`
-
 ##### file storage backend
 
 * `-storage file`
 
-Configure the `file` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `db` is used as a default.
+Configure the `file` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories using a key-value storage system. It has zero dependencies and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `dbkv` is used as a default.
+
+> [!NOTE]
+> NanoDEP versions *after* v0.4 have a new key-value based `file` backend. To use the previous version (e.g. to preserve existing data) use the `file.deprecated` backend.
 
 *Example:* `-storage file -storage-dsn /path/to/my/db`
+
+##### file.deprecated storage backend
+
+* `-storage file.deprecated`
+
+> [!WARNING]
+> The `file.deprecated` (formerly the default `file` backend) will be removed from a future NanoDEP release.
+
+Configure the `file.deprecated` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `db` is used as a default.
+
+> [!NOTE]
+> This was previously the default `file` storage backend in NanoDEP v0.4 and below. 
+
+*Example:* `-storage file.deprecated -storage-dsn /path/to/my/db`
 
 ##### in-memory storage backend
 

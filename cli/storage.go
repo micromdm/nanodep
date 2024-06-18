@@ -19,14 +19,14 @@ func Storage(storageName, dsn string) (storage.AllStorage, error) {
 	switch storageName {
 	case "file":
 		if dsn == "" {
+			dsn = "dbkv"
+		}
+		store = diskv.New(dsn)
+	case "file.deprecated":
+		if dsn == "" {
 			dsn = "db"
 		}
 		store, err = file.New(dsn)
-	case "diskv":
-		if dsn == "" {
-			dsn = "diskv"
-		}
-		store = diskv.New(dsn)
 	case "inmem":
 		store = inmem.New()
 	case "mysql":
