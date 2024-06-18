@@ -49,6 +49,14 @@ Configure the `file` storage backend. This backend manages DEP authentication an
 
 *Example:* `-storage file -storage-dsn /path/to/my/db`
 
+##### in-memory storage backend
+
+* `-storage inmem`
+
+Configure the `inmem` in-memory storage backend. This backend manages DEP authentication and configuration data entirely in volatile memory. The DSN is ignored. **WARNING: all data is lost when the server or tool process has exited.**
+
+*Example:* `-storage inmem`
+
 ##### mysql storage backend
 
 * `-storage mysql`
