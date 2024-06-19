@@ -41,6 +41,8 @@ func GetName(ctx context.Context) string {
 }
 
 type AuthTokensRetriever interface {
+	// RetrieveAuthTokens retrieves the OAuth tokens from storage for name (DEP name).
+	// If the name or tokens do not exist storage.ErrNotFound should be returned.
 	RetrieveAuthTokens(ctx context.Context, name string) (*OAuth1Tokens, error)
 }
 

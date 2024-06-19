@@ -18,18 +18,28 @@ import (
 )
 
 type TokenPKIStagingRetriever interface {
+	// RetrieveStagingTokenPKI retrieves and returns the PEM bytes for the staged
+	// DEP token exchange certificate and private key for name (DEP name).
 	RetrieveStagingTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error)
 }
 
 type TokenPKICurrentRetriever interface {
+	// RetrieveCurrentTokenPKI reads and returns the PEM bytes for the
+	// previously-upstaged DEP token exchange certificate and private
+	// key using name (DEP name).
 	RetrieveCurrentTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error)
 }
 
 type TokenPKIUpstager interface {
+	// UpstageTokenPKI copies the "staging" PKI certificate and key to the current PKI certificate and key.
+	// This allows key operations to use the newly uploaded key.
+	// Note the OAuth tokens should also be changed at the same time.
 	UpstageTokenPKI(ctx context.Context, name string) error
 }
 
 type TokenPKIStorer interface {
+	// StoreTokenPKI stores the PEM bytes in pemCert and pemKey for name (DEP name).
+	// These will be stored as the "staging" set to later be "upstaged."
 	StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error
 }
 
