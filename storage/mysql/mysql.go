@@ -80,7 +80,7 @@ func New(opts ...Option) (*MySQLStorage, error) {
 
 const timestampFormat = "2006-01-02 15:04:05"
 
-// RetrieveAuthTokens reads the DEP OAuth tokens for name DEP name.
+// RetrieveAuthTokens reads the DEP OAuth tokens for name (DEP name).
 func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth1Tokens, error) {
 	tokenRow, err := s.q.GetAuthTokens(ctx, name)
 	if err != nil {
@@ -151,7 +151,7 @@ func (s *MySQLStorage) RetrieveConfig(ctx context.Context, name string) (*client
 	}, nil
 }
 
-// StoreConfig saves the DEP config for name DEP name.
+// StoreConfig saves the DEP config for name (DEP name).
 func (s *MySQLStorage) StoreConfig(ctx context.Context, name string, config *client.Config) error {
 	_, err := s.db.ExecContext(
 		ctx, `
@@ -167,7 +167,7 @@ ON DUPLICATE KEY UPDATE
 	return err
 }
 
-// RetrieveAssignerProfile reads the assigner profile UUID and its timestamp for name DEP name.
+// RetrieveAssignerProfile reads the assigner profile UUID and its timestamp for name (DEP name).
 //
 // Returns an empty profile UUID if it does not exist.
 func (s *MySQLStorage) RetrieveAssignerProfile(ctx context.Context, name string) (profileUUID string, modTime time.Time, err error) {
@@ -188,7 +188,7 @@ func (s *MySQLStorage) RetrieveAssignerProfile(ctx context.Context, name string)
 	return
 }
 
-// StoreAssignerProfile saves the assigner profile UUID for name DEP name.
+// StoreAssignerProfile saves the assigner profile UUID for name (DEP name).
 func (s *MySQLStorage) StoreAssignerProfile(ctx context.Context, name string, profileUUID string) error {
 	_, err := s.db.ExecContext(
 		ctx, `
@@ -205,7 +205,7 @@ ON DUPLICATE KEY UPDATE
 	return err
 }
 
-// RetrieveCursor reads the reads the DEP fetch and sync cursor for name DEP name.
+// RetrieveCursor reads the reads the DEP fetch and sync cursor for name (DEP name).
 //
 // Returns an empty cursor if the cursor does not exist.
 func (s *MySQLStorage) RetrieveCursor(ctx context.Context, name string) (string, error) {
@@ -222,7 +222,7 @@ func (s *MySQLStorage) RetrieveCursor(ctx context.Context, name string) (string,
 	return cursor.String, nil
 }
 
-// StoreCursor saves the DEP fetch and sync cursor for name DEP name.
+// StoreCursor saves the DEP fetch and sync cursor for name (DEP name).
 func (s *MySQLStorage) StoreCursor(ctx context.Context, name, cursor string) error {
 	_, err := s.db.ExecContext(
 		ctx, `
@@ -238,7 +238,7 @@ ON DUPLICATE KEY UPDATE
 	return err
 }
 
-// StoreTokenPKI stores the staging PEM bytes in pemCert and pemKey for name DEP name.
+// StoreTokenPKI stores the staging PEM bytes in pemCert and pemKey for name (DEP name).
 func (s *MySQLStorage) StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error {
 	_, err := s.db.ExecContext(
 		ctx, `
@@ -267,7 +267,7 @@ func (s *MySQLStorage) UpstageTokenPKI(ctx context.Context, name string) error {
 }
 
 // RetrieveStagingTokenPKI returns the PEM bytes for the staged DEP
-// token exchange certificate and private key using name DEP name.
+// token exchange certificate and private key using name (DEP name).
 func (s *MySQLStorage) RetrieveStagingTokenPKI(ctx context.Context, name string) ([]byte, []byte, error) {
 	keypair, err := s.q.GetStagingKeypair(ctx, name)
 	if err != nil {
@@ -283,7 +283,7 @@ func (s *MySQLStorage) RetrieveStagingTokenPKI(ctx context.Context, name string)
 }
 
 // RetrieveCurrentTokenPKI returns the PEM bytes for the previously-upstaged DEP
-// token exchange certificate and private key using name DEP name.
+// token exchange certificate and private key using name (DEP name).
 func (s *MySQLStorage) RetrieveCurrentTokenPKI(ctx context.Context, name string) (pemCert []byte, pemKey []byte, err error) {
 	keypair, err := s.q.GetCurrentKeypair(ctx, name)
 	if err != nil {

@@ -57,12 +57,12 @@ Configure the `file` storage backend. This backend manages DEP authentication an
 * `-storage file.deprecated`
 
 > [!WARNING]
-> The `file.deprecated` (formerly the default `file` backend) will be removed from a future NanoDEP release.
+> The `file.deprecated` (formerly the default `file` backend) will be removed in a future NanoDEP release.
 
 Configure the `file.deprecated` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `db` is used as a default.
 
 > [!NOTE]
-> This was previously the default `file` storage backend in NanoDEP v0.4 and below. 
+> This was previously the default `file` storage backend in NanoDEP v0.4 and below.
 
 *Example:* `-storage file.deprecated -storage-dsn /path/to/my/db`
 

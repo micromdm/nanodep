@@ -21,7 +21,7 @@ type Config struct {
 }
 
 type ConfigRetriever interface {
-	// RetrieveConfig reads the DEP name config of name.
+	// RetrieveConfig retrieves config of name (DEP name).
 	// If the DEP name or config does not exist then a nil config and
 	// nil error should be returned.
 	RetrieveConfig(ctx context.Context, name string) (*Config, error)

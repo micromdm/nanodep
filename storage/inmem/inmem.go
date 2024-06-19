@@ -1,4 +1,4 @@
-// Package inmem implements an in-memory storage backend.
+// Package inmem implements an in-memory NanoDEP storage backend.
 package inmem
 
 import (

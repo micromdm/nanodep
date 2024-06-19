@@ -43,7 +43,7 @@ func RetrieveConfigHandler(store client.ConfigRetriever, logger log.Logger) http
 }
 
 type ConfigStorer interface {
-	// StoreConfig stores the DEP name config for name.
+	// StoreConfig stores config for name (DEP name).
 	StoreConfig(ctx context.Context, name string, config *client.Config) error
 }
 
