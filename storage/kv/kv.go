@@ -42,7 +42,7 @@ func New(b kv.Bucket) *KV {
 	return &KV{b: b}
 }
 
-// StoreAuthTokens saves the DEP OAuth tokens to disk as JSON for name DEP name.
+// StoreAuthTokens stores the DEP OAuth tokens for name (DEP name).
 func (s *KV) StoreAuthTokens(ctx context.Context, name string, tokens *client.OAuth1Tokens) error {
 	expiryText, err := tokens.AccessTokenExpiry.MarshalText()
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *KV) StoreAuthTokens(ctx context.Context, name string, tokens *client.OA
 	})
 }
 
-// RetrieveAuthTokens reads the JSON DEP OAuth tokens from disk for name DEP name.
+// RetrieveAuthTokens retrieves the OAuth tokens for name (DEP name).
 func (s *KV) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth1Tokens, error) {
 	tokenMap, err := kv.GetMap(ctx, s.b, []string{
 		name + keySfxConsumerKey,
@@ -80,7 +80,7 @@ func (s *KV) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth
 	return tokens, tokens.AccessTokenExpiry.UnmarshalText(tokenMap[name+keySfxAccessTokenExpiry])
 }
 
-// StoreConfig saves the DEP config to disk as JSON for name DEP name.
+// StoreConfig stores the config for name (DEP name).
 func (s *KV) StoreConfig(ctx context.Context, name string, config *client.Config) error {
 	configJSON, err := json.Marshal(config)
 	if err != nil {
@@ -89,10 +89,9 @@ func (s *KV) StoreConfig(ctx context.Context, name string, config *client.Config
 	return s.b.Set(ctx, name+keySfxConfig, configJSON)
 }
 
-// RetrieveConfig reads the JSON DEP config of a DEP name.
-//
-// Returns (nil, nil) if the DEP name does not exist, or if the config
-// for the DEP name does not exist.
+// RetrieveConfig retrieves config of name (DEP name).
+// If the DEP name or config does not exist then a nil config and
+// nil error will be returned.
 func (s *KV) RetrieveConfig(ctx context.Context, name string) (*client.Config, error) {
 	configJSON, err := s.b.Get(ctx, name+keySfxConfig)
 	if errors.Is(err, kv.ErrKeyNotFound) {
@@ -104,7 +103,7 @@ func (s *KV) RetrieveConfig(ctx context.Context, name string) (*client.Config, e
 	return config, json.Unmarshal(configJSON, config)
 }
 
-// StoreAssignerProfile saves the assigner profile UUID to disk for name DEP name.
+// StoreAssignerProfile stores the assigner profile UUID for name (DEP name).
 func (s *KV) StoreAssignerProfile(ctx context.Context, name string, profileUUID string) error {
 	modTimeText, err := time.Now().UTC().MarshalText()
 	if err != nil {
@@ -116,9 +115,8 @@ func (s *KV) StoreAssignerProfile(ctx context.Context, name string, profileUUID 
 	})
 }
 
-// RetrieveAssignerProfile reads the assigner profile UUID and its configured
-// timestamp from disk for name DEP name.
-//
+// RetrieveAssignerProfile retrieves the assigner profile UUID and its
+// configured timestamp name (DEP name).
 // Returns an empty profile if it does not exist.
 func (s *KV) RetrieveAssignerProfile(ctx context.Context, name string) (string, time.Time, error) {
 	profileMap, err := kv.GetMap(ctx, s.b, []string{
@@ -134,8 +132,8 @@ func (s *KV) RetrieveAssignerProfile(ctx context.Context, name string) (string, 
 		modTime.UnmarshalText(profileMap[name+keySfxAssignerProfileModTime])
 }
 
-// RetrieveCursor retrieves the cursor from the key-value store for name DEP name.
-// If the DEP name or cursor does not exist an empty cursor and nil error is be returned.
+// RetrieveCursor retrieves the cursor for name (DEP name).
+// If the DEP name or cursor does not exist an empty cursor and nil error will be returned.
 func (s *KV) RetrieveCursor(ctx context.Context, name string) (string, error) {
 	cursor, err := s.b.Get(ctx, name+keySfxCursor)
 	if errors.Is(err, kv.ErrKeyNotFound) {
@@ -144,12 +142,12 @@ func (s *KV) RetrieveCursor(ctx context.Context, name string) (string, error) {
 	return string(cursor), err
 }
 
-// StoreCursor stores the cursor to disk for name DEP name.
+// StoreCursor stores the cursor for name (DEP name).
 func (s *KV) StoreCursor(ctx context.Context, name, cursor string) error {
 	return s.b.Set(ctx, name+keySfxCursor, []byte(cursor))
 }
 
-// StoreTokenPKI stores the PEM bytes in pemCert and pemKey to disk for name DEP name.
+// StoreTokenPKI stores the PEM bytes in pemCert and pemKey for name (DEP name).
 func (s *KV) StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error {
 	return kv.SetMap(ctx, s.b, map[string][]byte{
 		name + keySfxCertStaging: pemCert,
@@ -173,8 +171,8 @@ func (s *KV) UpstageTokenPKI(ctx context.Context, name string) error {
 	})
 }
 
-// RetrieveStagingTokenPKI reads and returns the PEM bytes for the staged
-// DEP token exchange certificate and private key from disk using name DEP name.
+// RetrieveStagingTokenPKI retrieves and returns the PEM bytes for the staged
+// DEP token exchange certificate and private key using name (DEP name).
 func (s *KV) RetrieveStagingTokenPKI(ctx context.Context, name string) ([]byte, []byte, error) {
 	tokenPKIMap, err := kv.GetMap(ctx, s.b, []string{
 		name + keySfxCertStaging,
@@ -188,9 +186,9 @@ func (s *KV) RetrieveStagingTokenPKI(ctx context.Context, name string) ([]byte, 
 	return tokenPKIMap[name+keySfxCertStaging], tokenPKIMap[name+keySfxKeyStaging], nil
 }
 
-// RetrieveCurrentTokenPKI reads and returns the PEM bytes for the previously-
-// upstaged DEP token exchange certificate and private key from disk using
-// name DEP name.
+// RetrieveCurrentTokenPKI reads and returns the PEM bytes for the
+// previously-upstaged DEP token exchange certificate and private key
+// using name (DEP name).
 func (s *KV) RetrieveCurrentTokenPKI(ctx context.Context, name string) ([]byte, []byte, error) {
 	tokenPKIMap, err := kv.GetMap(ctx, s.b, []string{
 		name + keySfxCert,

@@ -15,11 +15,11 @@ import (
 
 // CursorStorage stores and retrieves fetch and sync cursors.
 type CursorStorage interface {
-	// RetrieveCursor retrieves the cursor from storage for name DEP name.
+	// RetrieveCursor retrieves the cursor from storage for name (DEP name).
 	// If the DEP name or cursor does not exist an empty cursor and nil error should be returned.
 	RetrieveCursor(ctx context.Context, name string) (string, error)
 
-	// StoreCursor stores the cursor to disk for name DEP name.
+	// StoreCursor stores the cursor to disk for name (DEP name).
 	StoreCursor(ctx context.Context, name string, cursor string) error
 }
 

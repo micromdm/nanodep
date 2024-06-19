@@ -1,4 +1,4 @@
-// Package diskv implements an engine storage backend using the diskv key-value store.
+// Package diskv implements a NanoDEP storage backend using the diskv key-value store.
 package diskv
 
 import (
@@ -10,7 +10,7 @@ import (
 	"github.com/peterbourgon/diskv/v3"
 )
 
-// Diskv is a a diskv-backed engine storage backend.
+// Diskv is a storage backend that uses diskv.
 type Diskv struct {
 	*kv.KV
 }
