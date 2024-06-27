@@ -143,7 +143,7 @@ func main() {
 		)
 
 		// create the callback (that calls the assigner and webhook)
-		callback := func(ctx context.Context, isFetch bool, resp *godep.DeviceResponse) error {
+		callback := func(ctx context.Context, name string, isFetch bool, resp *godep.DeviceResponse) error {
 			go func() {
 				err := assigner.ProcessDeviceResponse(ctx, resp)
 				if err != nil {

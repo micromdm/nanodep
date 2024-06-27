@@ -21,7 +21,7 @@ type CursorStorage interface {
 }
 
 // DeviceResponseCallback is called every time a fetch or sync operation completes.
-type DeviceResponseCallback func(context.Context, bool, *godep.DeviceResponse) error
+type DeviceResponseCallback func(context.Context, string, bool, *godep.DeviceResponse) error
 
 // Syncer performs the fetch and sync cursor operations to sync devices from
 // the Apple DEP service. Depending on the options supplied it can perform the
@@ -199,7 +199,7 @@ func (s *Syncer) Run(ctx context.Context) error {
 			}
 
 			if s.callback != nil {
-				err = s.callback(ctx, doFetch, resp)
+				err = s.callback(ctx, s.name, doFetch, resp)
 				if err != nil {
 					logger.Info("msg", "syncer callback", "err", err)
 				}
