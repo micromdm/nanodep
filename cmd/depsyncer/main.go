@@ -151,12 +151,12 @@ func main() {
 				}
 			}()
 			if webhook != nil {
-				go func() {
+				go func(name string) {
 					err := webhook.CallWebhook(ctx, name, isFetch, resp)
 					if err != nil {
 						logger.Info("msg", "calling webhook", "err", err)
 					}
-				}()
+				}(name)
 			}
 			return nil
 		}
