@@ -127,6 +127,9 @@ func main() {
 	var wg sync.WaitGroup
 
 	for _, name := range flag.Args()[0:] {
+		// we're attaching this to a callback which is called from
+		// a goroutine. so we need to re-initialize the variable scope.
+		name := name
 
 		// create the assigner
 		assignerOpts := []depsync.AssignerOption{
