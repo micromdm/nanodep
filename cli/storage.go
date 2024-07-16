@@ -6,7 +6,9 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/micromdm/nanodep/storage"
+	"github.com/micromdm/nanodep/storage/diskv"
 	"github.com/micromdm/nanodep/storage/file"
+	"github.com/micromdm/nanodep/storage/inmem"
 	"github.com/micromdm/nanodep/storage/mysql"
 )
 
@@ -17,9 +19,16 @@ func Storage(storageName, dsn string) (storage.AllStorage, error) {
 	switch storageName {
 	case "file":
 		if dsn == "" {
+			dsn = "dbkv"
+		}
+		store = diskv.New(dsn)
+	case "file.deprecated":
+		if dsn == "" {
 			dsn = "db"
 		}
 		store, err = file.New(dsn)
+	case "inmem":
+		store = inmem.New()
 	case "mysql":
 		store, err = mysql.New(mysql.WithDSN(dsn))
 	default:
