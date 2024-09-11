@@ -35,10 +35,10 @@ const (
 )
 
 type KV struct {
-	b kv.Bucket
+	b kv.TxnCRUDBucket
 }
 
-func New(b kv.Bucket) *KV {
+func New(b kv.TxnCRUDBucket) *KV {
 	return &KV{b: b}
 }
 
@@ -48,23 +48,31 @@ func (s *KV) StoreAuthTokens(ctx context.Context, name string, tokens *client.OA
 	if err != nil {
 		return err
 	}
-	return kv.SetMap(ctx, s.b, map[string][]byte{
-		name + keySfxConsumerKey:       []byte(tokens.ConsumerKey),
-		name + keySfxConsumerSecret:    []byte(tokens.ConsumerSecret),
-		name + keySfxAccessToken:       []byte(tokens.AccessToken),
-		name + keySfxAccessSecret:      []byte(tokens.AccessSecret),
-		name + keySfxAccessTokenExpiry: expiryText,
+	err = kv.PerformCRUDBucketTxn(ctx, s.b, func(ctx context.Context, txn kv.CRUDBucket) error {
+		return kv.SetMap(ctx, txn, map[string][]byte{
+			name + keySfxConsumerKey:       []byte(tokens.ConsumerKey),
+			name + keySfxConsumerSecret:    []byte(tokens.ConsumerSecret),
+			name + keySfxAccessToken:       []byte(tokens.AccessToken),
+			name + keySfxAccessSecret:      []byte(tokens.AccessSecret),
+			name + keySfxAccessTokenExpiry: expiryText,
+		})
 	})
+	return err
 }
 
 // RetrieveAuthTokens retrieves the OAuth tokens for name (DEP name).
 func (s *KV) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth1Tokens, error) {
-	tokenMap, err := kv.GetMap(ctx, s.b, []string{
-		name + keySfxConsumerKey,
-		name + keySfxConsumerSecret,
-		name + keySfxAccessToken,
-		name + keySfxAccessSecret,
-		name + keySfxAccessTokenExpiry,
+	var tokenMap map[string][]byte
+	err := kv.PerformCRUDBucketTxn(ctx, s.b, func(ctx context.Context, txn kv.CRUDBucket) error {
+		var err error
+		tokenMap, err = kv.GetMap(ctx, s.b, []string{
+			name + keySfxConsumerKey,
+			name + keySfxConsumerSecret,
+			name + keySfxAccessToken,
+			name + keySfxAccessSecret,
+			name + keySfxAccessTokenExpiry,
+		})
+		return err
 	})
 	if errors.Is(err, kv.ErrKeyNotFound) {
 		return nil, fmt.Errorf("%w: %v", storage.ErrNotFound, err)
@@ -80,12 +88,13 @@ func (s *KV) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth
 	return tokens, tokens.AccessTokenExpiry.UnmarshalText(tokenMap[name+keySfxAccessTokenExpiry])
 }
 
-// StoreConfig stores the config for name (DEP name).
+// StoreConfig stores the config for name (DEP name), overwriting it.
 func (s *KV) StoreConfig(ctx context.Context, name string, config *client.Config) error {
 	configJSON, err := json.Marshal(config)
 	if err != nil {
 		return err
 	}
+	// auto-commit of storage obviates need for txn for single key
 	return s.b.Set(ctx, name+keySfxConfig, configJSON)
 }
 
@@ -109,19 +118,27 @@ func (s *KV) StoreAssignerProfile(ctx context.Context, name string, profileUUID 
 	if err != nil {
 		return err
 	}
-	return kv.SetMap(ctx, s.b, map[string][]byte{
-		name + keySfxAssignerProfile:        []byte(profileUUID),
-		name + keySfxAssignerProfileModTime: modTimeText,
+	err = kv.PerformCRUDBucketTxn(ctx, s.b, func(ctx context.Context, txn kv.CRUDBucket) error {
+		return kv.SetMap(ctx, txn, map[string][]byte{
+			name + keySfxAssignerProfile:        []byte(profileUUID),
+			name + keySfxAssignerProfileModTime: modTimeText,
+		})
 	})
+	return err
 }
 
 // RetrieveAssignerProfile retrieves the assigner profile UUID and its
 // configured timestamp name (DEP name).
 // Returns an empty profile if it does not exist.
 func (s *KV) RetrieveAssignerProfile(ctx context.Context, name string) (string, time.Time, error) {
-	profileMap, err := kv.GetMap(ctx, s.b, []string{
-		name + keySfxAssignerProfile,
-		name + keySfxAssignerProfileModTime,
+	var profileMap map[string][]byte
+	err := kv.PerformCRUDBucketTxn(ctx, s.b, func(ctx context.Context, txn kv.CRUDBucket) error {
+		var err error
+		profileMap, err = kv.GetMap(ctx, s.b, []string{
+			name + keySfxAssignerProfile,
+			name + keySfxAssignerProfileModTime,
+		})
+		return err
 	})
 	var modTime time.Time
 	if errors.Is(err, kv.ErrKeyNotFound) {
@@ -144,39 +161,50 @@ func (s *KV) RetrieveCursor(ctx context.Context, name string) (string, error) {
 
 // StoreCursor stores the cursor for name (DEP name).
 func (s *KV) StoreCursor(ctx context.Context, name, cursor string) error {
+	// auto-commit of storage obviates need for txn for single key
 	return s.b.Set(ctx, name+keySfxCursor, []byte(cursor))
 }
 
 // StoreTokenPKI stores the PEM bytes in pemCert and pemKey for name (DEP name).
 func (s *KV) StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error {
-	return kv.SetMap(ctx, s.b, map[string][]byte{
-		name + keySfxCertStaging: pemCert,
-		name + keySfxKeyStaging:  pemKey,
+	return kv.PerformCRUDBucketTxn(ctx, s.b, func(ctx context.Context, txn kv.CRUDBucket) error {
+		return kv.SetMap(ctx, txn, map[string][]byte{
+			name + keySfxCertStaging: pemCert,
+			name + keySfxKeyStaging:  pemKey,
+		})
 	})
 }
 
 // UpstageTokenPKI copies the staging PKI certificate and key to the current PKI certificate and key.
 // Warning: this operation is not atomic.
 func (s *KV) UpstageTokenPKI(ctx context.Context, name string) error {
-	tokenPKIMap, err := kv.GetMap(ctx, s.b, []string{
-		name + keySfxCertStaging,
-		name + keySfxKeyStaging,
+	err := kv.PerformCRUDBucketTxn(ctx, s.b, func(ctx context.Context, txn kv.CRUDBucket) error {
+		tokenPKIMap, err := kv.GetMap(ctx, txn, []string{
+			name + keySfxCertStaging,
+			name + keySfxKeyStaging,
+		})
+		if err != nil {
+			return err
+		}
+		return kv.SetMap(ctx, txn, map[string][]byte{
+			name + keySfxCert: tokenPKIMap[name+keySfxCertStaging],
+			name + keySfxKey:  tokenPKIMap[name+keySfxKeyStaging],
+		})
 	})
-	if err != nil {
-		return nil
-	}
-	return kv.SetMap(ctx, s.b, map[string][]byte{
-		name + keySfxCert: tokenPKIMap[name+keySfxCertStaging],
-		name + keySfxKey:  tokenPKIMap[name+keySfxKeyStaging],
-	})
+	return err
 }
 
 // RetrieveStagingTokenPKI retrieves and returns the PEM bytes for the staged
 // DEP token exchange certificate and private key using name (DEP name).
 func (s *KV) RetrieveStagingTokenPKI(ctx context.Context, name string) ([]byte, []byte, error) {
-	tokenPKIMap, err := kv.GetMap(ctx, s.b, []string{
-		name + keySfxCertStaging,
-		name + keySfxKeyStaging,
+	var tokenPKIMap map[string][]byte
+	err := kv.PerformCRUDBucketTxn(ctx, s.b, func(ctx context.Context, txn kv.CRUDBucket) error {
+		var err error
+		tokenPKIMap, err = kv.GetMap(ctx, s.b, []string{
+			name + keySfxCertStaging,
+			name + keySfxKeyStaging,
+		})
+		return err
 	})
 	if errors.Is(err, kv.ErrKeyNotFound) {
 		return nil, nil, fmt.Errorf("%w: %v", storage.ErrNotFound, err)
@@ -190,9 +218,14 @@ func (s *KV) RetrieveStagingTokenPKI(ctx context.Context, name string) ([]byte, 
 // previously-upstaged DEP token exchange certificate and private key
 // using name (DEP name).
 func (s *KV) RetrieveCurrentTokenPKI(ctx context.Context, name string) ([]byte, []byte, error) {
-	tokenPKIMap, err := kv.GetMap(ctx, s.b, []string{
-		name + keySfxCert,
-		name + keySfxKey,
+	var tokenPKIMap map[string][]byte
+	err := kv.PerformCRUDBucketTxn(ctx, s.b, func(ctx context.Context, txn kv.CRUDBucket) error {
+		var err error
+		tokenPKIMap, err = kv.GetMap(ctx, s.b, []string{
+			name + keySfxCert,
+			name + keySfxKey,
+		})
+		return err
 	})
 	if errors.Is(err, kv.ErrKeyNotFound) {
 		return nil, nil, fmt.Errorf("%w: %v", storage.ErrNotFound, err)

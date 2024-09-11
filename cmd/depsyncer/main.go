@@ -31,8 +31,9 @@ func main() {
 		flDebug   = flag.Bool("debug", false, "log debug messages")
 		flADebug  = flag.Bool("debug-assigner", false, "additional debug logging of the device assigner")
 		flSDebug  = flag.Bool("debug-syncer", false, "additional debug logging of the device syncer")
-		flStorage = flag.String("storage", "file", "storage backend")
-		flDSN     = flag.String("storage-dsn", "", "storage data source name")
+		flStorage = flag.String("storage", "filekv", "storage backend")
+		flDSN     = flag.String("storage-dsn", "", "storage backend data source name")
+		flOptions = flag.String("storage-options", "", "storage backend options")
 		flWebhook = flag.String("webhook-url", "", "URL to send requests to")
 		flUA      = flag.String("user-agent", godep.UserAgent, "User-Agent string to use")
 	)
@@ -58,7 +59,7 @@ func main() {
 		stdlogfmt.WithDebugFlag(*flDebug),
 	)
 
-	storage, err := cli.Storage(*flStorage, *flDSN)
+	storage, err := cli.Storage(*flStorage, *flDSN, *flOptions)
 	if err != nil {
 		logger.Info("msg", "creating storage backend", "err", err)
 		os.Exit(1)
