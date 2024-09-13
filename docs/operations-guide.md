@@ -39,7 +39,7 @@ Specifies the listen address (interface and port number) for the server to liste
 
 #### -storage, -storage-dsn, & -storage-options
 
-The `-storage`, `-storage-dsn`, and `-storage-options` flags together configure the storage backend. `-storage` specifies the name of backend type while `-storage-dsn` specifies the backend data source name (e.g. the connection string). The optional `-storage-options` flag specifies options for the backend if it supports them. If no `-storage` backend is specified then `filekv` is used as a default. NanoDEP versions before v0.4 defaulted to the `file` backend.
+The `-storage`, `-storage-dsn`, and `-storage-options` flags together configure the storage backend. `-storage` specifies the name of backend type while `-storage-dsn` specifies the backend data source name (e.g. the connection string). The optional `-storage-options` flag specifies options for the backend if it supports them. If no `-storage` backend is specified then `filekv` is used as a default. NanoDEP versions v0.5 and earlier defaulted to the `file` backend.
 
 ##### filekv storage backend
 
@@ -54,7 +54,7 @@ Configure the `filekv` storage backend. This backend manages DEP authentication 
 * `-storage file`
 
 > [!WARNING]
-> The `file` storage backend is deprecated in NanoDEP v0.4 and will be removed in a future release.
+> The `file` storage backend is deprecated in NanoDEP verions after v0.5 and will be removed in a future release.
 
 Configure the `file` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `db` is used as a default.
 
