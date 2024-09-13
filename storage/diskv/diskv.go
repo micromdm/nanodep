@@ -16,6 +16,7 @@ type Diskv struct {
 	*kv.KV
 }
 
+// New creates a new storage backend that uses diskv.
 func New(path string) *Diskv {
 	return &Diskv{KV: kv.New(
 		kvtxn.New(kvdiskv.New(diskv.New(diskv.Options{

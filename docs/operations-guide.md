@@ -45,7 +45,7 @@ The `-storage`, `-storage-dsn`, and `-storage-options` flags together configure 
 
 * `-storage filekv`
 
-Uses the `filekv` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories using a key-value storage system. It has zero dependencies, no options, and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `dbkv` is used as a default.
+Configure the `filekv` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories using a key-value storage system. It has zero dependencies, no options, and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `dbkv` is used as a default.
 
 *Example:* `-storage filekv -storage-dsn /path/to/my/db`
 
@@ -56,7 +56,7 @@ Uses the `filekv` storage backend. This backend manages DEP authentication and c
 > [!WARNING]
 > The `file` storage backend is deprecated in NanoDEP v0.4 and will be removed in a future release.
 
-Uses the `file` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `db` is used as a default.
+Configure the `file` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `db` is used as a default.
 
 *Example:* `-storage file -storage-dsn /path/to/my/db`
 
@@ -71,7 +71,7 @@ Options are specified as a comma-separated list of "key=value" pairs. Supported 
 
 * `-storage inmem`
 
-Configure the `inmem` in-memory storage backend. This backend manages DEP authentication and configuration data entirely in volatile memory. The DSN is ignored. **WARNING: all data is lost when the server or tool process has exited.**
+Configure the `inmem` in-memory storage backend. This backend manages DEP authentication and configuration data entirely in volatile memory. There are no options and the DSN is ignored. **WARNING: all data is lost when the server or tool process has exited.**
 
 *Example:* `-storage inmem`
 

@@ -13,7 +13,7 @@ type InMem struct {
 	*kv.KV
 }
 
-// New creates a new storage backend.
+// New creates a new in-memory storage backend.
 func New() *InMem {
 	return &InMem{KV: kv.New(kvtxn.New(kvmap.New()))}
 }
