@@ -37,17 +37,43 @@ Enable additional debug logging.
 
 Specifies the listen address (interface and port number) for the server to listen on.
 
-#### -storage & -storage-dsn
+#### -storage, -storage-dsn, & -storage-options
 
-The `-storage` and `-storage-dsn` flags together configure the storage backend. `-storage` specifies the name of backend type while `-storage-dsn` specifies the backend data source name (e.g. the connection string). If no `-storage` backend is specified then `file` is used as a default.
+The `-storage`, `-storage-dsn`, and `-storage-options` flags together configure the storage backend. `-storage` specifies the name of backend type while `-storage-dsn` specifies the backend data source name (e.g. the connection string). The optional `-storage-options` flag specifies options for the backend if it supports them. If no `-storage` backend is specified then `filekv` is used as a default. NanoDEP versions before v0.4 defaulted to the `file` backend.
+
+##### filekv storage backend
+
+* `-storage filekv`
+
+Configure the `filekv` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories using a key-value storage system. It has zero dependencies, no options, and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `dbkv` is used as a default.
+
+*Example:* `-storage filekv -storage-dsn /path/to/my/db`
 
 ##### file storage backend
 
 * `-storage file`
 
-Configure the `file` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `db` is used as a default.
+> [!WARNING]
+> The `file` storage backend is deprecated in NanoDEP v0.4 and will be removed in a future release.
+
+Configure the `file` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories. It has zero dependencies and and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `db` is used as a default.
 
 *Example:* `-storage file -storage-dsn /path/to/my/db`
+
+Options are specified as a comma-separated list of "key=value" pairs. Supported options:
+
+* `enable_deprecated=1`
+  * This option enables the file backend. Without this switch the `file` backend is disabled.
+
+*Example:* `-storage file -storage-dsn /path/to/my/db -storage-options enable_deprecated=1`
+
+##### in-memory storage backend
+
+* `-storage inmem`
+
+Configure the `inmem` in-memory storage backend. This backend manages DEP authentication and configuration data entirely in volatile memory. There are no options and the DSN is ignored. **WARNING: all data is lost when the server or tool process has exited.**
+
+*Example:* `-storage inmem`
 
 ##### mysql storage backend
 

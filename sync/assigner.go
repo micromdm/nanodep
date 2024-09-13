@@ -13,6 +13,8 @@ import (
 )
 
 type AssignerProfileRetriever interface {
+	// RetrieveAssignerProfile retrieves the assigner profile UUID and timestamp for name (DEP name).
+	// If name or assigner profile UUID do not exist returns an empty profile and nil error.
 	RetrieveAssignerProfile(ctx context.Context, name string) (profileUUID string, modTime time.Time, err error)
 }
 

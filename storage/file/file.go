@@ -62,7 +62,7 @@ func (s *FileStorage) tokenpkiFilename(name, kind string) string {
 	return path.Join(s.path, name+".tokenpki."+kind+".txt")
 }
 
-// RetrieveAuthTokens reads the JSON DEP OAuth tokens from disk for name DEP name.
+// RetrieveAuthTokens reads the JSON DEP OAuth tokens from disk for name (DEP name).
 func (s *FileStorage) RetrieveAuthTokens(_ context.Context, name string) (*client.OAuth1Tokens, error) {
 	tokens := new(client.OAuth1Tokens)
 	err := decodeJSONfile(s.tokensFilename(name), tokens)
@@ -72,7 +72,7 @@ func (s *FileStorage) RetrieveAuthTokens(_ context.Context, name string) (*clien
 	return tokens, err
 }
 
-// StoreAuthTokens saves the DEP OAuth tokens to disk as JSON for name DEP name.
+// StoreAuthTokens saves the DEP OAuth tokens to disk as JSON for name (DEP name).
 func (s *FileStorage) StoreAuthTokens(_ context.Context, name string, tokens *client.OAuth1Tokens) error {
 	f, err := os.Create(s.tokensFilename(name))
 	if err != nil {
@@ -105,7 +105,7 @@ func (s *FileStorage) RetrieveConfig(_ context.Context, name string) (*client.Co
 	return config, err
 }
 
-// StoreConfig saves the DEP config to disk as JSON for name DEP name.
+// StoreConfig saves the DEP config to disk as JSON for name (DEP name).
 func (s *FileStorage) StoreConfig(_ context.Context, name string, config *client.Config) error {
 	f, err := os.Create(s.configFilename(name))
 	if err != nil {
@@ -116,7 +116,7 @@ func (s *FileStorage) StoreConfig(_ context.Context, name string, config *client
 }
 
 // RetrieveAssignerProfile reads the assigner profile UUID and its configured
-// timestamp from disk for name DEP name.
+// timestamp from disk for name (DEP name).
 //
 // Returns an empty profile if it does not exist.
 func (s *FileStorage) RetrieveAssignerProfile(_ context.Context, name string) (string, time.Time, error) {
@@ -136,13 +136,13 @@ func (s *FileStorage) RetrieveAssignerProfile(_ context.Context, name string) (s
 	return strings.TrimSpace(string(profileBytes)), modTime, err
 }
 
-// StoreAssignerProfile saves the assigner profile UUID to disk for name DEP name.
+// StoreAssignerProfile saves the assigner profile UUID to disk for name (DEP name).
 func (s *FileStorage) StoreAssignerProfile(_ context.Context, name string, profileUUID string) error {
 	return os.WriteFile(s.profileFilename(name), []byte(profileUUID+"\n"), defaultFileMode)
 }
 
 // RetrieveCursor reads the reads the DEP fetch and sync cursor from disk
-// for name DEP name. We return an empty cursor if the cursor does not exist
+// for name (DEP name). We return an empty cursor if the cursor does not exist
 // on disk.
 func (s *FileStorage) RetrieveCursor(_ context.Context, name string) (string, error) {
 	cursorBytes, err := os.ReadFile(s.cursorFilename(name))
@@ -153,12 +153,12 @@ func (s *FileStorage) RetrieveCursor(_ context.Context, name string) (string, er
 	return strings.TrimSpace(string(cursorBytes)), err
 }
 
-// StoreCursor saves the DEP fetch and sync cursor to disk for name DEP name.
+// StoreCursor saves the DEP fetch and sync cursor to disk for name (DEP name).
 func (s *FileStorage) StoreCursor(_ context.Context, name, cursor string) error {
 	return os.WriteFile(s.cursorFilename(name), []byte(cursor+"\n"), defaultFileMode)
 }
 
-// StoreTokenPKI stores the PEM bytes in pemCert and pemKey to disk for name DEP name.
+// StoreTokenPKI stores the PEM bytes in pemCert and pemKey to disk for name (DEP name).
 func (s *FileStorage) StoreTokenPKI(_ context.Context, name string, pemCert []byte, pemKey []byte) error {
 	if err := os.WriteFile(s.tokenpkiFilename(name, "staging.cert"), pemCert, 0664); err != nil {
 		return err
@@ -204,20 +204,20 @@ func (s *FileStorage) UpstageTokenPKI(ctx context.Context, name string) error {
 }
 
 // RetrieveStagingTokenPKI reads and returns the PEM bytes for the staged
-// DEP token exchange certificate and private key from disk using name DEP name.
+// DEP token exchange certificate and private key from disk using name (DEP name).
 func (s *FileStorage) RetrieveStagingTokenPKI(ctx context.Context, name string) ([]byte, []byte, error) {
 	return s.retrieveTokenPKIExtn(name, "staging.")
 }
 
 // RetrieveCurrentTokenPKI reads and returns the PEM bytes for the previously-
 // upstaged DEP token exchange certificate and private key from disk using
-// name DEP name.
+// name (DEP name).
 func (s *FileStorage) RetrieveCurrentTokenPKI(_ context.Context, name string) ([]byte, []byte, error) {
 	return s.retrieveTokenPKIExtn(name, "")
 }
 
 // retrieveTokenPKIExtn reads and returns the PEM bytes for the DEP token exchange
-// certificate and private key from disk using name DEP name and extn type.
+// certificate and private key from disk using name (DEP name) and extn type.
 func (s *FileStorage) retrieveTokenPKIExtn(name, extn string) ([]byte, []byte, error) {
 	certBytes, err := os.ReadFile(s.tokenpkiFilename(name, extn+"cert"))
 	if err != nil {
