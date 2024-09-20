@@ -12,7 +12,7 @@ type Device struct {
 	SerialNumber       string    `json:"serial_number"`
 	Model              string    `json:"model"`
 	Description        string    `json:"description"`
-	Color              string    `json:"color"`
+	Color              string    `json:"color,omitempty"`
 	AssetTag           string    `json:"asset_tag,omitempty"`
 	ProfileStatus      string    `json:"profile_status"`
 	ProfileUUID        string    `json:"profile_uuid,omitempty"`
