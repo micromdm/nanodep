@@ -7,6 +7,6 @@ import (
 	"github.com/micromdm/nanodep/storage/test"
 )
 
-func TestFileStorage(t *testing.T) {
+func TestInMem(t *testing.T) {
 	test.TestWithStorages(t, context.Background(), New())
 }
