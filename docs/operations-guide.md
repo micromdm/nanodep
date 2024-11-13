@@ -84,6 +84,12 @@ Be sure to create the storage tables with the [schema.sql](../storage/mysql/sche
 
 *Example:* `-storage mysql -dsn nanodep:nanodep/mydepdb`
 
+* `-storage pgsql`
+
+Configures the PostgreSQL storage backend. The -storage-dsn flag should be in the [format the SQL driver expects](https://pkg.go.dev/github.com/lib/pq#pkg-overview). Be sure to create your tables with the [schema.sql](../storage/pgsql/schema.sql) file that corresponds to your NanoDEP version. Also make sure you apply any schema changes for each updated version (i.e. execute the numbered schema change files). PostgreSQL 9.5 or later is required.
+
+Example: -storage pgsql -storage-dsn postgres://postgres:toor@localhost:5432/nanodep
+
 #### -version
 
 * print version

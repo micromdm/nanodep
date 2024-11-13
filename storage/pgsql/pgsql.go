@@ -1,4 +1,4 @@
-package psql
+package pgsql
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/micromdm/nanodep/client"
 	"github.com/micromdm/nanodep/storage"
-	"github.com/micromdm/nanodep/storage/psql/sqlc"
+	"github.com/micromdm/nanodep/storage/pgsql/sqlc"
 )
 
 // PSQL implements storage.AllStorage using PSQL.
@@ -72,8 +72,6 @@ func New(opts ...Option) (*PSQLStorage, error) {
 
 }
 
-const timestampFormat = "2006-01-02T15:04:05Z"
-
 // RetrieveAuthTokens reads the DEP OAuth tokens for name (DEP name).
 func (s *PSQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*client.OAuth1Tokens, error) {
 	tokenRow, err := s.q.GetAuthTokens(ctx, name)
@@ -86,17 +84,13 @@ func (s *PSQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*cli
 	if !tokenRow.ConsumerKey.Valid { // all auth token fields are set together
 		return nil, fmt.Errorf("consumer key not valid: %w", storage.ErrNotFound)
 	}
-	fmt.Println(tokenRow.AccessTokenExpiry.String)
-	accessTokenExpiryTime, err := time.Parse(timestampFormat, tokenRow.AccessTokenExpiry.String)
-	if err != nil {
-		return nil, err
-	}
+
 	return &client.OAuth1Tokens{
 		ConsumerKey:       tokenRow.ConsumerKey.String,
 		ConsumerSecret:    tokenRow.ConsumerSecret.String,
 		AccessToken:       tokenRow.AccessToken.String,
 		AccessSecret:      tokenRow.AccessSecret.String,
-		AccessTokenExpiry: accessTokenExpiryTime,
+		AccessTokenExpiry: tokenRow.AccessTokenExpiry.Time,
 	}, nil
 }
 
@@ -108,7 +102,7 @@ func (s *PSQLStorage) StoreAuthTokens(ctx context.Context, name string, tokens *
 		ConsumerSecret:    sql.NullString{String: tokens.ConsumerSecret, Valid: true},
 		AccessToken:       sql.NullString{String: tokens.AccessToken, Valid: true},
 		AccessSecret:      sql.NullString{String: tokens.AccessSecret, Valid: true},
-		AccessTokenExpiry: sql.NullString{String: tokens.AccessTokenExpiry.Format(timestampFormat), Valid: true},
+		AccessTokenExpiry: sql.NullTime{Time: tokens.AccessTokenExpiry, Valid: true},
 	})
 }
 
@@ -158,7 +152,7 @@ func (s *PSQLStorage) RetrieveAssignerProfile(ctx context.Context, name string) 
 		profileUUID = assignerRow.AssignerProfileUuid.String
 	}
 	if assignerRow.AssignerProfileUuidAt.Valid {
-		modTime, err = time.Parse(timestampFormat, assignerRow.AssignerProfileUuidAt.String)
+		modTime = assignerRow.AssignerProfileUuidAt.Time
 	}
 	return
 }
