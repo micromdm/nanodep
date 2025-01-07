@@ -72,7 +72,10 @@ Options are specified as a comma-separated list of "key=value" pairs. Supported 
 
 * `-storage inmem`
 
-Configure the `inmem` in-memory storage backend. This backend manages DEP authentication and configuration data entirely in volatile memory. There are no options and the DSN is ignored. **WARNING: all data is lost when the server or tool process has exited.**
+Configure the `inmem` in-memory storage backend. This backend manages DEP authentication and configuration data entirely in *volatile* memory. There are no options and the DSN is ignored.
+
+> [!WARNING]
+> All data is lost when the server or tool process has exited.
 
 *Example:* `-storage inmem`
 
@@ -80,8 +83,10 @@ Configure the `inmem` in-memory storage backend. This backend manages DEP authen
 
 * `-storage mysql`
 
-Configures the MySQL storage backend. The `-dsn` flag should be in the [format the SQL driver expects](https://github.com/go-sql-driver/mysql#dsn-data-source-name).
-Be sure to create the storage tables with the [schema.sql](../storage/mysql/schema.sql) file. MySQL 8.0.19 or later is required.
+Configures the MySQL storage backend. The `-dsn` flag should be in the [format the SQL driver expects](https://github.com/go-sql-driver/mysql#dsn-data-source-name). MySQL 8.0.19 or later is required.
+
+> [!TIP]
+> Be sure to create the storage tables with the [schema.sql](../storage/mysql/schema.sql) file.
 
 *Example:* `-storage mysql -dsn nanodep:nanodep/mydepdb`
 
