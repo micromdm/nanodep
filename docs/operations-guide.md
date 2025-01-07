@@ -6,7 +6,8 @@ This is a brief overview of the various tools and utilities for working with Nan
 
 NanoDEP supports configuring multiple DEP "MDM servers." These different DEP "MDM servers" are referenced by an arbitrary name string that you specify. This string is used to both configure the DEP connection (like authentication) as well to reference these configuration for actually talking to the Apple DEP API endpoints.
 
-Note that because the name string is used pervasively in URL API paths you probably want to avoid names that include things like forward-slashes "/", spaces, or anything else really that might have trouble in URLs.
+> [!WARNING]
+> Because the name string is used pervasively in URL API paths you probably want to avoid names that include things like forward-slashes "/", spaces, or anything else really that might have trouble in URLs.
 
 ## depserver
 
@@ -92,9 +93,12 @@ Print version and exit.
 
 ### API endpoints
 
-API endpoints for getting and setting the configuration of DEP names. Note that you don't need to use these APIs directly — NanoDEP provides a set of tools and scripts for working with some of these endpoints — see the "Tools and scripts" section, below. Most of the endpoints require specifying the "DEP name" (see above) in the `{name}` part of the URL (without the curly braces, of course).
+API endpoints for getting and setting the configuration of DEP names. Most of the endpoints require specifying the "DEP name" (see above) in the `{name}` part of the URL (without the curly braces, of course).
 
 A brief overview of the endpoints is provided here. For detailed API semantics please see the [OpenAPI documentation for NanoDEP](https://www.jessepeterson.space/swagger/nanodep.html). The OpenAPI source YAML is a part of this project.
+
+> [!TIP]
+> You aren't required to use these APIs directly — NanoDEP provides a set of tools and scripts for working with some of these endpoints — see the "Tools and scripts" section, below.
 
 #### Version
 
@@ -118,7 +122,8 @@ The `/v1/tokens/{name}` endpoints deal with the raw DEP OAuth tokens in JSON for
 
 For the PUT operation you can supply a "force" URL parameter which will override the matching consumer key check.
 
-The PUT endpoint is discouraged; instead you should perform the full PKI exchange with the "tokenpki" endpoints. If you import only the "raw" OAuth tokens then NanoDEP will not have access to the correct private key for the associated DEP name. This private key is used for some modern DEP operations and won't be possible.
+> [!WARNING]
+> The PUT endpoint is discouraged; instead you should perform the full PKI exchange with the "tokenpki" endpoints. If you import only the "raw" OAuth tokens then NanoDEP will not have access to the correct private key for the associated DEP name. This private key is used for some modern DEP operations and those won't be possible.
 
 #### Assigner
 
@@ -142,7 +147,8 @@ The proxy URL is accessible as: `/proxy/{name}/endpoint` where `/endpoint` is th
 * If not provided in the incoming HTTP request the DEP header `X-Server-Protocol-Version` is set to a default (currently "3").
 * For the `/session` endpoint we use a default `Content-Type`. However because NanoDEP handles authentication for you, you shouldn't have to worry about this (or even need to call to the `/session` endpoint).
 
-Note that for simple cases you don't need to use this proxy directly — NanoDEP provides a set of tools and scripts for working with some of the DEP endpoints — see the "Tools and scripts" section, below.
+> [!TIP]
+> For simple cases you don't need to use this proxy directly — NanoDEP provides a set of tools and scripts for working with some of the DEP endpoints — see the "Tools and scripts" section, below.
 
 #### Example usage
 
@@ -380,7 +386,8 @@ And then run the script again. This should give detailed HTTP response data incl
 
 `depsyncer` is a stand-alone tool for syncing devices from the Apple DEP service. It operates by continuously syncing the list of the devices from the Apple DEP "MDM server" configurations. `depsyncer` can optionally assign DEP profiles to newly added devices as it syncs devices. `depsyncer` can also optionally send a webhook HTTP call to a webserver with the synced device information.
 
-Note that `depsyncer` does not itself save any of the synced device information. The synced devices are either assigned a DEP profile or sent off to a webhook URL — ostensibly for any custom processing or saving to databases or such.
+> [!NOTE]
+> `depsyncer` does not itself save any of the synced device information. The synced devices are either assigned a DEP profile or sent off to a webhook URL — ostensibly for any custom processing or saving to databases or such.
 
 ### Assignment
 
@@ -566,9 +573,11 @@ In "keypair generation" mode (that is, without specifying the `-token` switch) i
 
 In "decrypt and decode tokens" mode (that is, by specifying the path to the downloaded tokens file with the `-token` switch) it will attempt to use the certificate and key on disk (specified by `-cert` and `-key` switches, respectively, with an optional password for an encrypted private key specified with `-password`) to decrypt the tokens and display them. They can then be stored in `depserver` by using the "raw" token API (documented above).
 
-**Note: `deptokens` is not required to use NanoDEP: `depserver` contains this functionality built-in using the tools/scripts (or via the API) directly. See above documentation.**
+> [!NOTE]
+> `deptokens` is **not required** to use NanoDEP: `depserver` contains this functionality built-in using the tools/scripts (or via the API) directly. See above documentation.**
 
-**Note: `deptokens` is discouraged for use with NanoDEP's `depserver`. The private key and certificate for the PKI exchange is not preserved when only uploading OAuth tokens. Some modern DEP functionality will not be possible. See the note above regarding the Tokens API.**
+> [!WARNING]
+> `deptokens` is discouraged for use with NanoDEP's `depserver`. The private key and certificate for the PKI exchange is not preserved when only uploading OAuth tokens. Some modern DEP functionality will not be possible. See the note above regarding the Tokens API.**
 
 ### Switches
 
