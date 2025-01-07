@@ -74,7 +74,7 @@ Options are specified as a comma-separated list of "key=value" pairs. Supported 
 
 Configure the `inmem` in-memory storage backend. This backend manages DEP authentication and configuration data entirely in *volatile* memory. There are no options and the DSN is ignored.
 
-> [!WARNING]
+> [!CAUTION]
 > All data is lost when the server or tool process has exited.
 
 *Example:* `-storage inmem`
@@ -127,7 +127,7 @@ The `/v1/tokens/{name}` endpoints deal with the raw DEP OAuth tokens in JSON for
 
 For the PUT operation you can supply a "force" URL parameter which will override the matching consumer key check.
 
-> [!WARNING]
+> [!CAUTION]
 > The PUT endpoint is discouraged; instead you should perform the full PKI exchange with the "tokenpki" endpoints. If you import only the "raw" OAuth tokens then NanoDEP will not have access to the correct private key for the associated DEP name. This private key is used for some modern DEP operations and those won't be possible.
 
 #### Assigner
@@ -581,7 +581,7 @@ In "decrypt and decode tokens" mode (that is, by specifying the path to the down
 > [!NOTE]
 > `deptokens` is **not required** to use NanoDEP: `depserver` contains this functionality built-in using the tools/scripts (or via the API) directly. See above documentation.
 
-> [!WARNING]
+> [!CAUTION]
 > `deptokens` is discouraged for use with NanoDEP's `depserver`. The private key and certificate for the PKI exchange is not preserved when only uploading OAuth tokens. Some modern DEP functionality will not be possible. See the note above regarding the Tokens API.
 
 ### Switches
