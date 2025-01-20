@@ -127,7 +127,7 @@ jobs:
 
       - run: go test -v ./storage/mysql
 
-  psql-test:
+  pgsql-test:
     runs-on: 'ubuntu-latest'
     needs: format-build-test
     services:
@@ -154,10 +154,10 @@ jobs:
         with:
           go-version: '1.21.x'
 
-      - name: psql schema
-        run: psql -h localhost -U nanodep -d nanodep -f ./storage/psql/schema.sql
+      - name: pgsql schema
+        run: psql -h localhost -U nanodep -d nanodep -f ./storage/pgsql/schema.sql
 
       - name: setup test dsn
         run: echo "NANODEP_PSQL_STORAGE_TEST_DSN=postgres://nanodep:@localhost/nanodep?sslmode=disable" >> $GITHUB_ENV
 
-      - run: go test -v ./storage/psql
+      - run: go test -v ./storage/pgsql

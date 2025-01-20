@@ -90,6 +90,17 @@ Configures the MySQL storage backend. The `-dsn` flag should be in the [format t
 
 *Example:* `-storage mysql -dsn nanodep:nanodep/mydepdb`
 
+##### pgsql storage backend
+
+* `-storage pgsql`
+
+Configures the PostgreSQL storage backend. The `-storage-dsn` flag should be in the [format the SQL driver expects](https://pkg.go.dev/github.com/lib/pq#pkg-overview). PostgreSQL 9.5 or later is required.
+
+> [!TIP]
+> Be sure to create the storage tables with the [schema.sql](../storage/pgsql/schema.sql) file.
+
+*Example:* `-storage pgsql -storage-dsn postgres://postgres:toor@localhost:5432/nanodep`
+
 #### -version
 
 * print version

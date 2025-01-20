@@ -1,4 +1,4 @@
-package psql
+package pgsql
 
 import (
 	"context"
