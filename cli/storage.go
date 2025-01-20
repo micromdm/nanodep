@@ -11,6 +11,7 @@ import (
 	"github.com/micromdm/nanodep/storage/file"
 	"github.com/micromdm/nanodep/storage/inmem"
 	"github.com/micromdm/nanodep/storage/mysql"
+	"github.com/micromdm/nanodep/storage/psql"
 )
 
 // Storage parses a storage name and dsn to determine which and return a storage backend.
@@ -35,6 +36,8 @@ func Storage(storageName, dsn, options string) (storage.AllStorage, error) {
 		store = inmem.New()
 	case "mysql":
 		store, err = mysql.New(mysql.WithDSN(dsn))
+	case "psql":
+		store, err = psql.New(psql.WithDSN(dsn))
 	default:
 		return nil, fmt.Errorf("unknown storage: %q", storageName)
 	}
