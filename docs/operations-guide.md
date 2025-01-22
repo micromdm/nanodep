@@ -160,7 +160,7 @@ In addition to individually handling some of various Apple DEP API endpoints in 
 The proxy URL is accessible as: `/proxy/{name}/endpoint` where `/endpoint` is the Apple DEP API endpoint you want to access. The proxy will automatically translate this URL to ``https://mdmenrollment.apple.com/endpoint` and use `{name}` for retrieving the DEP authentication tokens. Note that in some cases, for some endpoints, various HTTP headers are added or removed:
 
 * For any proxy request the API authentication header is removed before passing to the underlying DEP server.
-* If not provided in the incoming HTTP request the DEP header `X-Server-Protocol-Version` is set to a default (currently "3").
+* If not provided in the incoming HTTP request the DEP header `X-Server-Protocol-Version` is set to [a default](https://pkg.go.dev/github.com/micromdm/nanodep/client#pkg-constants).
 * For the `/session` endpoint we use a default `Content-Type`. However because NanoDEP handles authentication for you, you shouldn't have to worry about this (or even need to call to the `/session` endpoint).
 
 > [!TIP]
