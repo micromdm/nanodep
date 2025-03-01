@@ -3,7 +3,7 @@ module github.com/micromdm/nanodep
 go 1.17
 
 require (
-	github.com/go-sql-driver/mysql v1.8.1
+	github.com/go-sql-driver/mysql v1.9.0
 	github.com/gomodule/oauth1 v0.2.0
 	github.com/lib/pq v1.10.9
 	github.com/micromdm/nanolib v0.2.0
