@@ -1,6 +1,6 @@
 # NanoDEP
 
-[![CI/CD](https://github.com/micromdm/nanodep/actions/workflows/on-push-pr.yml/badge.svg?branch=main)](https://github.com/micromdm/nanodep/actions/workflows/on-push-pr.yml) [![Go Reference](https://pkg.go.dev/badge/github.com/micromdm/nanodep.svg)](https://pkg.go.dev/github.com/micromdm/nanodep)
+[![CI/CD](https://github.com/micromdm/nanodep/actions/workflows/on-push-pr.yml/badge.svg)](https://github.com/micromdm/nanodep/actions/workflows/on-push-pr.yml) [![Go Reference](https://pkg.go.dev/badge/github.com/micromdm/nanodep.svg)](https://pkg.go.dev/github.com/micromdm/nanodep)
 
 NanoDEP is a set of tools and a Go library powering them for communicating with Apple's Device Enrollment Program (DEP) API servers.
 
