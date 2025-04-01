@@ -6,7 +6,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gomodule/oauth1 v0.2.0
 	github.com/lib/pq v1.10.9
-	github.com/micromdm/nanolib v0.2.0
+	github.com/micromdm/nanolib v0.3.0
 	github.com/peterbourgon/diskv/v3 v3.0.1
 	github.com/smallstep/pkcs7 v0.2.1
 )
