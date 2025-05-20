@@ -7,7 +7,7 @@ COPY depsyncer-$TARGETOS-$TARGETARCH /app/depsyncer
 
 EXPOSE 9001
 
-VOLUME ["/app/db"]
+VOLUME ["/app/dbkv", "/app/db"]
 
 WORKDIR /app
 
