@@ -23,8 +23,8 @@ type Event struct {
 
 // DeviceResponseEvent represents an event for a DEP sync or fetch response.
 type DeviceResponseEvent struct {
-	DEPName        string                `json:"dep_name"`
-	DeviceResponse *godep.DeviceResponse `json:"device_response,omitempty"`
+	DEPName        string                         `json:"dep_name"`
+	DeviceResponse *godep.FetchDeviceResponseJson `json:"device_response,omitempty"`
 }
 
 // Webhook is a service that calls back to a URL with a JSON presentation of
@@ -41,7 +41,7 @@ func NewWebhook(url string) *Webhook {
 
 // CallWebhook assembles the JSON body from name, isFetch, and resp and calls
 // to the configured service URL.
-func (w *Webhook) CallWebhook(ctx context.Context, name string, isFetch bool, resp *godep.DeviceResponse) error {
+func (w *Webhook) CallWebhook(ctx context.Context, name string, isFetch bool, resp *godep.FetchDeviceResponseJson) error {
 	topic := "dep.SyncDevices"
 	if isFetch {
 		topic = "dep.FetchDevices"
