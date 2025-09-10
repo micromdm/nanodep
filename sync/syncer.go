@@ -218,17 +218,15 @@ func (s *Syncer) Run(ctx context.Context) error {
 				}
 			}
 
-			respCursor := deref(resp.Cursor)
-
-			if cursor != respCursor {
-				err = s.store.StoreCursor(ctx, s.name, respCursor)
+			if cursor != resp.Cursor {
+				err = s.store.StoreCursor(ctx, s.name, resp.Cursor)
 				if err != nil {
 					return err
 				}
-				cursor = respCursor
+				cursor = resp.Cursor
 			}
 
-			if deref(resp.MoreToFollow) {
+			if resp.MoreToFollow {
 				continue
 			} else if doFetch {
 				doFetch = false
@@ -281,7 +279,7 @@ func logCountsForOpTypes(isFetch bool, devices []godep.DeviceJson) []interface{}
 
 func logDevice(device godep.DeviceJson) []interface{} {
 	logs := []interface{}{
-		"serial_number", deref(device.SerialNumber),
+		"serial_number", device.SerialNumber,
 		"device_assigned_by", deref(device.DeviceAssignedBy),
 		"op_type", deref(device.OpType),
 		"profile_uuid", deref(device.ProfileUuid),

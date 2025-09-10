@@ -67,7 +67,7 @@ func (c *Client) SyncDevices(ctx context.Context, name string, opts ...DeviceReq
 		req.Limit = cfg.limit
 	}
 	if cfg.cursor != "" {
-		req.Cursor = &cfg.cursor
+		req.Cursor = cfg.cursor
 	}
 	resp := new(FetchDeviceResponseJson)
 	return resp, c.Do(ctx, name, http.MethodPost, "/devices/sync", req, resp)

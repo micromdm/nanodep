@@ -94,7 +94,7 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchD
 		}
 		// note that we may see multiple serial number "events"
 		if shouldAssignDevice(device) {
-			serialsToAssign = append(serialsToAssign, deref(device.SerialNumber))
+			serialsToAssign = append(serialsToAssign, device.SerialNumber)
 		}
 	}
 
@@ -143,10 +143,10 @@ func shouldAssignDevice(device godep.DeviceJson) bool {
 }
 
 // logCountsForResults tries to aggregate the result types and log the counts.
-func logCountsForResults(deviceResults map[string]string) (out []interface{}) {
+func logCountsForResults(deviceResults map[string]godep.AssignProfileResponseJsonDevicesValue) (out []interface{}) {
 	results := map[string]int{"success": 0, "not_accessible": 0, "failed": 0, "other": 0}
 	for _, result := range deviceResults {
-		l := strings.ToLower(result)
+		l := strings.ToLower(string(result))
 		if _, ok := results[l]; !ok {
 			l = "other"
 		}

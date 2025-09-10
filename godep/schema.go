@@ -68,11 +68,17 @@ const AccountDetailJsonOrgVersionV2 AccountDetailJsonOrgVersion = "v2"
 
 type AssignProfileResponseJson struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]string `json:"devices,omitempty"`
+	Devices map[string]AssignProfileResponseJsonDevicesValue `json:"devices,omitempty"`
 
 	// ProfileUuid corresponds to the JSON schema field "profile_uuid".
 	ProfileUuid *string `json:"profile_uuid,omitempty"`
 }
+
+type AssignProfileResponseJsonDevicesValue string
+
+const AssignProfileResponseJsonDevicesValueFAILED AssignProfileResponseJsonDevicesValue = "FAILED"
+const AssignProfileResponseJsonDevicesValueNOTACCESSIBLE AssignProfileResponseJsonDevicesValue = "NOT_ACCESSIBLE"
+const AssignProfileResponseJsonDevicesValueSUCCESS AssignProfileResponseJsonDevicesValue = "SUCCESS"
 
 // The request used to remove a profile from devices.
 type ClearProfileRequestJson struct {
@@ -85,16 +91,28 @@ type ClearProfileRequestJson struct {
 
 type ClearProfileResponseJson struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]string `json:"devices,omitempty"`
+	Devices map[string]ClearProfileResponseJsonDevicesValue `json:"devices,omitempty"`
 }
+
+type ClearProfileResponseJsonDevicesValue string
+
+const ClearProfileResponseJsonDevicesValueFAILED ClearProfileResponseJsonDevicesValue = "FAILED"
+const ClearProfileResponseJsonDevicesValueNOTACCESSIBLE ClearProfileResponseJsonDevicesValue = "NOT_ACCESSIBLE"
+const ClearProfileResponseJsonDevicesValueSUCCESS ClearProfileResponseJsonDevicesValue = "SUCCESS"
 
 type DefineProfileResponseJson struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]string `json:"devices,omitempty"`
+	Devices map[string]DefineProfileResponseJsonDevicesValue `json:"devices,omitempty"`
 
 	// ProfileUuid corresponds to the JSON schema field "profile_uuid".
 	ProfileUuid *string `json:"profile_uuid,omitempty"`
 }
+
+type DefineProfileResponseJsonDevicesValue string
+
+const DefineProfileResponseJsonDevicesValueFAILED DefineProfileResponseJsonDevicesValue = "FAILED"
+const DefineProfileResponseJsonDevicesValueNOTACCESSIBLE DefineProfileResponseJsonDevicesValue = "NOT_ACCESSIBLE"
+const DefineProfileResponseJsonDevicesValueSUCCESS DefineProfileResponseJsonDevicesValue = "SUCCESS"
 
 // A device’s properties and their values.
 type DeviceJson struct {
@@ -123,7 +141,7 @@ type DeviceJson struct {
 	MdmMigrationDeadline *time.Time `json:"mdm_migration_deadline,omitempty"`
 
 	// The model name.
-	Model *string `json:"model,omitempty"`
+	Model string `json:"model"`
 
 	// A time stamp in ISO 8601 format that indicates when the device was added,
 	// updated, or deleted. If the value of `op_type` is added, this is the same as
@@ -164,7 +182,7 @@ type DeviceJson struct {
 	ResponseStatus *string `json:"response_status,omitempty"`
 
 	// The device’s serial number.
-	SerialNumber *string `json:"serial_number,omitempty"`
+	SerialNumber string `json:"serial_number"`
 }
 
 type DeviceJsonDeviceFamily string
@@ -209,8 +227,14 @@ type DeviceListResponseJson struct {
 
 type DeviceStatusResponseJson struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]string `json:"devices,omitempty"`
+	Devices map[string]DeviceStatusResponseJsonDevicesValue `json:"devices,omitempty"`
 }
+
+type DeviceStatusResponseJsonDevicesValue string
+
+const DeviceStatusResponseJsonDevicesValueFAILED DeviceStatusResponseJsonDevicesValue = "FAILED"
+const DeviceStatusResponseJsonDevicesValueNOTACCESSIBLE DeviceStatusResponseJsonDevicesValue = "NOT_ACCESSIBLE"
+const DeviceStatusResponseJsonDevicesValueSUCCESS DeviceStatusResponseJsonDevicesValue = "SUCCESS"
 
 // The request for a list of devices.
 type FetchDeviceRequestJson struct {
@@ -229,7 +253,7 @@ type FetchDeviceResponseJson struct {
 	// Indicates when this request was processed by the server. The MDM server can use
 	// this value in future requests if it wants to retrieve only records added or
 	// removed since this request.
-	Cursor *string `json:"cursor,omitempty"`
+	Cursor string `json:"cursor"`
 
 	// An array of dictionaries that provide information about devices. The devices
 	// are sorted in chronological order by the time stamp of the operation performed
@@ -238,13 +262,13 @@ type FetchDeviceResponseJson struct {
 
 	// A date stamp that indicates the progress of the device fetch request, in ISO
 	// 8601 format.
-	FetchedUntil *time.Time `json:"fetched_until,omitempty"`
+	FetchedUntil time.Time `json:"fetched_until"`
 
-	// IndIndicates that the request’s limit and cursor values resulted in only a
-	// partial list of devices.
+	// Indicates that the request’s limit and cursor values resulted in only a partial
+	// list of devices.
 	// The MDM server should immediately make another request (starting from the newly
 	// returned cursor) to obtain additional records.
-	MoreToFollow *bool `json:"more_to_follow,omitempty"`
+	MoreToFollow bool `json:"more_to_follow"`
 }
 
 // Provides a list of beta enrollment tokens available for the given organization.
@@ -320,7 +344,7 @@ type ProfileJson struct {
 	// by the user via the user interface on the device; that is, the MDM payload is
 	// locked onto the device. This key can be set to false only if `is_supervised` is
 	// set to `true`. Defaults to `true`.
-	IsMdmRemovable bool `json:"is_mdm_removable,omitempty"`
+	IsMdmRemovable bool `json:"is_mdm_removable"`
 
 	// If true, tells the device to configure for Shared iPad. Default is false. This
 	// key is valid only for Apple School Manager or Apple Business Manager
@@ -355,7 +379,7 @@ type ProfileJson struct {
 
 	// A string that uniquely identifies various services that are managed by a single
 	// organization.
-	OrgMagic *string `json:"org_magic,omitempty"`
+	OrgMagic string `json:"org_magic"`
 
 	// A human-readable name for the profile.
 	ProfileName *string `json:"profile_name,omitempty"`
@@ -426,7 +450,7 @@ type SyncDeviceRequestJson struct {
 	// A hex string that represents the starting position for a request. Use this to
 	// retrieve the list of devices that have been added or removed since a previous
 	// request. The string can be up to 1000 characters.
-	Cursor *string `json:"cursor,omitempty"`
+	Cursor string `json:"cursor"`
 
 	// The maximum number of entries to return. Optional.
 	Limit int `json:"limit,omitempty"`
