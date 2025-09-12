@@ -18,29 +18,29 @@ const (
 	UserAgent = "nanodep-g-o-dep/0"
 )
 
-// HTTPError encapsulates an HTTP response error from the DEP requests.
-// The API returns error information in the request body.
+// HTTPError encapsulates an HTTP response error.
 type HTTPError struct {
 	Body       []byte
 	Status     string
 	StatusCode int
 }
 
+// Error returns the HTTP error as an error string.
 func (e *HTTPError) Error() string {
-	return fmt.Sprintf("DEP HTTP error: %s: %s", e.Status, string(e.Body))
+	return fmt.Sprintf("HTTP error: %s: %s", e.Status, string(e.Body))
 }
 
-// NewHTTPError creates and returns a new HTTPError from r. Note this reads
-// all of r.Body and the caller is responsible for closing it.
+// NewHTTPError creates and returns a new HTTPError from r.
+// Note this reads r.Body (limited to 1 KiB) and the caller is responsible for closing it.
 func NewHTTPError(r *http.Response) error {
-	body, readErr := io.ReadAll(r.Body)
+	body, readErr := io.ReadAll(io.LimitReader(r.Body, 1024))
 	err := &HTTPError{
 		Body:       body,
 		Status:     r.Status,
 		StatusCode: r.StatusCode,
 	}
 	if readErr != nil {
-		return fmt.Errorf("reading body of DEP HTTP error: %v: %w", err, readErr)
+		return fmt.Errorf("reading body of HTTP error: %v: %w", err, readErr)
 	}
 	return err
 }
@@ -106,11 +106,11 @@ func NewClient(store ClientStorage, opts ...Option) *Client {
 	return c
 }
 
-// do executes the HTTP request using the client's HTTP client which
+// Do executes the HTTP request using the client's HTTP client which
 // should be using the NanoDEP transport (which handles authentication).
 // This frees us to only be concerned about the actual DEP API request.
 // We encode in to JSON and decode any returned body as JSON to out.
-func (c *Client) do(ctx context.Context, name, method, path string, in interface{}, out interface{}) error {
+func (c *Client) Do(ctx context.Context, name, method, path string, in interface{}, out interface{}) error {
 	var body io.Reader
 	if in != nil {
 		bodyBytes, err := json.Marshal(in)
