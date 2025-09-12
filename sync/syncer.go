@@ -110,7 +110,7 @@ func NewSyncer(client *godep.Client, name string, store CursorStorage, opts ...S
 
 // deref dereferences ptr and returns the value (or a zero type).
 func deref[T any](ptr *T) T {
-	if ptr != nil {
+	if ptr == nil {
 		var zero T
 		return zero
 	}
