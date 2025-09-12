@@ -459,7 +459,7 @@ type SyncDeviceRequestJson struct {
 // A URL object.
 type UrlJson struct {
 	// Possible values: GET, POST, PUT, DELETE
-	HttpMethod *UrlJsonHttpMethod `json:"http_method,omitempty"`
+	HttpMethod []UrlJsonHttpMethodElem `json:"http_method,omitempty"`
 
 	// The limit for the URL.
 	Limit *LimitJson `json:"limit,omitempty"`
@@ -468,9 +468,9 @@ type UrlJson struct {
 	Uri *string `json:"uri,omitempty"`
 }
 
-type UrlJsonHttpMethod string
+type UrlJsonHttpMethodElem string
 
-const UrlJsonHttpMethodDELETE UrlJsonHttpMethod = "DELETE"
-const UrlJsonHttpMethodGET UrlJsonHttpMethod = "GET"
-const UrlJsonHttpMethodPOST UrlJsonHttpMethod = "POST"
-const UrlJsonHttpMethodPUT UrlJsonHttpMethod = "PUT"
+const UrlJsonHttpMethodElemDELETE UrlJsonHttpMethodElem = "DELETE"
+const UrlJsonHttpMethodElemGET UrlJsonHttpMethodElem = "GET"
+const UrlJsonHttpMethodElemPOST UrlJsonHttpMethodElem = "POST"
+const UrlJsonHttpMethodElemPUT UrlJsonHttpMethodElem = "PUT"
