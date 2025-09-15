@@ -1,10 +1,8 @@
 package api
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/micromdm/nanodep/cryptoutil"
@@ -20,7 +18,8 @@ type MAIDJWTStorage interface {
 
 // NewMAIDJWTHandler returns a JWT for DEP Access Management.
 // This JWT should be returned for use with an MDM client's CheckIn "GetToken" message.
-// Note: this queries the DEP API "live." A cache of some sort may be a future strategy.
+// Note: this queries the DEP API "live" if a server_uuid query paramter is not provided.
+// A cache of some sort may be a future strategy.
 func NewMAIDJWTHandler(store MAIDJWTStorage, logger log.Logger, newJTI func() string) http.HandlerFunc {
 	if store == nil {
 		panic("nil store")
@@ -42,21 +41,24 @@ func NewMAIDJWTHandler(store MAIDJWTStorage, logger log.Logger, newJTI func() st
 		name := r.URL.Path
 		logger = logger.With("name", name)
 
-		client := godep.NewClient(store, nil)
-		detail, err := client.AccountDetail(r.Context(), name)
-		if err != nil {
-			logger.Info("msg", "getting account detail", "err", err)
-			jsonError(w, err)
-			return
-		}
+		serverUUID := r.URL.Query().Get("server_uuid")
+		if serverUUID == "" {
+			client := godep.NewClient(store)
+			detail, err := client.AccountDetail(r.Context(), name)
+			if err != nil {
+				logger.Info("msg", "getting account detail", "err", err)
+				jsonError(w, err)
+				return
+			}
 
-		json.NewEncoder(os.Stdout).Encode(detail)
+			if detail.ServerUuid == nil {
+				err = errors.New("nil server UUID")
+				logger.Info("msg", "validating account detail", "err", err)
+				jsonError(w, err)
+				return
+			}
 
-		if detail.ServerUuid == nil {
-			err = errors.New("nil server UUID")
-			logger.Info("msg", "validating account detail", "err", err)
-			jsonError(w, err)
-			return
+			serverUUID = *detail.ServerUuid
 		}
 
 		_, keyBytes, err := store.RetrieveCurrentTokenPKI(r.Context(), name)
@@ -73,13 +75,16 @@ func NewMAIDJWTHandler(store MAIDJWTStorage, logger log.Logger, newJTI func() st
 			return
 		}
 
-		jwt, err := cryptoutil.NewMAIDJWT(key, *detail.ServerUuid, time.Now(), newJTI())
+		jti := newJTI()
+		jwt, err := cryptoutil.NewMAIDJWT(key, serverUUID, time.Now(), jti)
 		if err != nil {
 			logger.Info("msg", "creating MAID JWT", "err", err)
 			jsonError(w, err)
 			return
 		}
 
+		w.Header().Set("X-Server-Uuid", serverUUID)
+		w.Header().Set("X-Jwt-Jti", jti)
 		w.Header().Set("Content-type", "application/jwt")
 		_, err = w.Write([]byte(jwt))
 		if err != nil {

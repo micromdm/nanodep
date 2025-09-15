@@ -259,6 +259,17 @@ paths:
               schema:
                 type: string
               example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2ODY5MzE5NzIsImlzcyI6IjdERDczOUEyQTQ3MjRBMzI4MkFBODY0RUJBRDMwRkZGIiwianRpIjoiYmJiOGFkYWYtMDRiZS00NWNiLWFlMjgtNWI2NTc4NTdkZDg4Iiwic2VydmljZV90eXBlIjoiY29tLmFwcGxlLm1haWQifQ.IhPEK_jgJe3hxSyzBNYxGyqgeqmiT24MFJa5z6GQa-0vJ1FyEah8uG2ui9bfFKBM7HfbY122pKjEBbsv-oYMiRm9kOWvLb-GzDIb0WCx2c12al5OgIyR6c0cGINVALIDhm7vchMu-MrRS6TYp79FcXUcxHe8i2JxPlKJA9I4De4fCHZb4pgbMVpXbAklglCl7REwnP62BGEJUjSyqYNJTHTsgTFkEmLUgBulw99Yz1tXcJEgu5vnKtEWINVALIDcEyK9e6ek4GhfkzeEHd6WlML0wvZiiFG_8XUI4X3a4GfaAXHwTWHbOxyOGbD5GjhE1tPkT9tt5u6w
+          headers:
+            X-Server-Uuid:
+              description: MDM server (DEP name) server UUID. Either looked up "live" or the same as the input query paramter.
+              schema:
+                type: string
+                example: "4A0B1136DA3447E89C2486F4D342E5BB"
+            X-Jwt-Jti:
+              description: The JTI claim of the issued JWT.
+              schema:
+                type: string
+                example: "D4CC9839-5FC7-4A0D-BAC2-8E143F7E7A23"
         '401':
            $ref: '#/components/responses/UnauthorizedError'
         '400':
@@ -267,6 +278,12 @@ paths:
            $ref: '#/components/responses/JSONAPIError'
     parameters:
       - $ref: '#/components/parameters/depName'
+      - name: server_uuid
+        description: MDM server (DEP name) server UUID. Obtained from the "AccountDetail" DEP API. If empty/missing then this endponit will "live" lookup the server UUID by calling the "AccountDetail" endpoint for you every call.
+        in: query
+        schema:
+          type: string
+          example: "209CB4E6-F6B5-4A3F-AB33-D2FE77167B6A"
 components:
   parameters:
     depName:
