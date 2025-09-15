@@ -155,9 +155,12 @@ The `/v1/config/{name}` endpoints deal with storing and retrieving configuration
 
 #### MAID JWT
 
-* Endpoint: `GET /v1/maidjwt/{name}`
+* Endpoint: `GET /v1/maidjwt/{name}?server_uuid=A1B2C3D4E5F6`
+  * Note: `server_uuid` query parameter is optional.
 
-The `/v1/maidjwt/{name}` endpoint generates a JWT for Managed Apple ID Access Management. The responses is intended for a device's MDM `GetToken` Check-in message with a `TokenServiceType` of `com.apple.maid`. Note this endpoint queries the DEP Account Details endpoint to retrieve the Server UUID so be aware of the frequency it is called.
+The `/v1/maidjwt/{name}` endpoint generates a JWT for Managed Apple ID Access Management. The responses is intended for a device's MDM `GetToken` Check-in message with a `TokenServiceType` of `com.apple.maid`. If the optional query paramater `server_uuid` is *NOT* present then this endpoint queries the DEP Account Details endpoint to retrieve the Server UUID. Be aware of the frequency it is called. If you provide the server UUID then a live lookup is not performed.
+
+Note also that the server UUID is returned in the HTTP header `X-Server-Uuid`. As well the JWT JTI is returned in the `X-Jwt-Jti` header.
 
 ### Reverse proxy
 
@@ -404,6 +407,8 @@ For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this 
 $ ./tools/cfg-maidjwt.sh
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2ODY5MzE5NzIsImlzcyI6IjdERDczOUEyQTQ3MjRBMzI4MkFBODY0RUJBRDMwRkZGIiwianRpIjoiYmJiOGFkYWYtMDRiZS00NWNiLWFlMjgtNWI2NTc4NTdkZDg4Iiwic2VydmljZV90eXBlIjoiY29tLmFwcGxlLm1haWQifQ.IhPEK_jgJe3hxSyzBNYxGyqgeqmiT24MFJa5z6GQa-0vJ1FyEah8uG2ui9bfFKBM7HfbY122pKjEBbsv-oYMiRm9kOWvLb-GzDIb0WCx2c12al5OgIyR6c0cGINVALIDhm7vchMu-MrRS6TYp79FcXUcxHe8i2JxPlKJA9I4De4fCHZb4pgbMVpXbAklglCl7REwnP62BGEJUjSyqYNJTHTsgTFkEmLUgBulw99Yz1tXcJEgu5vnKtEWINVALIDcEyK9e6ek4GhfkzeEHd6WlML0wvZiiFG_8XUI4X3a4GfaAXHwTWHbOxyOGbD5GjhE1tPkT9tt5u6w
 ```
+
+If using `CURL_OPTS` variable you can also see the server UUID and JWT JTI as well.
 
 ### Troubleshooting
 
