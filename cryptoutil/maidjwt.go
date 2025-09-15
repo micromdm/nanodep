@@ -16,7 +16,7 @@ const maidJWTServiceType = "com.apple.maid"
 // can be acquired using the "AccountDetails" DEP API call.
 func NewMAIDJWT(key interface{}, server_uuid string, iat time.Time, jti string) (string, error) {
 	if server_uuid == "" || iat.IsZero() || jti == "" {
-		return "", errors.New("empty claim paramter(s)")
+		return "", errors.New("empty claim parameter(s)")
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"iss":          server_uuid,
