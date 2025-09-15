@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/micromdm/nanodep/cli"
 	"github.com/micromdm/nanodep/client"
 	dephttp "github.com/micromdm/nanodep/http"
@@ -98,7 +99,7 @@ func main() {
 	handleStrippedAPI(assignerMux, endpointAssigner)
 
 	handleStrippedAPI(
-		api.MAIDJWTHandler(storage, logger.With("handler", "get-maid-jwt")),
+		api.NewMAIDJWTHandler(storage, logger.With("handler", "get-maid-jwt"), uuid.NewString),
 		endpointMAIDJWT,
 	)
 

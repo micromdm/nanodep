@@ -2,15 +2,13 @@ package api
 
 import (
 	"context"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"io"
 	"net/http"
 	"strconv"
 
 	"github.com/micromdm/nanodep/client"
+	"github.com/micromdm/nanodep/cryptoutil"
 	"github.com/micromdm/nanodep/tokenpki"
 
 	"github.com/micromdm/nanolib/log"
@@ -46,15 +44,6 @@ type TokenPKIStorer interface {
 type DecryptTokenPKIStorage interface {
 	TokenPKIStagingRetriever
 	TokenPKIUpstager
-}
-
-// PEMRSAPrivateKey returns key as a PEM block.
-func PEMRSAPrivateKey(key *rsa.PrivateKey) []byte {
-	block := &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
-	}
-	return pem.EncodeToMemory(block)
 }
 
 // GetCertTokenPKIHandler generates a new private key and certificate for
@@ -102,8 +91,8 @@ func GetCertTokenPKIHandler(store TokenPKIStorer, logger log.Logger) http.Handle
 			jsonError(w, err)
 			return
 		}
-		pemCert := tokenpki.PEMCertificate(cert.Raw)
-		err = store.StoreTokenPKI(r.Context(), r.URL.Path, pemCert, tokenpki.PEMRSAPrivateKey(key))
+		pemCert := cryptoutil.PEMCertificate(cert.Raw)
+		err = store.StoreTokenPKI(r.Context(), r.URL.Path, pemCert, cryptoutil.PEMRSAPrivateKey(key))
 		if err != nil {
 			logger.Info("msg", "storing token keypair", "err", err)
 			jsonError(w, err)
@@ -145,13 +134,13 @@ func DecryptTokenPKIHandler(store DecryptTokenPKIStorage, tokenStore AuthTokensS
 			jsonError(w, err)
 			return
 		}
-		cert, err := tokenpki.CertificateFromPEM(certBytes)
+		cert, err := cryptoutil.CertificateFromPEM(certBytes)
 		if err != nil {
 			logger.Info("msg", "decoding retrieved certificate", "err", err)
 			jsonError(w, err)
 			return
 		}
-		key, err := tokenpki.RSAKeyFromPEM(keyBytes)
+		key, err := cryptoutil.RSAKeyFromPEM(keyBytes)
 		if err != nil {
 			logger.Info("msg", "decoding retrieved private key", "err", err)
 			jsonError(w, err)

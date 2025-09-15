@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/micromdm/nanodep/client"
+	"github.com/micromdm/nanodep/cryptoutil"
 	"github.com/micromdm/nanodep/storage"
 	"github.com/micromdm/nanodep/tokenpki"
 )
@@ -244,8 +245,8 @@ func generatePKI(t *testing.T, cn string, days int64) (pemCert []byte, pemKey []
 	if err != nil {
 		t.Fatal(err)
 	}
-	pemCert = tokenpki.PEMCertificate(cert.Raw)
-	pemKey = tokenpki.PEMRSAPrivateKey(key)
+	pemCert = cryptoutil.PEMCertificate(cert.Raw)
+	pemKey = cryptoutil.PEMRSAPrivateKey(key)
 	return pemCert, pemKey
 }
 

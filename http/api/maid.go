@@ -7,36 +7,30 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
+	"github.com/micromdm/nanodep/cryptoutil"
 	"github.com/micromdm/nanodep/godep"
-	"github.com/micromdm/nanodep/tokenpki"
 	"github.com/micromdm/nanolib/log"
 	"github.com/micromdm/nanolib/log/ctxlog"
 )
-
-const maidJWTserviceType = "com.apple.maid"
-
-func newMAIDCheckinJWT(depUUID string, key interface{}) (string, error) {
-	tok := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss":          depUUID,
-		"iat":          time.Now().Unix(),
-		"jti":          uuid.NewString(),
-		"service_type": maidJWTserviceType,
-	})
-	return tok.SignedString(key)
-}
 
 type MAIDJWTStorage interface {
 	TokenPKICurrentRetriever
 	godep.ClientStorage
 }
 
-// MAIDJWTHandler returns a JWT for DEP Access Management. This JWT should
-// be returned to an MDM client's CheckIn "GetToken" message. Note:
-// this queries the DEP API "live." A cache of some sort may be a future
-// strategy.
-func MAIDJWTHandler(store MAIDJWTStorage, logger log.Logger) http.HandlerFunc {
+// NewMAIDJWTHandler returns a JWT for DEP Access Management.
+// This JWT should be returned for use with an MDM client's CheckIn "GetToken" message.
+// Note: this queries the DEP API "live." A cache of some sort may be a future strategy.
+func NewMAIDJWTHandler(store MAIDJWTStorage, logger log.Logger, newJTI func() string) http.HandlerFunc {
+	if store == nil {
+		panic("nil store")
+	}
+	if logger == nil {
+		panic("nil logger")
+	}
+	if newJTI == nil {
+		panic("nil new JTI")
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := ctxlog.Logger(r.Context(), logger)
 		if r.URL.Path == "" {
@@ -72,14 +66,14 @@ func MAIDJWTHandler(store MAIDJWTStorage, logger log.Logger) http.HandlerFunc {
 			return
 		}
 
-		key, err := tokenpki.RSAKeyFromPEM(keyBytes)
+		key, err := cryptoutil.RSAKeyFromPEM(keyBytes)
 		if err != nil {
 			logger.Info("msg", "decoding retrieved private key", "err", err)
 			jsonError(w, err)
 			return
 		}
 
-		jwt, err := newMAIDCheckinJWT(*detail.ServerUuid, key)
+		jwt, err := cryptoutil.NewMAIDJWT(key, *detail.ServerUuid, time.Now(), newJTI())
 		if err != nil {
 			logger.Info("msg", "creating MAID JWT", "err", err)
 			jsonError(w, err)
