@@ -4,7 +4,9 @@ go 1.18
 
 require (
 	github.com/go-sql-driver/mysql v1.8.1
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gomodule/oauth1 v0.2.0
+	github.com/google/uuid v1.3.0
 	github.com/lib/pq v1.10.9
 	github.com/micromdm/nanolib v0.3.0
 	github.com/peterbourgon/diskv/v3 v3.0.1

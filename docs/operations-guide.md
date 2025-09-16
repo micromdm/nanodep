@@ -153,6 +153,15 @@ The `/v1/assigner/{name}` endpoints deal with storing and retrieving the assigne
 
 The `/v1/config/{name}` endpoints deal with storing and retrieving configuration for a given DEP name. At this time the only configuration available is the base URL of the DEP name. This is really only useful when talking to the DEP simulator `depsim` or perhaps directing DEP server requests through another reverse proxy.
 
+#### MAID JWT
+
+* Endpoint: `GET /v1/maidjwt/{name}?server_uuid=A1B2C3D4E5F6`
+  * Note: `server_uuid` query parameter is optional.
+
+The `/v1/maidjwt/{name}` endpoint generates a JWT for Managed Apple ID Access Management. The responses is intended for a device's MDM `GetToken` Check-in message with a `TokenServiceType` of `com.apple.maid`. If the optional query paramater `server_uuid` is *NOT* present then this endpoint queries the DEP Account Details endpoint to retrieve the Server UUID. Be aware of the frequency it is called. If you provide the server UUID then a live lookup is not performed.
+
+Note also that the server UUID is returned in the HTTP header `X-Server-Uuid`. As well the JWT JTI is returned in the `X-Jwt-Jti` header.
+
 ### Reverse proxy
 
 In addition to individually handling some of various Apple DEP API endpoints in its `godep` library NanoDEP provides a transparently-authenticating HTTP reverse proxy to the Apple DEP servers. This allows us to simply provide `depserver` with the Apple DEP endpoint, the NanoDEP "DEP name" and the API key, and we can talk to any of the Apple DEP endpoint APIs (including the Roster, Class, and People Management). `depserver` will authenticate to the Apple DEP server and keep track of session management transparently behind the scenes. To be clear: this means you do not have to call to the `/session` endpoint to authenticate nor to manage and update the session tokens with each request. NanoDEP does this for you.
@@ -387,6 +396,19 @@ $ ./dep-remove-profile.sh 07AAD449616F566C12
   }
 }
 ```
+
+#### cfg-maidjwt.sh
+
+For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script queries the DEP API and generates a JWT. This is intended as a response to a device's MDM `GetToken` Check-in message with a `TokenServiceType` of `com.apple.maid`
+
+##### Example usage
+
+```bash
+$ ./tools/cfg-maidjwt.sh
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2ODY5MzE5NzIsImlzcyI6IjdERDczOUEyQTQ3MjRBMzI4MkFBODY0RUJBRDMwRkZGIiwianRpIjoiYmJiOGFkYWYtMDRiZS00NWNiLWFlMjgtNWI2NTc4NTdkZDg4Iiwic2VydmljZV90eXBlIjoiY29tLmFwcGxlLm1haWQifQ.IhPEK_jgJe3hxSyzBNYxGyqgeqmiT24MFJa5z6GQa-0vJ1FyEah8uG2ui9bfFKBM7HfbY122pKjEBbsv-oYMiRm9kOWvLb-GzDIb0WCx2c12al5OgIyR6c0cGINVALIDhm7vchMu-MrRS6TYp79FcXUcxHe8i2JxPlKJA9I4De4fCHZb4pgbMVpXbAklglCl7REwnP62BGEJUjSyqYNJTHTsgTFkEmLUgBulw99Yz1tXcJEgu5vnKtEWINVALIDcEyK9e6ek4GhfkzeEHd6WlML0wvZiiFG_8XUI4X3a4GfaAXHwTWHbOxyOGbD5GjhE1tPkT9tt5u6w
+```
+
+If using `CURL_OPTS` variable you can also see the server UUID and JWT JTI as well.
 
 ### Troubleshooting
 

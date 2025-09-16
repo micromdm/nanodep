@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/micromdm/nanodep/cryptoutil"
 	"github.com/micromdm/nanodep/tokenpki"
 )
 
@@ -116,7 +117,7 @@ func generateKeyPair(certFile, keyFile, password string, force bool, cn string, 
 	if err != nil {
 		return fmt.Errorf("generating keypair: %w", err)
 	}
-	err = os.WriteFile(certFile, tokenpki.PEMCertificate(cert.Raw), 0644)
+	err = os.WriteFile(certFile, cryptoutil.PEMCertificate(cert.Raw), 0644)
 	if err != nil {
 		return fmt.Errorf("writing cert: %w", err)
 	}
@@ -148,7 +149,7 @@ func decryptTokens(tokenFile, certFile, keyFile, password string) ([]byte, error
 	if err != nil {
 		return nil, err
 	}
-	cert, err := tokenpki.CertificateFromPEM(certBytes)
+	cert, err := cryptoutil.CertificateFromPEM(certBytes)
 	if err != nil {
 		return nil, err
 	}

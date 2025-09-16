@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/micromdm/nanodep/cli"
 	"github.com/micromdm/nanodep/client"
 	dephttp "github.com/micromdm/nanodep/http"
@@ -29,6 +30,7 @@ const (
 	endpointConfig   = "/v1/config/"
 	endpointTokenPKI = "/v1/tokenpki/"
 	endpointAssigner = "/v1/assigner/"
+	endpointMAIDJWT  = "/v1/maidjwt/"
 	endpointProxy    = "/proxy/"
 )
 
@@ -95,6 +97,11 @@ func main() {
 	assignerMux.Handle("GET", api.RetrieveAssignerProfileHandler(storage, logger.With("handler", "retrieve-assigner-profile")))
 	assignerMux.Handle("PUT", api.StoreAssignerProfileHandler(storage, logger.With("handler", "store-assigner-profile")))
 	handleStrippedAPI(assignerMux, endpointAssigner)
+
+	handleStrippedAPI(
+		api.NewMAIDJWTHandler(storage, logger.With("handler", "get-maid-jwt"), uuid.NewString),
+		endpointMAIDJWT,
+	)
 
 	p := proxy.New(
 		client.NewTransport(http.DefaultTransport, http.DefaultClient, storage, nil),
