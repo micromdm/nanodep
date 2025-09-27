@@ -93,7 +93,7 @@ func IsCursorExpired(err error) bool {
 // details on a set of devices.
 // See https://developer.apple.com/documentation/devicemanagement/get_device_details
 func (c *Client) DeviceDetails(ctx context.Context, name string, serials ...string) (*DeviceListResponseJson, error) {
-	req := DeviceListRequestJson{Devices: serials}
+	req := &DeviceListRequestJson{Devices: serials}
 	resp := new(DeviceListResponseJson)
 	return resp, c.Do(ctx, name, http.MethodPost, "/devices", req, resp)
 }
@@ -104,7 +104,7 @@ func (c *Client) DeviceDetails(ctx context.Context, name string, serials ...stri
 // Use with caution.
 // See https://developer.apple.com/documentation/devicemanagement/disown_devices
 func (c *Client) DisownDevices(ctx context.Context, name string, serials ...string) (*DeviceStatusResponseJson, error) {
-	req := DeviceListRequestJson{Devices: serials}
+	req := &DeviceListRequestJson{Devices: serials}
 	resp := new(DeviceStatusResponseJson)
 	return resp, c.Do(ctx, name, http.MethodPost, "/devices/disown", req, resp)
 }
