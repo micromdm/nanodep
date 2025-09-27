@@ -305,14 +305,14 @@ type ProfileJson struct {
 	// though its screens. Default is `false`.
 	// This key is valid in X-Server-Protocol-Version 2 and later.
 	// Available on tvOS and macOS 11 and later.
-	AutoAdvanceSetup bool `json:"auto_advance_setup,omitempty"`
+	AutoAdvanceSetup *bool `json:"auto_advance_setup,omitempty"`
 
 	// If true, the device will not continue in Setup Assistant until the MDM server
 	// sends a command that states the device is configured (see [Device
 	// Configured](https://developer.apple.com/documentation/devicemanagement/device-configured-command).
 	// Default is `false`. Ignored on iOS devices if `is_supervised` is `false`. This
 	// key is valid in X-Server-Protocol-Version 2 and later.
-	AwaitDeviceConfigured bool `json:"await_device_configured,omitempty"`
+	AwaitDeviceConfigured *bool `json:"await_device_configured,omitempty"`
 
 	// The URL that the clients load into a web view during setup. This site provides
 	// the appropriate UI to authenticate the user, and when satisfied, initiates the
@@ -333,12 +333,12 @@ type ProfileJson struct {
 	// If true, the device does not use the profile when it restores a backup. Default
 	// is `false`. Available in iOS 26 and later, and visionOS 26 and later; otherwise
 	// ignored by devices.
-	DoNotUseProfileFromBackup bool `json:"do_not_use_profile_from_backup,omitempty"`
+	DoNotUseProfileFromBackup *bool `json:"do_not_use_profile_from_backup,omitempty"`
 
 	// If true, the user may not skip applying the profile returned by the MDM server.
 	// Default is `false`.
 	// In iOS 13 and later, all DEP enrollments are mandatory.
-	IsMandatory bool `json:"is_mandatory,omitempty"`
+	IsMandatory *bool `json:"is_mandatory,omitempty"`
 
 	// If false, the MDM payload delivered by the configuration URL cannot be removed
 	// by the user via the user interface on the device; that is, the MDM payload is
@@ -357,13 +357,13 @@ type ProfileJson struct {
 	// If true, the device is configured for Rapid Return to Service. Default is
 	// `false`. Available in iOS 26 and later, and visionOS 26 and later; otherwise
 	// ignored by devices.
-	IsReturnToService bool `json:"is_return_to_service,omitempty"`
+	IsReturnToService *bool `json:"is_return_to_service,omitempty"`
 
 	// If true, the device must be supervised. Defaults to `false`.
 	// In iOS 11, DEP devices that are not supervised have been deprecated.
 	// In iOS 13, all DEP devices will be supervised and the OS will ignore the
 	// `is_supervised` flag completely.
-	IsSupervised bool `json:"is_supervised,omitempty"`
+	IsSupervised *bool `json:"is_supervised,omitempty"`
 
 	// A language designator is a code that represents a language.
 	// Use the two-letter ISO 639-1 standard (preferred) or the three-letter ISO 639-2
