@@ -108,3 +108,21 @@ func (c *Client) DisownDevices(ctx context.Context, name string, serials ...stri
 	resp := new(DeviceStatusResponseJson)
 	return resp, c.Do(ctx, name, http.MethodPost, "/devices/disown", req, resp)
 }
+
+// ActivationLock uses the Apple "Activation Lock a Device" API endpoint to
+// Enable activation lock on a remote device.
+// The escrowKey and lostMessage can be empty, per Apple documentation.
+// See https://developer.apple.com/documentation/devicemanagement/activation-lock-devices
+func (c *Client) ActivationLock(ctx context.Context, name string, device, escrowKey, lostMessage string) (*ActivationLockStatusResponseJson, error) {
+	req := &ActivationLockRequestJson{
+		Device: device,
+	}
+	if escrowKey != "" {
+		req.EscrowKey = &escrowKey
+	}
+	if lostMessage != "" {
+		req.LostMessage = &lostMessage
+	}
+	resp := new(ActivationLockStatusResponseJson)
+	return resp, c.Do(ctx, name, http.MethodPost, "/device/activationlock", req, resp)
+}

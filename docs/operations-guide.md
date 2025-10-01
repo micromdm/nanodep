@@ -162,6 +162,15 @@ The `/v1/maidjwt/{name}` endpoint generates a JWT for Managed Apple ID Access Ma
 
 Note also that the server UUID is returned in the HTTP header `X-Server-Uuid`. As well the JWT JTI is returned in the `X-Jwt-Jti` header.
 
+#### Activation Lock Bypass Code
+
+* Endpoint: `GET /v1/bypasscode`
+  * If no parameters a given a random code is generated.
+  * If a `raw` URL query parameter is provided then decoded and used for the bypass code.
+  * If a `code` URL query parameter is provided then it is decoded and used for the bypass code.
+
+The `/v1/bypasscode` endpoint generates (or decodes) an Activation Lock Bypass Code and returns different forms of it.
+
 ### Reverse proxy
 
 In addition to individually handling some of various Apple DEP API endpoints in its `godep` library NanoDEP provides a transparently-authenticating HTTP reverse proxy to the Apple DEP servers. This allows us to simply provide `depserver` with the Apple DEP endpoint, the NanoDEP "DEP name" and the API key, and we can talk to any of the Apple DEP endpoint APIs (including the Roster, Class, and People Management). `depserver` will authenticate to the Apple DEP server and keep track of session management transparently behind the scenes. To be clear: this means you do not have to call to the `/session` endpoint to authenticate nor to manage and update the session tokens with each request. NanoDEP does this for you.
@@ -291,6 +300,22 @@ $ ./dep-account-detail.sh
   "org_address": "123 Main St. Anytown, USA",
   "admin_id": "admin@example.com"
 }
+```
+
+#### dep-activation-lock.sh
+
+For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script uses the Apple DEP API ["Enable activation lock on a remote device"](https://developer.apple.com/documentation/devicemanagement/activation-lock-devices) endpoint. This will enable an organization Activation Lock for the provided serial number.
+
+Arguments to the script are:
+
+- $1: The device serial number (required)
+- $2: A valid escrow key (optional). This is the PBKDF2 derived hash of the bypass code.
+- $3: The lost message (optional)
+
+##### Example usage
+
+```bash
+$ ./dep-activation-lock.sh 07AAD449616F566C12 6ab40d5eabe7218ec04182f461005600c7e3426bddd82cdb405bde9a1e0014b5 "This is an example lost message."
 ```
 
 #### dep-define-profile.sh
