@@ -73,6 +73,29 @@ type AccountDrivenEnrollmentProfileRequestJson struct {
 	MdmServiceDiscoveryUrl string `json:"mdm_service_discovery_url"`
 }
 
+// Request enabling activation lock for a device.
+type ActivationLockRequestJson struct {
+	// Serial number of the device (required).
+	Device string `json:"device"`
+
+	// Escrow key (optional). If the escrow key is not provided, the device will be
+	// locked to the person who created the MDM server in the portal. For information
+	// about creating an escrow key see [Creating and Using Bypass
+	// Codes](https://developer.apple.com/documentation/devicemanagement/creating-and-using-bypass-codes).
+	EscrowKey *string `json:"escrow_key,omitempty"`
+
+	// Lost message to be displayed on the device (optional).
+	LostMessage *string `json:"lost_message,omitempty"`
+}
+
+type ActivationLockStatusResponseJson struct {
+	// SUCCESS or one of the failure responses listed below.
+	ResponseStatus string `json:"response_status"`
+
+	// Serial number of the device.
+	SerialNumber string `json:"serial_number"`
+}
+
 type AssignProfileResponseJson struct {
 	// Devices corresponds to the JSON schema field "devices".
 	Devices map[string]AssignProfileResponseJsonDevicesValue `json:"devices,omitempty"`
