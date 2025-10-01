@@ -26,11 +26,19 @@ DEPSYNCER=\
 	depsyncer-linux-arm \
 	depsyncer-windows-amd64.exe
 
+BYPASSCODE=\
+	bypasscode-darwin-arm64 \
+	bypasscode-darwin-amd64 \
+	bypasscode-linux-amd64 \
+	bypasscode-linux-arm64 \
+	bypasscode-linux-arm \
+	bypasscode-windows-amd64.exe
+
 SUPPLEMENTAL=\
 	tools/*.sh \
 	docs/dep-profile.example.json
 
-my: deptokens-$(OSARCH) depserver-$(OSARCH) depsyncer-$(OSARCH)
+my: deptokens-$(OSARCH) depserver-$(OSARCH) depsyncer-$(OSARCH) bypasscode-$(OSARCH)
 
 docker: depserver-linux-amd64 depsyncer-linux-amd64
 
@@ -43,14 +51,18 @@ $(DEPSERVER): cmd/depserver
 $(DEPSYNCER): cmd/depsyncer
 	GOOS=$(word 2,$(subst -, ,$@)) GOARCH=$(word 3,$(subst -, ,$(subst .exe,,$@))) go build $(LDFLAGS) -o $@ ./$<
 
-nanodep-%-$(VERSION).zip: depserver-% depsyncer-% deptokens-% $(SUPPLEMENTAL)
+$(BYPASSCODE): cmd/bypasscode
+	GOOS=$(word 2,$(subst -, ,$@)) GOARCH=$(word 3,$(subst -, ,$(subst .exe,,$@))) go build $(LDFLAGS) -o $@ ./$<
+
+
+nanodep-%-$(VERSION).zip: depserver-% depsyncer-% deptokens-% bypasscode-% $(SUPPLEMENTAL)
 	rm -rf $@ $(subst .zip,,$@)
 	mkdir $(subst .zip,,$@)
 	echo $^ | xargs -n 1 | cpio -pdmu $(subst .zip,,$@)
 	zip -r $@ $(subst .zip,,$@)
 	rm -rf $(subst .zip,,$@)
 
-nanodep-%-$(VERSION).zip: depserver-%.exe depsyncer-%.exe deptokens-%.exe $(SUPPLEMENTAL)
+nanodep-%-$(VERSION).zip: depserver-%.exe depsyncer-%.exe deptokens-%.exe bypasscode-%.exe $(SUPPLEMENTAL)
 	rm -rf $@ $(subst .zip,,$@)
 	mkdir $(subst .zip,,$@)
 	echo $^ | xargs -n 1 | cpio -pdmu $(subst .zip,,$@)
@@ -58,7 +70,7 @@ nanodep-%-$(VERSION).zip: depserver-%.exe depsyncer-%.exe deptokens-%.exe $(SUPP
 	rm -rf $(subst .zip,,$@)
 
 clean:
-	rm -f deptokens-* depserver-* depsyncer-* nanodep-*.zip
+	rm -f deptokens-* depserver-* depsyncer-* nanodep-*.zip bypasscode-*
 
 release: $(foreach bin,$(DEPSERVER),$(subst .exe,,$(subst depserver,nanodep,$(bin)))-$(VERSION).zip)
 
