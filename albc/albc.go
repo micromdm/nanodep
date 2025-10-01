@@ -1,4 +1,5 @@
 // Package albc provides utilities related to Apple Activation Lock Bypass Codes.
+// Based on the Go implementation by Victor Vrantchen introduced in https://github.com/micromdm/micromdm/commit/11d83211924a32fb5cd38d1ad67ba0fecbbfed3e
 package albc
 
 import (
