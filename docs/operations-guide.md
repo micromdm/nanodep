@@ -162,6 +162,15 @@ The `/v1/maidjwt/{name}` endpoint generates a JWT for Managed Apple ID Access Ma
 
 Note also that the server UUID is returned in the HTTP header `X-Server-Uuid`. As well the JWT JTI is returned in the `X-Jwt-Jti` header.
 
+#### Activation Lock Bypass Code
+
+* Endpoint: `GET /v1/bypasscode`
+  * If no parameters a given a random code is generated.
+  * If a `raw` URL query parameter is provided then decoded and used for the bypass code.
+  * If a `code` URL query parameter is provided then it is decoded and used for the bypass code.
+
+The `/v1/bypasscode` endpoint generates (or decodes) an Activation Lock Bypass Code and returns different forms of it.
+
 ### Reverse proxy
 
 In addition to individually handling some of various Apple DEP API endpoints in its `godep` library NanoDEP provides a transparently-authenticating HTTP reverse proxy to the Apple DEP servers. This allows us to simply provide `depserver` with the Apple DEP endpoint, the NanoDEP "DEP name" and the API key, and we can talk to any of the Apple DEP endpoint APIs (including the Roster, Class, and People Management). `depserver` will authenticate to the Apple DEP server and keep track of session management transparently behind the scenes. To be clear: this means you do not have to call to the `/session` endpoint to authenticate nor to manage and update the session tokens with each request. NanoDEP does this for you.
@@ -291,6 +300,22 @@ $ ./dep-account-detail.sh
   "org_address": "123 Main St. Anytown, USA",
   "admin_id": "admin@example.com"
 }
+```
+
+#### dep-activation-lock.sh
+
+For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script uses the Apple DEP API ["Enable activation lock on a remote device"](https://developer.apple.com/documentation/devicemanagement/activation-lock-devices) endpoint. This will enable an organization Activation Lock for the provided serial number.
+
+Arguments to the script are:
+
+- $1: The device serial number (required)
+- $2: A valid escrow key (optional). This is the PBKDF2 derived hash of the bypass code.
+- $3: The lost message (optional)
+
+##### Example usage
+
+```bash
+$ ./dep-activation-lock.sh 07AAD449616F566C12 6ab40d5eabe7218ec04182f461005600c7e3426bddd82cdb405bde9a1e0014b5 "This is an example lost message."
 ```
 
 #### dep-define-profile.sh
@@ -690,3 +715,49 @@ $ ./deptokens-darwin-amd64 -password supersecret -token /Users/negacctbal/Downlo
 ```
 
 Here `deptokens` has read the default paths for the certificate and private key (`cert.pem` and `cert.key` respectively), decrypted the private key using the `-password` switch and using this private key decrypted the token file provided using the `-token` switch. It dumped the decrypted OAuth tokens JSON to stdout.
+
+## bypasscode
+
+The `bypasscode` tool is a small stand-alone utility for generating new (and parsing existing) Activation Lock Bypass Codes and printing their various forms. It is very similar to the `/v1/bypasscode` API endpoint described above.
+
+### Switches
+
+Command line switches for the `deptokens` tool.
+
+#### -raw string
+
+* hex-encoded raw bypass code
+
+Parse this bypass code in its "raw" hex-encoded form. Cannot be used with the `-code` flag.
+
+#### -code string
+
+* dash-separated "human readable" bypass code
+
+Parse this bypass code in its dash-separated "human readable" form. Cannot be used with the `-raw` flag.
+
+#### -version
+
+* print version
+
+Print version and exit.
+
+### Example usage
+
+Generate a new, random Activation Lock Bypass Code:
+
+```bash
+$ ./bypasscode-darwin-amd64
+b7608a5fd1fa8500c6095ee152ea4caf  raw
+PXH8M-QYJZA-2H1J-H9CV-HN5U-KDN7  code
+6789c28a5a596746af3e7e4d18facb19c1161e4053ccca02a3e65ce838938c0e  hash
+```
+
+Parse an existing code to show its other forms:
+
+```bash
+$ ./bypasscode-darwin-amd64 -code 3UM43-PUYVY-QYD1-UVCC-HEHJ-FKA4
+1ea841db5edfafe6075b5ae0d845d254  raw
+3UM43-PUYVY-QYD1-UVCC-HEHJ-FKA4  code
+6ab40d5eabe7218ec04182f461005600c7e3426bddd82cdb405bde9a1e0014b5  hash
+```
