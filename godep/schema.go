@@ -66,6 +66,13 @@ type AccountDetailJsonOrgVersion string
 const AccountDetailJsonOrgVersionV1 AccountDetailJsonOrgVersion = "v1"
 const AccountDetailJsonOrgVersionV2 AccountDetailJsonOrgVersion = "v2"
 
+// The details for an account-driven enrollment profile.
+type AccountDrivenEnrollmentProfileRequestJson struct {
+	// The MDM Service Discovery URL that the system redirects the user to during
+	// account-driven enrollment.
+	MdmServiceDiscoveryUrl string `json:"mdm_service_discovery_url"`
+}
+
 type AssignProfileResponseJson struct {
 	// Devices corresponds to the JSON schema field "devices".
 	Devices map[string]AssignProfileResponseJsonDevicesValue `json:"devices,omitempty"`
