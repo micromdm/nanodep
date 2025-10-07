@@ -9,7 +9,7 @@ jobs:
   format-build-test:
     strategy:
       matrix:
-        go-version: ['1.19.x', '1.21.x']
+        go-version: ['1.24.x', '1.25.x']
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -76,7 +76,7 @@ jobs:
 
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00  # v6.0.0
         with:
-          go-version: '1.21.x'
+          go-version: '1.24.x'
 
       - run: CGO_ENABLED=0 make release
 
@@ -109,7 +109,7 @@ jobs:
 
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00  # v6.0.0
         with:
-          go-version: '1.21.x'
+          go-version: '1.24.x'
 
       - name: verify mysql
         run: |
@@ -152,7 +152,7 @@ jobs:
 
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00  # v6.0.0
         with:
-          go-version: '1.21.x'
+          go-version: '1.24.x'
 
       - name: pgsql schema
         run: psql -h localhost -U nanodep -d nanodep -f ./storage/pgsql/schema.sql
