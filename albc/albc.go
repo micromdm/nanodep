@@ -83,7 +83,7 @@ func NewFromCode(code string) (BypassCode, error) {
 }
 
 // Hash generates a hex encoded PBKDF2 derived hash of c.
-// This hash is used for e.g. activation locking and unlocking the device using Apple APIs.
+// Used for i.e. activation locking a device using the Apple DEP APIs.
 // Apple describes the hash as SHA256 with static salt and fixed iterations.
 func (c BypassCode) Hash() (string, error) {
 	pb, err := pbkdf2.Key(
@@ -145,7 +145,7 @@ func convertBits(data []byte, frombits, tobits byte) ([]byte, error) {
 
 		if tobits > frombits {
 			// re-pack the remainder value into the last value.
-			// note there's some bug here if from bits is 6 or 7 and tobits is 8.
+			// note there's some bug here if frombits is 6 or 7 and tobits is 8.
 			// but we don't much care because it's only 8to5 or 5to8 with bypass codes.
 			lastByte := ret[len(ret)-1]
 			lastMasked := ((lastByte << bits) & ^(byte(0xff) << (frombits - bits)) & remainderMask)

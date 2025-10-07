@@ -313,29 +313,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - raw
-                  - code
-                  - hash
-                properties:
-                  raw:
-                    description: Hex-encoded raw form of bypass code.
-                    type: string
-                    minLength: 32
-                    maxLength: 32
-                    example: "1ea841db5edfafe6075b5ae0d845d254"
-                  code:
-                    description: Dash-separated "human readable" form of bypass code.
-                    type: string
-                    minLength: 31
-                    example: "3UM43-PUYVY-QYD1-UVCC-HEHJ-FKA4"
-                  hash:
-                    description: Hex-encoded PBKDF2 derived hash of bypass code. E.g. for use in the Apple DEP API when Activation Locking a device.
-                    type: string
-                    minLength: 64
-                    maxLength: 64
-                    example: "6ab40d5eabe7218ec04182f461005600c7e3426bddd82cdb405bde9a1e0014b5"
+                $ref: '#/components/schemas/BypassCodeResponse'
         '401':
            $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -381,6 +359,30 @@ components:
         profile_uuid:
           type: string
           example: "48E4F9B0DB9B76F1"
+    BypassCodeResponse:
+      type: object
+      required:
+        - raw
+        - code
+        - hash
+      properties:
+        raw:
+          description: Hex-encoded raw form of bypass code.
+          type: string
+          minLength: 32
+          maxLength: 32
+          example: "1ea841db5edfafe6075b5ae0d845d254"
+        code:
+          description: Dash-separated "human readable" form of bypass code.
+          type: string
+          minLength: 31
+          example: "3UM43-PUYVY-QYD1-UVCC-HEHJ-FKA4"
+        hash:
+          description: Hex-encoded PBKDF2 derived hash of bypass code. E.g. for use in the Apple DEP API when Activation Locking a device.
+          type: string
+          minLength: 64
+          maxLength: 64
+          example: "6ab40d5eabe7218ec04182f461005600c7e3426bddd82cdb405bde9a1e0014b5"
     Config:
       type: object
       properties:
