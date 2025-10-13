@@ -16,29 +16,40 @@ The `depserver` serves two main purposes:
 1. Setup & configuration of the DEP name(s) — that is, the locally-named instances that correspond to the DEP "MDM servers" in the Apple Business Manager (ABM), Apple School Manager (ASM), or Business Essentials (BE) portal. Configuration includes uploading the DEP authentication tokens, configuring the assigner, etc. See the "API endpoints" section below for more.
 1. Accessing the actual DEP APIs using a transparently-authenticating reverse proxy. After you've configured the authentication tokens using the above APIs `depserver` provides a reverse proxy to talk to the Apple DEP endpoints where you don't have to worry about session management or token authentication: this's taken care of for you. All you need to do is use a special URL path and normal API (HTTP Basic) authentication and you can talk to the DEP APIs unfiltered. See the "Reverse proxy" section below for more.
 
-### Switches
+### Command line flags
 
-Command line switches for the `depserver` tool.
+Command line flags can be specified using command line arguments or environment variables (in NanoDEP versions later than v0.6). Flags take precedence over environment variables, which take precedence over default values. Environment variables are denoted in square brackets below (e.g., [HELLO]), and default values are shown in parentheses (e.g., (default "world")). If an environment variable is currently set then the help output will add "is set" as an indicator.
+
+#### -h, -help
+
+Built-in flag that prints all other available flags, environment variables, and defaults.
 
 #### -api string
 
-* API key for API endpoints
+* API key for API endpoints [NANODEP_API]
 
-Required. API authentication in NanoDEP is simply HTTP Basic authentication using "depserver" as the username and the API key (from this switch) as the password.
+Required. API authentication in NanoDEP is simply HTTP Basic authentication using "depserver" as the username and the API key (from this flag) as the password.
 
 #### -debug
 
-* log debug messages
+* log debug messages [NANODEP_DEBUG]
 
 Enable additional debug logging.
 
 #### -listen string
 
-* HTTP listen address (default ":9001")
+* HTTP listen address [NANODEP_LISTEN] (default ":9001")
 
 Specifies the listen address (interface and port number) for the server to listen on.
 
 #### -storage, -storage-dsn, & -storage-options
+
+* -storage string
+  * storage backend [NANODEP_STORAGE] (default "filekv")
+* -storage-dsn string
+  * storage backend data source name [NANODEP_STORAGE_DSN]
+* -storage-options string
+  * storage backend options [NANODEP_STORAGE_OPTIONS]
 
 The `-storage`, `-storage-dsn`, and `-storage-options` flags together configure the storage backend. `-storage` specifies the name of backend type while `-storage-dsn` specifies the backend data source name (e.g. the connection string). The optional `-storage-options` flag specifies options for the backend if it supports them. If no `-storage` backend is specified then `filekv` is used as a default. NanoDEP versions v0.5 and earlier defaulted to the `file` backend.
 
@@ -64,7 +75,7 @@ Configure the `file` storage backend. This backend manages DEP authentication an
 Options are specified as a comma-separated list of "key=value" pairs. Supported options:
 
 * `enable_deprecated=1`
-  * This option enables the file backend. Without this switch the `file` backend is disabled.
+  * This option enables the file backend. Without this option the `file` backend is disabled.
 
 *Example:* `-storage file -storage-dsn /path/to/my/db -storage-options enable_deprecated=1`
 
@@ -103,7 +114,7 @@ Configures the PostgreSQL storage backend. The `-storage-dsn` flag should be in 
 
 #### -version
 
-* print version
+* print version and exit
 
 Print version and exit.
 
@@ -238,7 +249,7 @@ These scripts require setting up a few environment variables before use. Please 
 ```bash
 # the URL of the running depserver
 export BASE_URL='http://[::1]:9001'
-# should match the -api switch of the depserver
+# should match the -api flag of the depserver
 export APIKEY=supersecret
 # the DEP name (instance) you want to use
 export DEP_NAME=mdmserver1
@@ -469,7 +480,7 @@ Flags:
 ...
 ```
 
-Other than the switches (flags) documented below you just specify the DEP names that you'd like to sync (and assign) devices from. Multiple syncers will start up for each DEP name provided.
+Other than the flags documented below you just specify the DEP names that you'd like to sync (and assign) devices from. Multiple syncers will start up for each DEP name provided.
 
 Examples in the "Example usage" section are below.
 
@@ -489,7 +500,7 @@ You should then see in the running `depsyncer` process:
 
 Whereby the next sync should be immediately started. Naturally signal handling is OS dependent and so this feature will not work on Microsoft Windows. `depsyncer` also tries to handle the Interrupt and Terminate (SIGTERM) signals to try to cleanly stop the syncer(s) and shutdown the process.
 
-### Switches (flags)
+### Command line flags
 
 #### -debug
 
@@ -539,7 +550,7 @@ Print version and exit.
 
 * URL to send requests to
 
-For each synced set of devices `depsyncer` supports sending the sync result to a webhook URL. This switch turns on the webhook and specifies the URL. This is somewhat compatible with the webhook support in NanoMDM as well as the [MicroMDM webhook](https://github.com/micromdm/micromdm/blob/main/docs/user-guide/api-and-webhooks.md).
+For each synced set of devices `depsyncer` supports sending the sync result to a webhook URL. This flag turns on the webhook and specifies the URL. This is somewhat compatible with the webhook support in NanoMDM as well as the [MicroMDM webhook](https://github.com/micromdm/micromdm/blob/main/docs/user-guide/api-and-webhooks.md).
 
 ##### Webhook data
 
@@ -614,7 +625,7 @@ $ ./depsyncer-darwin-amd64 -debug -limit 200 -duration 3600 mdmserver1 mdmserver
 
 Here we can see that both syncers started and the syncer for DEP name "mdmserver2" had two added devices.
 
-To perform a single sync which then exits we can use the `-duration 0` switch (notice no timer being started):
+To perform a single sync which then exits we can use the `-duration 0` flag (notice no timer being started):
 
 ```bash
 $ ./depsyncer-darwin-amd64 -debug -duration 0 depsim                              
@@ -624,17 +635,17 @@ $ ./depsyncer-darwin-amd64 -debug -duration 0 depsim
 
 ### Troubleshooting
 
-The `depsyncer` tool has two debug switches: one for general debug logging (`-debug`) and another debug logging specifically for the assigner (`-debug-assigner`). Turning these options on may give extra detail into the which devices the syncer is seeing and which it is considering for assignment.
+The `depsyncer` tool has two debug flags: one for general debug logging (`-debug`) and another debug logging specifically for the assigner (`-debug-assigner`). Turning these options on may give extra detail into the which devices the syncer is seeing and which it is considering for assignment.
 
 If you're moving devices from an existing MDM server in ABM/ASM/BE to your NanoDEP server then you may encounter a situation where, after moving the device over, you have `op_type_modified=X` but *not* `op_type_added=Y` device log lines (the former are required fot the assigner to work). This appears to be an oddity with the ABM/ASM/BE portal that [the MicroMDM project has documented](https://github.com/micromdm/micromdm/wiki/DEP-auto-assignment#reassignment-oddities) with a (kludgy) workaround.
 
 ## deptokens
 
-The `deptokens` tool is an *optional* small stand-alone utility for decrypting the DEP OAuth tokens from the ABM/ASM/BE portal. It operates in one of two modes depending on if the `-token` switch is provided.
+The `deptokens` tool is an *optional* small stand-alone utility for decrypting the DEP OAuth tokens from the ABM/ASM/BE portal. It operates in one of two modes depending on if the `-token` flag is provided.
 
-In "keypair generation" mode (that is, without specifying the `-token` switch) it will generate an RSA private key and certificate and save them both to disk (the private key optionally encrypted with the `-password` switch). The path to the certificate and key are provided in the `-cert` and `-key` switches, respectively.
+In "keypair generation" mode (that is, without specifying the `-token` flag) it will generate an RSA private key and certificate and save them both to disk (the private key optionally encrypted with the `-password` flag). The path to the certificate and key are provided in the `-cert` and `-key` flags, respectively.
 
-In "decrypt and decode tokens" mode (that is, by specifying the path to the downloaded tokens file with the `-token` switch) it will attempt to use the certificate and key on disk (specified by `-cert` and `-key` switches, respectively, with an optional password for an encrypted private key specified with `-password`) to decrypt the tokens and display them. They can then be stored in `depserver` by using the "raw" token API (documented above).
+In "decrypt and decode tokens" mode (that is, by specifying the path to the downloaded tokens file with the `-token` flag) it will attempt to use the certificate and key on disk (specified by `-cert` and `-key` flags, respectively, with an optional password for an encrypted private key specified with `-password`) to decrypt the tokens and display them. They can then be stored in `depserver` by using the "raw" token API (documented above).
 
 > [!NOTE]
 > `deptokens` is **not required** to use NanoDEP: `depserver` contains this functionality built-in using the tools/scripts (or via the API) directly. See above documentation.
@@ -642,9 +653,9 @@ In "decrypt and decode tokens" mode (that is, by specifying the path to the down
 > [!CAUTION]
 > `deptokens` is discouraged for use with NanoDEP's `depserver`. The private key and certificate for the PKI exchange is not preserved when only uploading OAuth tokens. Some modern DEP functionality will not be possible. See the note above regarding the Tokens API.
 
-### Switches
+### Command line flags
 
-Command line switches for the `deptokens` tool.
+Command line flags for the `deptokens` tool.
 
 #### -cert string
 
@@ -656,7 +667,7 @@ The file path to read or save the X.509 certificate that contains the public key
 
 * force overwriting the keypair
 
-By default `deptokens` tries not to overwrite the certificate or private key if a file exists at those paths. If this switch is provided it will happily overwrite them.
+By default `deptokens` tries not to overwrite the certificate or private key if a file exists at those paths. If this flag is provided it will happily overwrite them.
 
 #### -key string
 
@@ -688,7 +699,7 @@ The generated certificate will expire after the provided days.
 
 The file path to the ".p7m" file that Apple generates when retrieving the encrypted OAuth tokens from the ABM/ASM/BE portal.
 
-If this switch is missing (the default) `deptokens` operates in "keypair generation" mode. If this switch is provided `deptokens` operates in "decrypt and decode tokens" mode. This follows the two-step upload-certificate then download-token process required for retrieving the DEP OAuth tokens.
+If this flag is missing (the default) `deptokens` operates in "keypair generation" mode. If this flag is provided `deptokens` operates in "decrypt and decode tokens" mode. This follows the two-step upload-certificate then download-token process required for retrieving the DEP OAuth tokens.
 
 #### -version
 
@@ -714,15 +725,15 @@ $ ./deptokens-darwin-amd64 -password supersecret -token /Users/negacctbal/Downlo
 {"consumer_key":"CK_9af2f8218b150c351ad802c6f3d66abe","consumer_secret":"CS_9af2f8218b150c351ad802c6f3d66abe","access_token":"AT_9af2f8218b150c351ad802c6f3d66abe","access_secret":"AS_9af2f8218b150c351ad802c6f3d66abe","access_token_expiry":"2023-07-01T22:18:53Z"}
 ```
 
-Here `deptokens` has read the default paths for the certificate and private key (`cert.pem` and `cert.key` respectively), decrypted the private key using the `-password` switch and using this private key decrypted the token file provided using the `-token` switch. It dumped the decrypted OAuth tokens JSON to stdout.
+Here `deptokens` has read the default paths for the certificate and private key (`cert.pem` and `cert.key` respectively), decrypted the private key using the `-password` flag and using this private key decrypted the token file provided using the `-token` flag. It dumped the decrypted OAuth tokens JSON to stdout.
 
 ## bypasscode
 
 The `bypasscode` tool is a small stand-alone utility for generating new (and parsing existing) Activation Lock Bypass Codes and printing their various forms. It is very similar to the `/v1/bypasscode` API endpoint described above.
 
-### Switches
+### Command line flags
 
-Command line switches for the `deptokens` tool.
+Command line flags for the `bypasscode` tool.
 
 #### -raw string
 

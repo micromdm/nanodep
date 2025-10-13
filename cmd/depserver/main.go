@@ -9,13 +9,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/micromdm/nanodep/cli"
 	"github.com/micromdm/nanodep/client"
 	dephttp "github.com/micromdm/nanodep/http"
 	"github.com/micromdm/nanodep/http/api"
 	"github.com/micromdm/nanodep/proxy"
 
+	"github.com/google/uuid"
+	"github.com/micromdm/nanolib/envflag"
 	"github.com/micromdm/nanolib/log/stdlogfmt"
 )
 
@@ -40,12 +41,12 @@ func main() {
 		flDebug   = flag.Bool("debug", false, "log debug messages")
 		flListen  = flag.String("listen", ":9001", "HTTP listen address")
 		flAPIKey  = flag.String("api", "", "API key for API endpoints")
-		flVersion = flag.Bool("version", false, "print version")
+		flVersion = flag.Bool("version", false, "print version and exit")
 		flStorage = flag.String("storage", "filekv", "storage backend")
 		flDSN     = flag.String("storage-dsn", "", "storage backend data source name")
 		flOptions = flag.String("storage-options", "", "storage backend options")
 	)
-	flag.Parse()
+	envflag.Parse("NANODEP_", []string{"version"})
 
 	if *flVersion {
 		fmt.Println(version)
