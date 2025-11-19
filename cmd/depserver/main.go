@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	stdlog "log"
+	stdslog "log/slog"
 	"math/rand"
 	"net/http"
 	"os"
@@ -13,11 +13,12 @@ import (
 	"github.com/micromdm/nanodep/client"
 	dephttp "github.com/micromdm/nanodep/http"
 	"github.com/micromdm/nanodep/http/api"
+	"github.com/micromdm/nanodep/log/caller"
+	"github.com/micromdm/nanodep/log/slog"
 	"github.com/micromdm/nanodep/proxy"
 
 	"github.com/google/uuid"
 	"github.com/micromdm/nanolib/envflag"
-	"github.com/micromdm/nanolib/log/stdlogfmt"
 )
 
 // overridden by -ldflags -X
@@ -59,10 +60,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := stdlogfmt.New(
-		stdlogfmt.WithLogger(stdlog.Default()),
-		stdlogfmt.WithDebugFlag(*flDebug),
-	)
+	level := stdslog.LevelInfo
+	if *flDebug {
+		level = stdslog.LevelDebug
+	}
+	logger := caller.New(slog.New(stdslog.New(stdslog.NewTextHandler(os.Stdout, &stdslog.HandlerOptions{Level: level}))))
 
 	storage, err := cli.Storage(*flStorage, *flDSN, *flOptions)
 	if err != nil {
