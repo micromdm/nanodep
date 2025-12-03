@@ -51,3 +51,16 @@ FROM
   dep_names
 WHERE
   name = ?;
+
+-- name: GetAllDEPNames :many
+SELECT name FROM dep_names WHERE tokenpki_staging_cert_pem IS NOT NULL LIMIT ? OFFSET ?;
+
+-- name: GetDEPNames :many
+SELECT
+  name
+FROM
+  dep_names
+WHERE
+  name IN (sqlc.slice('dep_names')) AND
+  tokenpki_staging_cert_pem IS NOT NULL
+LIMIT ? OFFSET ?;

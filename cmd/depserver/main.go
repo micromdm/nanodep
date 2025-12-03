@@ -13,6 +13,7 @@ import (
 	"github.com/micromdm/nanodep/client"
 	dephttp "github.com/micromdm/nanodep/http"
 	"github.com/micromdm/nanodep/http/api"
+	"github.com/micromdm/nanodep/http/apinext"
 	"github.com/micromdm/nanodep/log/caller"
 	"github.com/micromdm/nanodep/log/slog"
 	"github.com/micromdm/nanodep/proxy"
@@ -101,6 +102,10 @@ func main() {
 	assignerMux.Handle("GET", api.RetrieveAssignerProfileHandler(storage, logger.With("handler", "retrieve-assigner-profile")))
 	assignerMux.Handle("PUT", api.StoreAssignerProfileHandler(storage, logger.With("handler", "store-assigner-profile")))
 	handleStrippedAPI(assignerMux, endpointAssigner)
+
+	namesMux := dephttp.NewMethodMux()
+	namesMux.Handle("GET", apinext.NewQueryDEPNamesHandler(storage, logger.With("handler", "query-dep-names")))
+	handleStrippedAPI(namesMux, "/v1/dep_names")
 
 	handleStrippedAPI(api.NewBypassCodeHandler(), endpointALBC)
 

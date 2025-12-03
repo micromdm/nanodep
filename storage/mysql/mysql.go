@@ -297,3 +297,42 @@ func (s *MySQLStorage) RetrieveCurrentTokenPKI(ctx context.Context, name string)
 	}
 	return keypair.TokenpkiCertPem, keypair.TokenpkiKeyPem, nil
 }
+
+// QueryDEPNames queries and returns DEP names.
+func (s *MySQLStorage) QueryDEPNames(ctx context.Context, req *storage.DEPNamesQueryRequest) (*storage.DEPNamesQueryResult, error) {
+	if err := req.Pagination.ValidErr(); err != nil {
+		return nil, fmt.Errorf("pagination invalid: %w", err)
+	}
+	if req.Pagination != nil && req.Pagination.Cursor != nil {
+		// cursor method not supported for this backend
+		return nil, storage.ErrOnlyOffset
+	}
+	// grab the offset and limit from the pagination
+	offset, limit := req.Pagination.DefaultOffsetLimit(100)
+
+	ret := new(storage.DEPNamesQueryResult)
+	if req != nil && req.Filter != nil && len(req.Filter.DEPNames) > 0 {
+		params := sqlc.GetDEPNamesParams{
+			DepNames: req.Filter.DEPNames,
+			Limit:    int32(limit),
+			Offset:   int32(offset),
+		}
+		var err error
+		ret.DEPNames, err = s.q.GetDEPNames(ctx, params)
+		if err != nil {
+			return ret, fmt.Errorf("get dep names: %w", err)
+		}
+	} else {
+		params := sqlc.GetAllDEPNamesParams{
+			Limit:  int32(limit),
+			Offset: int32(offset),
+		}
+		var err error
+		ret.DEPNames, err = s.q.GetAllDEPNames(ctx, params)
+		if err != nil {
+			return ret, fmt.Errorf("get all dep names: %w", err)
+		}
+	}
+
+	return ret, nil
+}
