@@ -133,6 +133,24 @@ A brief overview of the endpoints is provided here. For detailed API semantics p
 
 Returns a JSON response with the version of the running NanoDEP server.
 
+#### DEP name query
+
+* Endpoint: `GET /v1/dep_names`
+
+The `/v1/dep_names` endpoint queries and returns DEP names. The DEP names need to have an upstaged (uploaded) DEP PKI operation to be considered query-able. Optional parameters are any specific `dep_name` parameters. Depending on the storage backend `offset` and `limit` or `cursor` parameters may be provided. For example:
+
+`http://[::1]9001/v1/dep_names?dep_name=myMDMserver&dep_name=myMDMserver2&limit=2&offset=3`
+
+Should return something like (if only `myMDMServer2` was query-able):
+
+```json
+{
+  "dep_names": [
+    "myMDMserver2"
+  ]
+}
+```
+
 #### Token PKI
 
 * Endpoint: `GET, PUT /v1/tokenpki/{name}`

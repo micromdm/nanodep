@@ -235,3 +235,8 @@ func (s *FileStorage) retrieveTokenPKIExtn(name, extn string) ([]byte, []byte, e
 	}
 	return certBytes, keyBytes, err
 }
+
+// QueryDEPNames queries and returns DEP names.
+func (s *FileStorage) QueryDEPNames(ctx context.Context, req *storage.DEPNamesQueryRequest) (*storage.DEPNamesQueryResult, error) {
+	return nil, errors.New("not implemented")
+}

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"math/rand"
+	"reflect"
 	"testing"
 	"time"
 
@@ -90,6 +91,17 @@ func TestWitName(t *testing.T, ctx context.Context, name string, s storage.AllSt
 	}
 	if !bytes.Equal(pemKey, pemKey3) {
 		t.Fatalf("pem key mismatch: %s vs. %s", pemKey, pemKey3)
+	}
+
+	r, err := s.QueryDEPNames(ctx, &storage.DEPNamesQueryRequest{
+		Filter: &storage.DEPNamesQueryFilter{DEPNames: []string{name}},
+	})
+	checkErr(t, err)
+	if r == nil {
+		t.Fatal("result is nil")
+	}
+	if have, want := r.DEPNames, []string{name}; !reflect.DeepEqual(have, want) {
+		t.Errorf("query DEP names: have: %v, want: %v", have, want)
 	}
 
 	// Token storing and retrieval.

@@ -35,10 +35,10 @@ const (
 )
 
 type KV struct {
-	b kv.TxnCRUDBucket
+	b kv.TxnBucketWithCRUD
 }
 
-func New(b kv.TxnCRUDBucket) *KV {
+func New(b kv.TxnBucketWithCRUD) *KV {
 	return &KV{b: b}
 }
 
@@ -233,4 +233,54 @@ func (s *KV) RetrieveCurrentTokenPKI(ctx context.Context, name string) ([]byte, 
 		return nil, nil, err
 	}
 	return tokenPKIMap[keyPfxCert+name], tokenPKIMap[keyPfxKey+name], nil
+}
+
+// QueryDEPNames queries and returns DEP names.
+// [ErrOnlyOffset] is returned if cursor pagination is attempted.
+// A default limit of 100 results is returned.
+// Uses the staged certificate upload as a key for the DEP name.
+// This means that a certificate has to have been staged (uploaded)
+// for the DEP name to be query-able.
+func (s *KV) QueryDEPNames(ctx context.Context, req *storage.DEPNamesQueryRequest) (*storage.DEPNamesQueryResult, error) {
+	if err := req.Pagination.ValidErr(); err != nil {
+		return nil, fmt.Errorf("pagination invalid: %w", err)
+	}
+	if req.Pagination != nil && req.Pagination.Cursor != nil {
+		// cursor method not supported for this backend
+		return nil, storage.ErrOnlyOffset
+	}
+	// grab the offset and limit from the pagination
+	offset, limit := req.Pagination.DefaultOffsetLimit(100)
+
+	var f []string
+	if req != nil && req.Filter != nil {
+		f = req.Filter.DEPNames
+	}
+
+	var ret []string
+	pos := 0
+	cancel := make(chan struct{})
+	for key := range s.b.KeysPrefix(ctx, keyPfxCertStaging, cancel) {
+		if pos >= offset {
+			// if we're past the offset
+			depName := key[len(keyPfxCertStaging):]
+			if len(f) > 0 {
+				for _, filterName := range f {
+					if filterName == depName {
+						// have a filter match
+						ret = append(ret, depName)
+					}
+				}
+			} else {
+				// if no filter then add all keys
+				ret = append(ret, depName)
+			}
+		}
+		if pos >= (offset + limit) {
+			close(cancel)
+		}
+		pos += 1
+	}
+
+	return &storage.DEPNamesQueryResult{DEPNames: ret}, nil
 }

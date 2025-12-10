@@ -8,7 +8,41 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
 )
+
+const getAllDEPNames = `-- name: GetAllDEPNames :many
+SELECT name FROM dep_names WHERE tokenpki_staging_cert_pem IS NOT NULL LIMIT $1 OFFSET $2
+`
+
+type GetAllDEPNamesParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetAllDEPNames(ctx context.Context, arg GetAllDEPNamesParams) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getAllDEPNames, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		items = append(items, name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const getAssignerProfile = `-- name: GetAssignerProfile :one
 SELECT
@@ -97,6 +131,46 @@ func (q *Queries) GetCurrentKeypair(ctx context.Context, name string) (GetCurren
 	var i GetCurrentKeypairRow
 	err := row.Scan(&i.TokenpkiCertPem, &i.TokenpkiKeyPem)
 	return i, err
+}
+
+const getDEPNames = `-- name: GetDEPNames :many
+SELECT
+  name
+FROM
+  dep_names
+WHERE
+  tokenpki_staging_cert_pem IS NOT NULL AND
+  name = ANY($3::varchar[])
+LIMIT $1 OFFSET $2
+`
+
+type GetDEPNamesParams struct {
+	Limit    int32
+	Offset   int32
+	DepNames []string
+}
+
+func (q *Queries) GetDEPNames(ctx context.Context, arg GetDEPNamesParams) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getDEPNames, arg.Limit, arg.Offset, pq.Array(arg.DepNames))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		items = append(items, name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getStagingKeypair = `-- name: GetStagingKeypair :one
