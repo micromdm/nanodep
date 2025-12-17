@@ -33,10 +33,17 @@ paths:
           name: limit
           schema:
             type: integer
+            example: 20
+            default: 100
         - in: query
           name: offset
           schema:
             type: integer
+        - in: query
+          name: cursor
+          schema:
+            type: string
+            example: afcadc29a704
       security:
         - basicAuth: []
       responses:
