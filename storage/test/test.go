@@ -190,7 +190,7 @@ func TestWitName(t *testing.T, ctx context.Context, name string, s storage.AllSt
 	if profileUUID3 != profileUUID4 {
 		t.Fatalf("profileUUID mismatch: %s vs. %s", profileUUID, profileUUID3)
 	}
-	if modTime2 == modTime {
+	if modTime2.Equal(modTime) {
 		t.Fatalf("expected time update: %s", modTime2)
 	}
 	now = time.Now()

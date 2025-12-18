@@ -252,34 +252,34 @@ func (s *KV) QueryDEPNames(ctx context.Context, req *storage.DEPNamesQueryReques
 	// grab the offset and limit from the pagination
 	offset, limit := req.Pagination.DefaultOffsetLimit(100)
 
-	var f []string
+	var filter []string
 	if req != nil && req.Filter != nil {
-		f = req.Filter.DEPNames
+		filter = req.Filter.DEPNames
 	}
 
 	var ret []string
-	pos := 0
 	cancel := make(chan struct{})
 	for key := range s.b.KeysPrefix(ctx, keyPfxCertStaging, cancel) {
-		if pos >= offset {
-			// if we're past the offset
-			depName := key[len(keyPfxCertStaging):]
-			if len(f) > 0 {
-				for _, filterName := range f {
-					if filterName == depName {
-						// have a filter match
+		depName := key[len(keyPfxCertStaging):]
+		if len(filter) > 0 {
+			for _, filterName := range filter {
+				if filterName == depName {
+					// have a filter match
+					if len(ret) >= (offset + limit) {
+						close(cancel)
+					} else if len(ret) >= offset {
 						ret = append(ret, depName)
 					}
 				}
-			} else {
-				// if no filter then add all keys
+			}
+		} else {
+			// if no filter then add all keys
+			if len(ret) >= (offset + limit) {
+				close(cancel)
+			} else if len(ret) >= offset {
 				ret = append(ret, depName)
 			}
 		}
-		if pos >= (offset + limit) {
-			close(cancel)
-		}
-		pos += 1
 	}
 
 	return &storage.DEPNamesQueryResult{DEPNames: ret}, nil
