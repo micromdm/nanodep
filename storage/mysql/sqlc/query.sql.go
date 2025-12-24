@@ -12,7 +12,7 @@ import (
 )
 
 const getAllDEPNames = `-- name: GetAllDEPNames :many
-SELECT name FROM dep_names WHERE tokenpki_cert_pem IS NOT NULL LIMIT ? OFFSET ?
+SELECT name FROM dep_names WHERE tokenpki_staging_cert_pem IS NOT NULL LIMIT ? OFFSET ?
 `
 
 type GetAllDEPNamesParams struct {
@@ -139,7 +139,7 @@ FROM
   dep_names
 WHERE
   name IN (/*SLICE:dep_names*/?) AND
-  tokenpki_cert_pem IS NOT NULL
+  tokenpki_staging_cert_pem IS NOT NULL
 LIMIT ? OFFSET ?
 `
 

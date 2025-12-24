@@ -258,26 +258,34 @@ func (s *KV) QueryDEPNames(ctx context.Context, req *storage.DEPNamesQueryReques
 	}
 
 	var ret []string
+	var found int
 	cancel := make(chan struct{})
 	for key := range s.b.KeysPrefix(ctx, keyPfxCertStaging, cancel) {
 		depName := key[len(keyPfxCertStaging):]
+
+		candidate := true
+
 		if len(filter) > 0 {
 			for _, filterName := range filter {
 				if filterName == depName {
-					// have a filter match
-					if len(ret) >= (offset + limit) {
-						close(cancel)
-					} else if len(ret) >= offset {
-						ret = append(ret, depName)
-					}
+					goto afterNotFound
 				}
 			}
-		} else {
-			// if no filter then add all keys
-			if len(ret) >= (offset + limit) {
-				close(cancel)
-			} else if len(ret) >= offset {
+			candidate = false
+		afterNotFound:
+		} // if there is no filter, then all keys are implicitly candidates
+
+		if candidate {
+			// only add if past offset and under limit
+			if found >= offset && len(ret) < limit {
 				ret = append(ret, depName)
+			}
+			found++
+
+			// stop if hit limit
+			if len(ret) >= limit {
+				close(cancel)
+				break
 			}
 		}
 	}
