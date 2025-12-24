@@ -3,9 +3,9 @@ package storage
 import "errors"
 
 var (
-	ErrBothCursorOffset = errors.New("both cursor and offset set")
-	ErrOnlyCursor       = errors.New("only cursor-based pagination supported")
-	ErrOnlyOffset       = errors.New("only offset-based pagination supported")
+	ErrBothCursorAndOffset = errors.New("both cursor and offset set")
+	ErrOnlyCursor          = errors.New("only cursor-based pagination supported")
+	ErrOnlyOffset          = errors.New("only offset-based pagination supported")
 )
 
 // Pagination supports either offset or cursor based pagination methods for results.
@@ -39,7 +39,7 @@ func (p *Pagination) ValidErr() error {
 		return nil
 	}
 	if p.Cursor != nil && p.Offset != nil {
-		return ErrBothCursorOffset
+		return ErrBothCursorAndOffset
 	}
 	return nil
 }
@@ -65,6 +65,16 @@ func (p *Pagination) DefaultOffsetLimit(defaultLimit int) (offset int, limit int
 		limit = defaultLimit
 	} else {
 		limit = *p.Limit
+	}
+	return
+}
+
+// ValidateDefaultOffsetLimit returns pagination details and errors, if present.
+func (p *Pagination) ValidateDefaultOffsetLimit(defaultLimit int) (cursor string, offset, limit int, err error) {
+	err = p.ValidErr()
+	offset, limit = p.DefaultOffsetLimit(defaultLimit)
+	if p != nil && p.Cursor != nil {
+		cursor = *p.Cursor
 	}
 	return
 }

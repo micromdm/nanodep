@@ -242,15 +242,18 @@ func (s *KV) RetrieveCurrentTokenPKI(ctx context.Context, name string) ([]byte, 
 // This means that a certificate has to have been staged (uploaded)
 // for the DEP name to be query-able.
 func (s *KV) QueryDEPNames(ctx context.Context, req *storage.DEPNamesQueryRequest) (*storage.DEPNamesQueryResult, error) {
-	if err := req.Pagination.ValidErr(); err != nil {
-		return nil, fmt.Errorf("pagination invalid: %w", err)
+	var offset, limit int
+	var err error
+	if req != nil {
+		if req.Pagination != nil && req.Pagination.Cursor != nil {
+			// cursor method not supported for this backend
+			return nil, storage.ErrOnlyOffset
+		}
+		_, offset, limit, err = req.Pagination.ValidateDefaultOffsetLimit(100)
+		if err != nil {
+			return nil, err
+		}
 	}
-	if req.Pagination != nil && req.Pagination.Cursor != nil {
-		// cursor method not supported for this backend
-		return nil, storage.ErrOnlyOffset
-	}
-	// grab the offset and limit from the pagination
-	offset, limit := req.Pagination.DefaultOffsetLimit(100)
 
 	var filter []string
 	if req != nil && req.Filter != nil {
