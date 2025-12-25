@@ -24,4 +24,5 @@ type AllStorage interface {
 	api.TokenPKICurrentRetriever
 	api.TokenPKIUpstager
 	api.AssignerProfileStorer
+	DEPNamesQuery
 }

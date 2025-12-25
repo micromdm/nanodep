@@ -35,10 +35,10 @@ const (
 )
 
 type KV struct {
-	b kv.TxnCRUDBucket
+	b kv.TxnBucketWithCRUD
 }
 
-func New(b kv.TxnCRUDBucket) *KV {
+func New(b kv.TxnBucketWithCRUD) *KV {
 	return &KV{b: b}
 }
 
@@ -233,4 +233,65 @@ func (s *KV) RetrieveCurrentTokenPKI(ctx context.Context, name string) ([]byte, 
 		return nil, nil, err
 	}
 	return tokenPKIMap[keyPfxCert+name], tokenPKIMap[keyPfxKey+name], nil
+}
+
+// QueryDEPNames queries and returns DEP names.
+// [ErrOnlyOffset] is returned if cursor pagination is attempted.
+// A default limit of 100 results is returned.
+// Uses the staged certificate upload as a key for the DEP name.
+// This means that a certificate has to have been staged (uploaded)
+// for the DEP name to be query-able.
+func (s *KV) QueryDEPNames(ctx context.Context, req *storage.DEPNamesQueryRequest) (*storage.DEPNamesQueryResult, error) {
+	var offset, limit int
+	var err error
+	if req != nil {
+		if req.Pagination != nil && req.Pagination.Cursor != nil {
+			// cursor method not supported for this backend
+			return nil, storage.ErrOnlyOffset
+		}
+		_, offset, limit, err = req.Pagination.ValidateDefaultOffsetLimit(100)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var filter []string
+	if req != nil && req.Filter != nil {
+		filter = req.Filter.DEPNames
+	}
+
+	var ret []string
+	var found int
+	cancel := make(chan struct{})
+	for key := range s.b.KeysPrefix(ctx, keyPfxCertStaging, cancel) {
+		depName := key[len(keyPfxCertStaging):]
+
+		candidate := true
+
+		if len(filter) > 0 {
+			for _, filterName := range filter {
+				if filterName == depName {
+					goto afterNotFound
+				}
+			}
+			candidate = false
+		afterNotFound:
+		} // if there is no filter, then all keys are implicitly candidates
+
+		if candidate {
+			// only add if past offset and under limit
+			if found >= offset && len(ret) < limit {
+				ret = append(ret, depName)
+			}
+			found++
+
+			// stop if hit limit
+			if len(ret) >= limit {
+				close(cancel)
+				break
+			}
+		}
+	}
+
+	return &storage.DEPNamesQueryResult{DEPNames: ret}, nil
 }

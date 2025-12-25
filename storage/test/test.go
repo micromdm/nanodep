@@ -6,6 +6,8 @@ import (
 	"context"
 	"errors"
 	"math/rand"
+	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -30,6 +32,11 @@ func TestWithStorages(t *testing.T, ctx context.Context, store storage.AllStorag
 	t.Run("basic-name2", func(t *testing.T) {
 		TestWitName(t, ctx, depName2, store)
 	})
+
+	t.Run("query-dep-names", func(t *testing.T) {
+		TestQueryDEPNames(t, ctx, store)
+	})
+
 }
 
 // TestEmpty tests retrieval methods on an empty/missing name.
@@ -90,6 +97,17 @@ func TestWitName(t *testing.T, ctx context.Context, name string, s storage.AllSt
 	}
 	if !bytes.Equal(pemKey, pemKey3) {
 		t.Fatalf("pem key mismatch: %s vs. %s", pemKey, pemKey3)
+	}
+
+	r, err := s.QueryDEPNames(ctx, &storage.DEPNamesQueryRequest{
+		Filter: &storage.DEPNamesQueryFilter{DEPNames: []string{name}},
+	})
+	checkErr(t, err)
+	if r == nil {
+		t.Fatal("result is nil")
+	}
+	if have, want := r.DEPNames, []string{name}; !reflect.DeepEqual(have, want) {
+		t.Errorf("query DEP names: have: %v, want: %v", have, want)
 	}
 
 	// Token storing and retrieval.
@@ -178,7 +196,7 @@ func TestWitName(t *testing.T, ctx context.Context, name string, s storage.AllSt
 	if profileUUID3 != profileUUID4 {
 		t.Fatalf("profileUUID mismatch: %s vs. %s", profileUUID, profileUUID3)
 	}
-	if modTime2 == modTime {
+	if modTime2.Equal(modTime) {
 		t.Fatalf("expected time update: %s", modTime2)
 	}
 	now = time.Now()
@@ -206,6 +224,96 @@ func TestWitName(t *testing.T, ctx context.Context, name string, s storage.AllSt
 	checkErr(t, err)
 	if cursor2 != cursor3 {
 		t.Fatalf("cursor mismatch: %s vs. %s", cursor2, cursor3)
+	}
+}
+
+// TestQueryDEPNames generates names and queries the DEP query name endpoints.
+func TestQueryDEPNames(t *testing.T, ctx context.Context, s storage.AllStorage) {
+	var depNames []string
+	for i := 0; i < 4; i++ {
+		depNames = append(depNames, genRandName(4))
+	}
+
+	for _, name := range depNames {
+		// PKI not yet stored, should be empty query
+		resp, err := s.QueryDEPNames(ctx, &storage.DEPNamesQueryRequest{Filter: &storage.DEPNamesQueryFilter{DEPNames: []string{name}}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if resp == nil {
+			t.Fatal("result empty")
+		}
+
+		if len(resp.DEPNames) != 0 {
+			t.Errorf("should be zero-length result n=%s: %v", name, resp.DEPNames)
+		}
+
+		pemCert, pemKey := generatePKI(t, "basicdn", 1)
+		err = s.StoreTokenPKI(ctx, name, pemCert, pemKey)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// PKI now stored (but not upstaged), should be exactly 1 result
+		resp, err = s.QueryDEPNames(ctx, &storage.DEPNamesQueryRequest{Filter: &storage.DEPNamesQueryFilter{DEPNames: []string{name}}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if resp == nil {
+			t.Fatal("result empty")
+		}
+
+		if len(resp.DEPNames) != 1 {
+			t.Errorf("should be exactly one result for name=%s, but got %d: %v", name, len(resp.DEPNames), resp.DEPNames)
+		}
+	}
+
+	// now that we have some stored, let's test the pagination
+	lim := 1
+	ofs := 1
+	resp, err := s.QueryDEPNames(
+		ctx,
+		&storage.DEPNamesQueryRequest{Pagination: &storage.Pagination{
+			Limit:  &lim,
+			Offset: &ofs,
+		}},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp == nil {
+		t.Fatal("result empty")
+	}
+
+	if len(resp.DEPNames) != 1 {
+		t.Errorf("should be exactly %d result(s) but got %d: %v", lim, len(resp.DEPNames), resp.DEPNames)
+	}
+
+	// test that all queried results exist
+	resp, err = s.QueryDEPNames(
+		ctx,
+		&storage.DEPNamesQueryRequest{
+			Filter: &storage.DEPNamesQueryFilter{
+				DEPNames: depNames,
+			},
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp == nil {
+		t.Fatal("result empty")
+	}
+
+	slices.Sort(resp.DEPNames)
+	slices.Sort(depNames)
+
+	if have, want := resp.DEPNames, depNames; !reflect.DeepEqual(have, want) {
+		t.Errorf("slices not equal; have: %v, want %v", have, want)
 	}
 }
 

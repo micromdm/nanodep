@@ -19,6 +19,52 @@ paths:
                   version:
                     type: string
                     example: "v0.1.0"
+  /v1/dep_names:
+    get:
+      description: Query DEP names.
+      parameters:
+        - in: query
+          name: dep_name
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 20
+            default: 100
+        - in: query
+          name: offset
+          schema:
+            type: integer
+        - in: query
+          name: cursor
+          schema:
+            type: string
+            example: afcadc29a704
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: Returns DEP name query results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DEPNamesQueryResponse'
+        '400':
+          description: Problem with the provided API query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error querying DEP names.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /v1/assigner/{name}:
     get:
       description: Return the assigner profile UUID for the given DEP name.
@@ -391,6 +437,26 @@ components:
           format: url
           example: "http://127.0.0.1:8080/"
           description: The base URL of the Apple Device Assignment Services server to call out to. Typically only overridden when talking to another DEP server such as the `depsim` simulator.
+    DEPNamesQueryResponse:
+      type: object
+      properties:
+        dep_names:
+          type: array
+          items:
+            type: string
+        next_cursor:
+          description: For storage backends that support cursor-based pagination this will contain the next cursor value.
+          type: string
+    ErrorResponse:
+      type: object
+      description: Error response.
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error string.
+          example: The sun is shining.
     OAuth1Tokens:
       type: object
       properties:

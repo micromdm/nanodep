@@ -8,7 +8,40 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
+
+const getAllDEPNames = `-- name: GetAllDEPNames :many
+SELECT name FROM dep_names WHERE tokenpki_staging_cert_pem IS NOT NULL LIMIT ? OFFSET ?
+`
+
+type GetAllDEPNamesParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetAllDEPNames(ctx context.Context, arg GetAllDEPNamesParams) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getAllDEPNames, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		items = append(items, name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const getAssignerProfile = `-- name: GetAssignerProfile :one
 SELECT
@@ -97,6 +130,58 @@ func (q *Queries) GetCurrentKeypair(ctx context.Context, name string) (GetCurren
 	var i GetCurrentKeypairRow
 	err := row.Scan(&i.TokenpkiCertPem, &i.TokenpkiKeyPem)
 	return i, err
+}
+
+const getDEPNames = `-- name: GetDEPNames :many
+SELECT
+  name
+FROM
+  dep_names
+WHERE
+  name IN (/*SLICE:dep_names*/?) AND
+  tokenpki_staging_cert_pem IS NOT NULL
+LIMIT ? OFFSET ?
+`
+
+type GetDEPNamesParams struct {
+	DepNames []string
+	Limit    int32
+	Offset   int32
+}
+
+func (q *Queries) GetDEPNames(ctx context.Context, arg GetDEPNamesParams) ([]string, error) {
+	query := getDEPNames
+	var queryParams []interface{}
+	if len(arg.DepNames) > 0 {
+		for _, v := range arg.DepNames {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:dep_names*/?", strings.Repeat(",?", len(arg.DepNames))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:dep_names*/?", "NULL", 1)
+	}
+	queryParams = append(queryParams, arg.Limit)
+	queryParams = append(queryParams, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		items = append(items, name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getStagingKeypair = `-- name: GetStagingKeypair :one

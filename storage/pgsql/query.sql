@@ -104,3 +104,16 @@ INSERT INTO dep_names (
 ) ON CONFLICT (name) DO UPDATE SET
 tokenpki_staging_cert_pem = excluded.tokenpki_staging_cert_pem,
 tokenpki_staging_key_pem = excluded.tokenpki_staging_key_pem;
+
+-- name: GetAllDEPNames :many
+SELECT name FROM dep_names WHERE tokenpki_staging_cert_pem IS NOT NULL LIMIT $1 OFFSET $2;
+
+-- name: GetDEPNames :many
+SELECT
+  name
+FROM
+  dep_names
+WHERE
+  tokenpki_staging_cert_pem IS NOT NULL AND
+  name = ANY(sqlc.arg('dep_names')::varchar[])
+LIMIT $1 OFFSET $2;
