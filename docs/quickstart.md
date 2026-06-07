@@ -104,7 +104,7 @@ First adjust the [example DEP profile](../docs/dep-profile.example.json) or make
 <details>
   <summary>Note for nanoMDM users</summary>
   
-  NanoMDM does not have an enrollment endpoint interface for the `url` field in the dep-profile. You will need to host your `enroll.mobileconfig` file yourself. In addition, the request is made as a POST. One simple option is creating a custom location section in Nginx and using it's built in error page redirect feature.
+  NanoMDM does not have an enrollment endpoint interface for the `url` field in the dep-profile. You will need to host your `enroll.mobileconfig` file on a webserver yourself. In addition, the request is made as a POST. For example, in Nginx you can create a custom location section and use it's built in error page redirect feature to achieve this.
   ```nginx config snippet
     location /enrollment-url {
          alias /var/www/html/optional_subdir/enroll.mobileconfig;
