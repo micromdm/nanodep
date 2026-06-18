@@ -90,12 +90,6 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchD
 		if a.debug {
 			logs := []interface{}{"msg", "device"}
 			logs = append(logs, logDevice(device)...)
-			if device.MdmMigrationDeadline != nil {
-				logs = append(logs,
-                    "mdm_migration", true,
-					"serial_number", device.SerialNumber,
-					"migration_deadline", device.MdmMigrationDeadline.String(),
-				)
 			}
 			logger.Debug(logs...)
 		}
