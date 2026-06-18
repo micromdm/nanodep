@@ -90,7 +90,6 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchD
 		if a.debug {
 			logs := []interface{}{"msg", "device"}
 			logs = append(logs, logDevice(device)...)
-			}
 			logger.Debug(logs...)
 		}
 		// note that we may see multiple serial number "events"
