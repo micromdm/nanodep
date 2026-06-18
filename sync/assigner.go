@@ -96,7 +96,6 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchD
 					"migration_deadline", device.MdmMigrationDeadline.String(),
 				)
 			}
-
 			logger.Debug(logs...)
 		}
 		// note that we may see multiple serial number "events"
