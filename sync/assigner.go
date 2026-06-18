@@ -90,11 +90,25 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchD
 		if a.debug {
 			logs := []interface{}{"msg", "device"}
 			logs = append(logs, logDevice(device)...)
+			if device.MdmMigrationDeadline != nil {
+				logs = append(logs,
+					"mdm_migration", true,
+					"migration_deadline", device.MdmMigrationDeadline.String(),
+				)
+			}
+
 			logger.Debug(logs...)
 		}
 		// note that we may see multiple serial number "events"
 		if shouldAssignDevice(device) {
 			serialsToAssign = append(serialsToAssign, device.SerialNumber)
+		}
+		if device.MdmMigrationDeadline != nil {
+			logger.Info(
+				"msg", "migration device detected",
+				"serial_number", device.SerialNumber,
+				"migration_deadline", device.MdmMigrationDeadline.String(),
+			)
 		}
 	}
 
