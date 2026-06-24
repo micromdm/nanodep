@@ -139,6 +139,12 @@ func shouldAssignDevice(device godep.DeviceJson) bool {
 	if strings.ToLower(string(deref(device.OpType))) == "added" {
 		return true
 	}
+	// An exception to this is if a device is using ADE deadline migration.
+	// It's OpType will be "modified" with ProfileStatus being "removed".
+	if strings.ToLower(string(deref(device.OpType))) == "modified" &&
+		strings.ToLower(string(deref(device.ProfileStatus))) == "removed" {
+		return true
+	}
 	return false
 }
 
