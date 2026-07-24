@@ -487,7 +487,6 @@ And then run the script again. This should give detailed HTTP response data incl
 
 You can set the assigner profile UUID using either the `./tools/cfg-set-assigner.sh` script (which talks to `depserver`) or using the `depserver` API endpoint `/v1/assigner/{name}` directly. See above for documentation on either of these options. The assigner can be set or changed at any time — even if `depsyncer` has already started: it reads the profile UUID every sync cycle. Note also that the assigner profile UUID applies only to the specific associated DEP name.
 
-
 ### Usage
 
 At minimum you must specify at least one DEP name to start syncing devices from:
