@@ -487,6 +487,8 @@ And then run the script again. This should give detailed HTTP response data incl
 
 You can set the assigner profile UUID using either the `./tools/cfg-set-assigner.sh` script (which talks to `depserver`) or using the `depserver` API endpoint `/v1/assigner/{name}` directly. See above for documentation on either of these options. The assigner can be set or changed at any time — even if `depsyncer` has already started: it reads the profile UUID every sync cycle. Note also that the assigner profile UUID applies only to the specific associated DEP name.
 
+By default the assigner only considers newly *added* devices (those with an op_type of "added"). If you enable the `-deadline` flag then devices undergoing ADE (Automated Device Enrollment) deadline migration are also assigned. Such devices are reported with an op_type of "modified" and a profile_status of "removed" rather than the usual "added" op_type. See the `-deadline` flag documentation below.
+
 ### Usage
 
 At minimum you must specify at least one DEP name to start syncing devices from:
@@ -519,6 +521,12 @@ You should then see in the running `depsyncer` process:
 Whereby the next sync should be immediately started. Naturally signal handling is OS dependent and so this feature will not work on Microsoft Windows. `depsyncer` also tries to handle the Interrupt and Terminate (SIGTERM) signals to try to cleanly stop the syncer(s) and shutdown the process.
 
 ### Command line flags
+
+#### -deadline
+
+* assign profiles to devices undergoing ADE deadline migration
+
+By default the assigner only assigns the profile UUID to newly *added* devices. When this flag is enabled the assigner will also assign the profile UUID to devices undergoing ADE (Automated Device Enrollment) deadline migration. These devices are reported by the Apple DEP API with an op_type of "modified" and a profile_status of "removed" instead of the usual "added" op_type. This flag applies in both "continuous" and "sync once" modes.
 
 #### -debug
 
