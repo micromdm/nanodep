@@ -18,6 +18,18 @@ import (
 //go:embed schema.sql
 var Schema string
 
+// Default connection pool recycling. Pooled connections are recycled well
+// before the shortest idle timeout in the network path (the istio-proxy
+// sidecar reaps idle TCP connections at ~1h, Aurora's wait_timeout is longer).
+// Without this, database/sql hands out long-idle connections that the far end
+// has already closed, producing "broken pipe" writes and "closing bad idle
+// connection: EOF" errors. Override per-deployment with WithConnMaxLifetime /
+// WithConnMaxIdleTime when the path's idle timeout differs.
+const (
+	defaultConnMaxLifetime = 3 * time.Minute
+	defaultConnMaxIdleTime = 1 * time.Minute
+)
+
 // MySQLStorage implements a storage.AllStorage using MySQL.
 type MySQLStorage struct {
 	db *sql.DB
@@ -25,9 +37,11 @@ type MySQLStorage struct {
 }
 
 type config struct {
-	driver string
-	dsn    string
-	db     *sql.DB
+	driver          string
+	dsn             string
+	db              *sql.DB
+	connMaxLifetime time.Duration
+	connMaxIdleTime time.Duration
 }
 
 // Option allows configuring a MySQLStorage.
@@ -59,9 +73,31 @@ func WithDB(db *sql.DB) Option {
 	}
 }
 
+// WithConnMaxLifetime sets the maximum amount of time a connection may be
+// reused. It should be shorter than the shortest idle timeout in the network
+// path to the database. A non-positive value keeps connections forever.
+func WithConnMaxLifetime(d time.Duration) Option {
+	return func(c *config) {
+		c.connMaxLifetime = d
+	}
+}
+
+// WithConnMaxIdleTime sets the maximum amount of time a connection may be idle
+// before it is closed. A non-positive value never closes connections due to
+// idle time.
+func WithConnMaxIdleTime(d time.Duration) Option {
+	return func(c *config) {
+		c.connMaxIdleTime = d
+	}
+}
+
 // New creates and returns a new MySQLStorage.
 func New(opts ...Option) (*MySQLStorage, error) {
-	cfg := &config{driver: "mysql"}
+	cfg := &config{
+		driver:          "mysql",
+		connMaxLifetime: defaultConnMaxLifetime,
+		connMaxIdleTime: defaultConnMaxIdleTime,
+	}
 	for _, opt := range opts {
 		opt(cfg)
 	}
@@ -72,6 +108,8 @@ func New(opts ...Option) (*MySQLStorage, error) {
 			return nil, err
 		}
 	}
+	cfg.db.SetConnMaxLifetime(cfg.connMaxLifetime)
+	cfg.db.SetConnMaxIdleTime(cfg.connMaxIdleTime)
 	if err = cfg.db.Ping(); err != nil {
 		return nil, err
 	}
