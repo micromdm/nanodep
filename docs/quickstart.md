@@ -87,7 +87,7 @@ $ ./tools/dep-account-detail.sh
 }
 ```
 
-If you received no response here then you can e.g. set `export CURL_OPTS=-v` to give us more detail and check the `depserver` logs if necessary. See the [operations guide](../docs/operations-guide.md) for more.
+If you received no response here then you can e.g. set `export CURL_OPTS=-v` to give us more detail and check the `depserver` logs if necessary. See the [operations guide](operations-guide.md) for more.
 
 Otherwise: congratulations! The token exchanged was successful and you can use the tokens to communicate with Apple's DEP API. **Note: you will need renew these tokens yearly or whenever the Apple Terms and Conditions are updated by following this same procedure.**
 
