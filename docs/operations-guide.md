@@ -520,6 +520,12 @@ Whereby the next sync should be immediately started. Naturally signal handling i
 
 ### Command line flags
 
+#### -deadline
+
+* assign profiles to devices undergoing ADE deadline migration
+
+By default the assigner only assigns the profile UUID to newly *added* devices. When this flag is enabled the assigner will also assign the profile UUID to devices undergoing ADE (Automated Device Enrollment) deadline migration. These devices are reported by the Apple DEP API with an op_type of "modified" and a profile_status of "removed" instead of the usual "added" op_type. This flag applies in both "continuous" and "sync once" modes.
+
 #### -debug
 
 * log debug messages
