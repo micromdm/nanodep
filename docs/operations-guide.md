@@ -101,6 +101,15 @@ Configures the MySQL storage backend. The `-dsn` flag should be in the [format t
 
 *Example:* `-storage mysql -dsn nanodep:nanodep/mydepdb`
 
+Options are specified as a comma-separated list of "key=value" pairs. The mysql backend supports these options:
+
+* `conn_max_lifetime=duration`
+  * This option sets the maximum amount of time a pooled connection may be reused. The value is a [Go duration string](https://pkg.go.dev/time#ParseDuration) such as `30s`, `3m`, or `1h`. It defaults to `3m`. A value of `0` keeps connections forever.
+* `conn_max_idle_time=duration`
+  * This option sets the maximum amount of time a pooled connection may sit idle before it is closed. The value is a duration string, as above. It defaults to `1m`. A value of `0` never closes connections due to idle time.
+
+*Example:* `-storage mysql -storage-dsn nanodep:nanodep/mydepdb -storage-options conn_max_lifetime=30s,conn_max_idle_time=15s`
+
 ##### pgsql storage backend
 
 * `-storage pgsql`
@@ -554,9 +563,9 @@ In the "sync once" mode (duration of 0) `depsyncer` could be run from, say, a cr
 
 The limit flag specifies how many devices to fetch at a time from the Apple DEP API. [Apple's documentation](https://developer.apple.com/documentation/devicemanagement/syncdevicerequest) says there is a server-side default of 100 an upper limit of 1000.
 
-#### -storage & -storage-dsn
+#### -storage, -storage-dsn, & -storage-options
 
-See the "-storage & -storage-dsn" section, above, for `depserver`. The syntax and capabilities are the same.
+See the "-storage, -storage-dsn, & -storage-options" section, above, for `depserver`. The syntax and capabilities are the same.
 
 #### -version
 
