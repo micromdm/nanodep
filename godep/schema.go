@@ -102,6 +102,9 @@ type AssignProfileResponseJson struct {
 
 	// ProfileUuid corresponds to the JSON schema field "profile_uuid".
 	ProfileUuid *string `json:"profile_uuid,omitempty"`
+
+	// RetryAfterSeconds corresponds to the JSON schema field "retry_after_seconds".
+	RetryAfterSeconds *int `json:"retry_after_seconds,omitempty"`
 }
 
 type AssignProfileResponseJsonDevicesValue string
@@ -109,6 +112,7 @@ type AssignProfileResponseJsonDevicesValue string
 const AssignProfileResponseJsonDevicesValueFAILED AssignProfileResponseJsonDevicesValue = "FAILED"
 const AssignProfileResponseJsonDevicesValueNOTACCESSIBLE AssignProfileResponseJsonDevicesValue = "NOT_ACCESSIBLE"
 const AssignProfileResponseJsonDevicesValueSUCCESS AssignProfileResponseJsonDevicesValue = "SUCCESS"
+const AssignProfileResponseJsonDevicesValueTHROTTLED AssignProfileResponseJsonDevicesValue = "THROTTLED"
 
 // The request used to remove a profile from devices.
 type ClearProfileRequestJson struct {
