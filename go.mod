@@ -8,7 +8,7 @@ require (
 	github.com/gomodule/oauth1 v0.2.0
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
-	github.com/micromdm/nanolib v0.5.0
+	github.com/micromdm/nanolib v0.5.1
 	github.com/peterbourgon/diskv/v3 v3.0.1
 	github.com/smallstep/pkcs7 v0.2.1
 )
