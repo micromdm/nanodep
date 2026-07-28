@@ -139,7 +139,7 @@ Returns a JSON response with the version of the running NanoDEP server.
 
 The `/v1/dep_names` endpoint queries and returns DEP names. The DEP names need to have an upstaged (uploaded) DEP PKI operation to be considered query-able. Optional parameters are any specific `dep_name` parameters. Depending on the storage backend `offset` and `limit` or `cursor` parameters may be provided. For example:
 
-`http://[::1]9001/v1/dep_names?dep_name=myMDMserver&dep_name=myMDMserver2&limit=2&offset=3`
+`http://[::1]:9001/v1/dep_names?dep_name=myMDMserver&dep_name=myMDMserver2&limit=2&offset=3`
 
 Should return something like (if only `myMDMServer2` was query-able):
 
