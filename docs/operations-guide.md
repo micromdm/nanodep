@@ -104,9 +104,9 @@ Configures the MySQL storage backend. The `-dsn` flag should be in the [format t
 Options are specified as a comma-separated list of "key=value" pairs. The mysql backend supports these options:
 
 * `conn_max_lifetime=duration`
-  * This option sets the maximum amount of time a pooled connection may be reused. The value is a [Go duration string](https://pkg.go.dev/time#ParseDuration) such as `30s`, `3m`, or `1h`. It defaults to `3m`. A value of `0` keeps connections forever.
+  * This option sets the maximum amount of time a pooled connection may be reused. The value is a [Go duration string](https://pkg.go.dev/time#ParseDuration) such as `30s`, `3m`, or `1h`. When unset, connection lifetime is left at database/sql's default (connections are reused indefinitely). A value of `0` keeps connections forever.
 * `conn_max_idle_time=duration`
-  * This option sets the maximum amount of time a pooled connection may sit idle before it is closed. The value is a duration string, as above. It defaults to `1m`. A value of `0` never closes connections due to idle time.
+  * This option sets the maximum amount of time a pooled connection may sit idle before it is closed. The value is a duration string, as above. When unset, idle time is left at database/sql's default (idle connections are not closed by age). A value of `0` never closes connections due to idle time.
 
 *Example:* `-storage mysql -storage-dsn nanodep:nanodep/mydepdb -storage-options conn_max_lifetime=30s,conn_max_idle_time=15s`
 
