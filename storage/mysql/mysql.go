@@ -18,17 +18,14 @@ import (
 //go:embed schema.sql
 var Schema string
 
-// Default connection pool recycling. Pooled connections are recycled well
-// before the shortest idle timeout in the network path (the istio-proxy
-// sidecar reaps idle TCP connections at ~1h, Aurora's wait_timeout is longer).
-// Without this, database/sql hands out long-idle connections that the far end
-// has already closed, producing "broken pipe" writes and "closing bad idle
-// connection: EOF" errors. Override per-deployment with WithConnMaxLifetime /
-// WithConnMaxIdleTime when the path's idle timeout differs.
-const (
-	defaultConnMaxLifetime = 3 * time.Minute
-	defaultConnMaxIdleTime = 1 * time.Minute
-)
+// Connection pool recycling is left at database/sql's defaults unless
+// configured. Pooled connections should be recycled well before the shortest
+// idle timeout in the network path (the istio-proxy sidecar reaps idle TCP
+// connections at ~1h, Aurora's wait_timeout is longer). Without recycling,
+// database/sql hands out long-idle connections that the far end has already
+// closed, producing "broken pipe" writes and "closing bad idle connection:
+// EOF" errors. Set WithConnMaxLifetime / WithConnMaxIdleTime per-deployment to
+// enable recycling for the path's idle timeout.
 
 // MySQLStorage implements a storage.AllStorage using MySQL.
 type MySQLStorage struct {
@@ -37,11 +34,13 @@ type MySQLStorage struct {
 }
 
 type config struct {
-	driver          string
-	dsn             string
-	db              *sql.DB
-	connMaxLifetime time.Duration
-	connMaxIdleTime time.Duration
+	driver             string
+	dsn                string
+	db                 *sql.DB
+	connMaxLifetime    time.Duration
+	connMaxLifetimeSet bool
+	connMaxIdleTime    time.Duration
+	connMaxIdleTimeSet bool
 }
 
 // Option allows configuring a MySQLStorage.
@@ -79,6 +78,7 @@ func WithDB(db *sql.DB) Option {
 func WithConnMaxLifetime(d time.Duration) Option {
 	return func(c *config) {
 		c.connMaxLifetime = d
+		c.connMaxLifetimeSet = true
 	}
 }
 
@@ -88,15 +88,14 @@ func WithConnMaxLifetime(d time.Duration) Option {
 func WithConnMaxIdleTime(d time.Duration) Option {
 	return func(c *config) {
 		c.connMaxIdleTime = d
+		c.connMaxIdleTimeSet = true
 	}
 }
 
 // New creates and returns a new MySQLStorage.
 func New(opts ...Option) (*MySQLStorage, error) {
 	cfg := &config{
-		driver:          "mysql",
-		connMaxLifetime: defaultConnMaxLifetime,
-		connMaxIdleTime: defaultConnMaxIdleTime,
+		driver: "mysql",
 	}
 	for _, opt := range opts {
 		opt(cfg)
@@ -108,8 +107,12 @@ func New(opts ...Option) (*MySQLStorage, error) {
 			return nil, err
 		}
 	}
-	cfg.db.SetConnMaxLifetime(cfg.connMaxLifetime)
-	cfg.db.SetConnMaxIdleTime(cfg.connMaxIdleTime)
+	if cfg.connMaxLifetimeSet {
+		cfg.db.SetConnMaxLifetime(cfg.connMaxLifetime)
+	}
+	if cfg.connMaxIdleTimeSet {
+		cfg.db.SetConnMaxIdleTime(cfg.connMaxIdleTime)
+	}
 	if err = cfg.db.Ping(); err != nil {
 		return nil, err
 	}
