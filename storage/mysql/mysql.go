@@ -34,13 +34,11 @@ type MySQLStorage struct {
 }
 
 type config struct {
-	driver             string
-	dsn                string
-	db                 *sql.DB
-	connMaxLifetime    time.Duration
-	connMaxLifetimeSet bool
-	connMaxIdleTime    time.Duration
-	connMaxIdleTimeSet bool
+	driver          string
+	dsn             string
+	db              *sql.DB
+	connMaxLifetime time.Duration
+	connMaxIdleTime time.Duration
 }
 
 // Option allows configuring a MySQLStorage.
@@ -78,7 +76,6 @@ func WithDB(db *sql.DB) Option {
 func WithConnMaxLifetime(d time.Duration) Option {
 	return func(c *config) {
 		c.connMaxLifetime = d
-		c.connMaxLifetimeSet = true
 	}
 }
 
@@ -88,7 +85,6 @@ func WithConnMaxLifetime(d time.Duration) Option {
 func WithConnMaxIdleTime(d time.Duration) Option {
 	return func(c *config) {
 		c.connMaxIdleTime = d
-		c.connMaxIdleTimeSet = true
 	}
 }
 
@@ -107,10 +103,10 @@ func New(opts ...Option) (*MySQLStorage, error) {
 			return nil, err
 		}
 	}
-	if cfg.connMaxLifetimeSet {
+	if cfg.connMaxLifetime != 0 {
 		cfg.db.SetConnMaxLifetime(cfg.connMaxLifetime)
 	}
-	if cfg.connMaxIdleTimeSet {
+	if cfg.connMaxIdleTime != 0 {
 		cfg.db.SetConnMaxIdleTime(cfg.connMaxIdleTime)
 	}
 	if err = cfg.db.Ping(); err != nil {
