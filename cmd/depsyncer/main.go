@@ -31,6 +31,7 @@ func main() {
 		flDebug   = flag.Bool("debug", false, "log debug messages")
 		flADebug  = flag.Bool("debug-assigner", false, "additional debug logging of the device assigner")
 		flSDebug  = flag.Bool("debug-syncer", false, "additional debug logging of the device syncer")
+		flDeadln  = flag.Bool("deadline", false, "assign profiles to devices undergoing ADE deadline migration")
 		flStorage = flag.String("storage", "filekv", "storage backend")
 		flDSN     = flag.String("storage-dsn", "", "storage backend data source name")
 		flOptions = flag.String("storage-options", "", "storage backend options")
@@ -138,6 +139,9 @@ func main() {
 		}
 		if *flADebug {
 			assignerOpts = append(assignerOpts, depsync.WithAssignerDebug())
+		}
+		if *flDeadln {
+			assignerOpts = append(assignerOpts, depsync.WithAssignerDeadline())
 		}
 		assigner := depsync.NewAssigner(
 			client,
