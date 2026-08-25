@@ -185,7 +185,7 @@ func TestWitName(t *testing.T, ctx context.Context, name string, s storage.AllSt
 	}
 	now := time.Now()
 	if modTime.Before(now.Add(-1*time.Minute)) || modTime.After(now.Add(1*time.Minute)) {
-		t.Fatalf("mismatch modTime, expected: %s (+/- 1m), actual: %s", now, modTime)
+		t.Errorf("mismatch modTime, expected: %s (+/- 1m), actual: %s", now, modTime)
 	}
 	time.Sleep(1 * time.Second)
 	profileUUID3 := "foo_43277A13FBCA0CFC"
@@ -201,7 +201,7 @@ func TestWitName(t *testing.T, ctx context.Context, name string, s storage.AllSt
 	}
 	now = time.Now()
 	if modTime2.Before(now.Add(-1*time.Minute)) || modTime2.After(now.Add(1*time.Minute)) {
-		t.Fatalf("mismatch modTime, expected: %s (+/- 1m), actual: %s", now, modTime)
+		t.Errorf("mismatch modTime, expected: %s (+/- 1m), actual: %s", now, modTime)
 	}
 
 	cursor, err := s.RetrieveCursor(ctx, name)

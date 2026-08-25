@@ -144,26 +144,14 @@ func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*cl
 
 // StoreAuthTokens saves the DEP OAuth tokens for the DEP name.
 func (s *MySQLStorage) StoreAuthTokens(ctx context.Context, name string, tokens *client.OAuth1Tokens) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names 
-	(name, consumer_key, consumer_secret, access_token, access_secret, access_token_expiry)
-VALUES 
-	(?, ?, ?, ?, ?, ?) as new
-ON DUPLICATE KEY UPDATE 
-	consumer_key = new.consumer_key,
-	consumer_secret = new.consumer_secret,
-	access_token = new.access_token,
-	access_secret = new.access_secret,
-	access_token_expiry = new.access_token_expiry;`,
-		name,
-		tokens.ConsumerKey,
-		tokens.ConsumerSecret,
-		tokens.AccessToken,
-		tokens.AccessSecret,
-		tokens.AccessTokenExpiry.Format(timestampFormat),
-	)
-	return err
+	return s.q.StoreAuthTokens(ctx, sqlc.StoreAuthTokensParams{
+		Name:              name,
+		ConsumerKey:       sql.NullString{String: tokens.ConsumerKey, Valid: true},
+		ConsumerSecret:    sql.NullString{String: tokens.ConsumerSecret, Valid: true},
+		AccessToken:       sql.NullString{String: tokens.AccessToken, Valid: true},
+		AccessSecret:      sql.NullString{String: tokens.AccessSecret, Valid: true},
+		AccessTokenExpiry: sql.NullString{String: tokens.AccessTokenExpiry.Format(timestampFormat), Valid: true},
+	})
 }
 
 // RetrieveConfig reads the JSON DEP config of a DEP name.
@@ -190,18 +178,10 @@ func (s *MySQLStorage) RetrieveConfig(ctx context.Context, name string) (*client
 
 // StoreConfig saves the DEP config for name (DEP name).
 func (s *MySQLStorage) StoreConfig(ctx context.Context, name string, config *client.Config) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names
-	(name, config_base_url)
-VALUES 
-	(?, ?) as new
-ON DUPLICATE KEY UPDATE
-	config_base_url = new.config_base_url;`,
-		name,
-		config.BaseURL,
-	)
-	return err
+	return s.q.StoreConfig(ctx, sqlc.StoreConfigParams{
+		Name:          name,
+		ConfigBaseUrl: sql.NullString{String: config.BaseURL, Valid: true},
+	})
 }
 
 // RetrieveAssignerProfile reads the assigner profile UUID and its timestamp for name (DEP name).
@@ -227,19 +207,10 @@ func (s *MySQLStorage) RetrieveAssignerProfile(ctx context.Context, name string)
 
 // StoreAssignerProfile saves the assigner profile UUID for name (DEP name).
 func (s *MySQLStorage) StoreAssignerProfile(ctx context.Context, name string, profileUUID string) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names
-	(name, assigner_profile_uuid, assigner_profile_uuid_at)
-VALUES
-	(?, ?, CURRENT_TIMESTAMP) as new
-ON DUPLICATE KEY UPDATE
-	assigner_profile_uuid = new.assigner_profile_uuid,
-	assigner_profile_uuid_at = new.assigner_profile_uuid_at;`,
-		name,
-		profileUUID,
-	)
-	return err
+	return s.q.StoreAssignerProfile(ctx, sqlc.StoreAssignerProfileParams{
+		Name:                name,
+		AssignerProfileUuid: sql.NullString{String: profileUUID, Valid: true},
+	})
 }
 
 // RetrieveCursor reads the reads the DEP fetch and sync cursor for name (DEP name).
@@ -261,36 +232,19 @@ func (s *MySQLStorage) RetrieveCursor(ctx context.Context, name string) (string,
 
 // StoreCursor saves the DEP fetch and sync cursor for name (DEP name).
 func (s *MySQLStorage) StoreCursor(ctx context.Context, name, cursor string) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names
-	(name, syncer_cursor)
-VALUES
-	(?, ?) as new
-ON DUPLICATE KEY UPDATE
-	syncer_cursor = new.syncer_cursor`,
-		name,
-		cursor,
-	)
-	return err
+	return s.q.StoreCursor(ctx, sqlc.StoreCursorParams{
+		Name:         name,
+		SyncerCursor: sql.NullString{String: cursor, Valid: true},
+	})
 }
 
 // StoreTokenPKI stores the staging PEM bytes in pemCert and pemKey for name (DEP name).
 func (s *MySQLStorage) StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names
-	(name, tokenpki_staging_cert_pem, tokenpki_staging_key_pem)
-VALUES
-	(?, ?, ?) as new
-ON DUPLICATE KEY UPDATE
-	tokenpki_staging_cert_pem = new.tokenpki_staging_cert_pem,
-	tokenpki_staging_key_pem = new.tokenpki_staging_key_pem;`,
-		name,
-		pemCert,
-		pemKey,
-	)
-	return err
+	return s.q.StoreTokenPKI(ctx, sqlc.StoreTokenPKIParams{
+		Name:                   name,
+		TokenpkiStagingCertPem: pemCert,
+		TokenpkiStagingKeyPem:  pemKey,
+	})
 }
 
 // UpstageTokenPKI copies the staging PKI certificate and private key to the
