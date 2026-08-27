@@ -89,17 +89,24 @@ $ ./tools/dep-account-detail.sh
 
 If you received no response here then you can e.g. set `export CURL_OPTS=-v` to give us more detail and check the `depserver` logs if necessary. See the [operations guide](operations-guide.md) for more.
 
-Otherwise: congratulations! The token exchanged was successful and you can use the tokens to communicate with Apple's DEP API. **Note: you will need renew these tokens yearly or whenever the Apple Terms and Conditions are updated by following this same procedure.**
+Otherwise: congratulations! The token exchanged was successful and you can use the tokens to communicate with Apple's DEP API. **Note: you will need to renew these tokens yearly or whenever the Apple Terms and Conditions are updated by following this same procedure.**
 
 ### Assign a device in the portal
 
-Now that we've verified API connectivity using your DEP server you need to assign a device in the ABM/ASM/BE portal. To do so login to the portal and navigate to the "Devices" section. Select (or search for) the device you want to use with DEP by settings its MDM server. As of July, 2022 there is a link/button in the top navigation of a device called "Edit MDM Server" — clicking this brings up a dialog to either assign or un-assign the device. When assigning a drop-menu appears of the setup MDM servers. We'll want to select our newly created server "mdmserver1" then click the "Continue" button. The device should then be assigned to your MDM server and available for a DEP profile to be assigned to it.
+Now that we've verified API connectivity using your DEP server you need to assign a device in the ABM/ASM/BE portal. To do so login to the portal and navigate to the "Devices" section. Select (or search for) the device you want to use with DEP by setting its MDM server. As of July, 2022 there is a link/button in the top navigation of a device called "Edit MDM Server" — clicking this brings up a dialog to either assign or un-assign the device. When assigning a drop-menu appears of the setup MDM servers. We'll want to select our newly created server "mdmserver1" then click the "Continue" button. The device should then be assigned to your MDM server and available for a DEP profile to be assigned to it.
 
 ### Define a DEP Profile and assign a device
 
 DEP works by associating devices (serial numbers) with DEP profiles. A DEP profile is a set of properties associated to a UUID and, importantly, specifies the URL location of our MDM server our device enrolls into. We can define a DEP profile with its properties *and* associate serial numbers in one step.
 
 First adjust the [example DEP profile](../docs/dep-profile.example.json) or make a copy of it. Critically you'll need to point the profile at your MDM using the `url` or `configuration_web_url` properties. See the [Apple docs](https://developer.apple.com/documentation/devicemanagement/profile) for the various configuration options. For the below example I adjust a few parameters, made sure my MDM URL is correct, and added the serial `07AAD449616F566C12` to the `devices` array in the profile (note only serial number adjustment shown here, you *will* need to adjust other parameters of the profile):
+
+#### Note on serving the enrollment profile
+
+> [!TIP]
+> The MDM profile served from the `url` field (or the newer `configuration_web_url`) must be served from a web server setup by you. NanoDEP does not have a facility to host it, nor do some open source MDM servers (such as NanoMDM).
+
+Note the `dep` URL requires a `POST` HTTP request, and the `configuration_web_url` uses `GET`. These URLs must serve a normal Apple MDM Enrollment Configuration Profile (XML plist). The profile should be served with a MIME type of `application/x-apple-aspen-config`. See Apple's docs regarding [Authenticating through web views](https://developer.apple.com/documentation/devicemanagement/authenticating-through-web-views) for more details.
 
 ```diff
 --- a/docs/dep-profile.example.json
@@ -125,7 +132,7 @@ $ ./tools/dep-define-profile.sh ./docs/dep-profile.example.json
 }
 ```
 
-Here the API has responded telling us the profile UUID `43277A13FBCA0CFC` has been defined and that it had success in assigning the serial number `07AAD449616F566C12` this DEP profile.
+Here the API has responded telling us the profile UUID `43277A13FBCA0CFC` has been defined and that it had success in assigning the serial number `07AAD449616F566C12` to this DEP profile.
 
 ### Verify device ADE
 
