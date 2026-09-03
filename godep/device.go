@@ -34,8 +34,8 @@ func WithLimit(limit int) DeviceRequestOption {
 // You should provide a cursor that is returned from previous FetchDevices
 // call responses on any subsequent calls.
 // See https://developer.apple.com/documentation/devicemanagement/get_a_list_of_devices
-func (c *Client) FetchDevices(ctx context.Context, name string, opts ...DeviceRequestOption) (*FetchDeviceResponseJson, error) {
-	req := new(FetchDeviceRequestJson)
+func (c *Client) FetchDevices(ctx context.Context, name string, opts ...DeviceRequestOption) (*FetchDeviceResponse, error) {
+	req := new(FetchDeviceRequest)
 	cfg := new(syncCfg)
 	for _, opt := range opts {
 		opt(cfg)
@@ -46,7 +46,7 @@ func (c *Client) FetchDevices(ctx context.Context, name string, opts ...DeviceRe
 	if cfg.cursor != "" {
 		req.Cursor = &cfg.cursor
 	}
-	resp := new(FetchDeviceResponseJson)
+	resp := new(FetchDeviceResponse)
 	return resp, c.Do(ctx, name, http.MethodPost, "/server/devices", req, resp)
 }
 
@@ -57,8 +57,8 @@ func (c *Client) FetchDevices(ctx context.Context, name string, opts ...DeviceRe
 // You should provide a cursor that is returned from previous FetchDevices or
 // SyncDevices call responses.
 // See https://developer.apple.com/documentation/devicemanagement/sync_the_list_of_devices
-func (c *Client) SyncDevices(ctx context.Context, name string, opts ...DeviceRequestOption) (*FetchDeviceResponseJson, error) {
-	req := new(SyncDeviceRequestJson)
+func (c *Client) SyncDevices(ctx context.Context, name string, opts ...DeviceRequestOption) (*FetchDeviceResponse, error) {
+	req := new(SyncDeviceRequest)
 	cfg := new(syncCfg)
 	for _, opt := range opts {
 		opt(cfg)
@@ -69,7 +69,7 @@ func (c *Client) SyncDevices(ctx context.Context, name string, opts ...DeviceReq
 	if cfg.cursor != "" {
 		req.Cursor = cfg.cursor
 	}
-	resp := new(FetchDeviceResponseJson)
+	resp := new(FetchDeviceResponse)
 	return resp, c.Do(ctx, name, http.MethodPost, "/devices/sync", req, resp)
 }
 
@@ -92,9 +92,9 @@ func IsCursorExpired(err error) bool {
 // DeviceDetails uses the Apple "Get Device Details" API endpoint to get the
 // details on a set of devices.
 // See https://developer.apple.com/documentation/devicemanagement/get_device_details
-func (c *Client) DeviceDetails(ctx context.Context, name string, serials ...string) (*DeviceListResponseJson, error) {
-	req := &DeviceListRequestJson{Devices: serials}
-	resp := new(DeviceListResponseJson)
+func (c *Client) DeviceDetails(ctx context.Context, name string, serials ...string) (*DeviceListResponse, error) {
+	req := &DeviceListRequest{Devices: serials}
+	resp := new(DeviceListResponse)
 	return resp, c.Do(ctx, name, http.MethodPost, "/devices", req, resp)
 }
 
@@ -103,9 +103,9 @@ func (c *Client) DeviceDetails(ctx context.Context, name string, serials ...stri
 // WARNING: This will permanantly remove devices from the ABM/ASM/ABE instance.
 // Use with caution.
 // See https://developer.apple.com/documentation/devicemanagement/disown_devices
-func (c *Client) DisownDevices(ctx context.Context, name string, serials ...string) (*DeviceStatusResponseJson, error) {
-	req := &DeviceListRequestJson{Devices: serials}
-	resp := new(DeviceStatusResponseJson)
+func (c *Client) DisownDevices(ctx context.Context, name string, serials ...string) (*DeviceStatusResponse, error) {
+	req := &DeviceListRequest{Devices: serials}
+	resp := new(DeviceStatusResponse)
 	return resp, c.Do(ctx, name, http.MethodPost, "/devices/disown", req, resp)
 }
 
@@ -113,8 +113,8 @@ func (c *Client) DisownDevices(ctx context.Context, name string, serials ...stri
 // Enable activation lock on a remote device.
 // The escrowKey and lostMessage can be empty, per Apple documentation.
 // See https://developer.apple.com/documentation/devicemanagement/activation-lock-devices
-func (c *Client) ActivationLock(ctx context.Context, name string, device, escrowKey, lostMessage string) (*ActivationLockStatusResponseJson, error) {
-	req := &ActivationLockRequestJson{
+func (c *Client) ActivationLock(ctx context.Context, name string, device, escrowKey, lostMessage string) (*ActivationLockStatusResponse, error) {
+	req := &ActivationLockRequest{
 		Device: device,
 	}
 	if escrowKey != "" {
@@ -123,6 +123,6 @@ func (c *Client) ActivationLock(ctx context.Context, name string, device, escrow
 	if lostMessage != "" {
 		req.LostMessage = &lostMessage
 	}
-	resp := new(ActivationLockStatusResponseJson)
+	resp := new(ActivationLockStatusResponse)
 	return resp, c.Do(ctx, name, http.MethodPost, "/device/activationlock", req, resp)
 }

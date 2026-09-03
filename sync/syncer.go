@@ -24,7 +24,7 @@ type CursorStorage interface {
 }
 
 // DeviceResponseCallback is called every time a fetch or sync operation completes.
-type DeviceResponseCallback func(context.Context, bool, *godep.FetchDeviceResponseJson) error
+type DeviceResponseCallback func(context.Context, bool, *godep.FetchDeviceResponse) error
 
 // Syncer performs the fetch and sync cursor operations to sync devices from
 // the Apple DEP service. Depending on the options supplied it can perform the
@@ -130,7 +130,7 @@ var phaseLabel = map[bool]string{
 // (i.e. is in "run once" mode).
 func (s *Syncer) Run(ctx context.Context) error {
 	doFetch := true
-	var resp *godep.FetchDeviceResponseJson
+	var resp *godep.FetchDeviceResponse
 	cursor, err := s.store.RetrieveCursor(ctx, s.name)
 	if err != nil {
 		return err
@@ -250,7 +250,7 @@ func (s *Syncer) Run(ctx context.Context) error {
 
 // logCountsForOpTypes tries to aggregate the various device "op_type"
 // attributes so they can be logged.
-func logCountsForOpTypes(isFetch bool, devices []godep.DeviceJson) []interface{} {
+func logCountsForOpTypes(isFetch bool, devices []godep.Device) []interface{} {
 	opTypes := map[string]int{"added": 0, "modified": 0, "deleted": 0, "other": 0}
 	var opType string
 	for _, device := range devices {
@@ -276,12 +276,12 @@ func logCountsForOpTypes(isFetch bool, devices []godep.DeviceJson) []interface{}
 	return logs
 }
 
-func logDevice(device godep.DeviceJson) []interface{} {
+func logDevice(device godep.Device) []interface{} {
 	logs := []interface{}{
 		"serial_number", device.SerialNumber,
 		"device_assigned_by", deref(device.DeviceAssignedBy),
 		"op_type", deref(device.OpType),
-		"profile_uuid", deref(device.ProfileUuid),
+		"profile_uuid", deref(device.ProfileUUID),
 		"profile_status", deref(device.ProfileStatus),
 	}
 	if device.OpDate != nil && !device.OpDate.IsZero() {
