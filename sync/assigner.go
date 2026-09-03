@@ -20,11 +20,12 @@ type AssignerProfileRetriever interface {
 
 // Assigner assigns devices synced from the Apple DEP APIs to a profile UUID.
 type Assigner struct {
-	client *godep.Client
-	name   string
-	store  AssignerProfileRetriever
-	logger log.Logger
-	debug  bool
+	client   *godep.Client
+	name     string
+	store    AssignerProfileRetriever
+	logger   log.Logger
+	debug    bool
+	deadline bool
 }
 
 type AssignerOption func(*Assigner)
@@ -61,6 +62,16 @@ func WithAssignerDebug() AssignerOption {
 	}
 }
 
+// WithAssignerDeadline enables assigning the profile UUID to devices
+// undergoing ADE deadline migration. These devices report an op_type of
+// "modified" with a profile_status of "removed" instead of the usual
+// "added" op_type.
+func WithAssignerDeadline() AssignerOption {
+	return func(a *Assigner) {
+		a.deadline = true
+	}
+}
+
 // ProcessDeviceResponse processes the device response from the device sync
 // DEP API endpoints and assigns the profile UUID associated with the DEP
 // client DEP name.
@@ -93,7 +104,7 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchD
 			logger.Debug(logs...)
 		}
 		// note that we may see multiple serial number "events"
-		if shouldAssignDevice(device) {
+		if shouldAssignDevice(device, a.deadline) {
 			serialsToAssign = append(serialsToAssign, device.SerialNumber)
 		}
 	}
@@ -132,11 +143,18 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchD
 
 // shouldAssignDevice decides whether a device "event" should be passed
 // off to the assigner.
-func shouldAssignDevice(device godep.DeviceJson) bool {
+func shouldAssignDevice(device godep.DeviceJson, deadline bool) bool {
 	// we currently only listen for an op_type of "added." the other
 	// op_types are ambiguous and it would be needless to assign the
 	// profile UUID every single time we get an update.
 	if strings.ToLower(string(deref(device.OpType))) == "added" {
+		return true
+	}
+	// An exception to this is if a device is using ADE deadline migration.
+	// It's OpType will be "modified" with ProfileStatus being "removed".
+	if deadline &&
+		strings.ToLower(string(deref(device.OpType))) == "modified" &&
+		strings.ToLower(string(deref(device.ProfileStatus))) == "removed" {
 		return true
 	}
 	return false
