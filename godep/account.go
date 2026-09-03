@@ -8,8 +8,8 @@ import (
 // AccountDetail uses the Apple "Obtain the details for your account" API
 // endpoint to get the details about the DEP account and MDM server.
 // See https://developer.apple.com/documentation/devicemanagement/get_account_detail
-func (c *Client) AccountDetail(ctx context.Context, name string) (*AccountDetailJson, error) {
-	resp := new(AccountDetailJson)
+func (c *Client) AccountDetail(ctx context.Context, name string) (*AccountDetail, error) {
+	resp := new(AccountDetail)
 	return resp, c.Do(ctx, name, http.MethodGet, "/account", nil, resp)
 }
 
@@ -18,8 +18,8 @@ func (c *Client) AccountDetail(ctx context.Context, name string) (*AccountDetail
 // enrollment profile for service discovery.
 // See https://developer.apple.com/documentation/devicemanagement/assign-account-driven-enrollment-profile
 func (c *Client) AssignAccountDrivenEnrollmentProfile(ctx context.Context, name string, mdmServiceDiscoveryURL string) error {
-	req := &AccountDrivenEnrollmentProfileRequestJson{
-		MdmServiceDiscoveryUrl: mdmServiceDiscoveryURL,
+	req := &AccountDrivenEnrollmentProfileRequest{
+		MdmServiceDiscoveryURL: mdmServiceDiscoveryURL,
 	}
 	return c.Do(ctx, name, http.MethodPost, "/account-driven-enrollment/profile", req, nil)
 }

@@ -5,13 +5,13 @@ package godep
 import "time"
 
 // The response that contains the details for an account.
-type AccountDetailJson struct {
+type AccountDetail struct {
 	// The Apple Account of the person who generated the currently in-use tokens.
-	AdminId *string `json:"admin_id,omitempty"`
+	AdminID *string `json:"admin_id,omitempty"`
 
-	// The legacy equivalent to the admin_id key. This key is deprecated and may not
+	// The legacy equivalent to the `admin_id` key. This key is deprecated and may not
 	// be returned in future responses.
-	FacilitatorId *string `json:"facilitator_id,omitempty"`
+	FacilitatorID *string `json:"facilitator_id,omitempty"`
 
 	// The organization address.
 	OrgAddress *string `json:"org_address,omitempty"`
@@ -20,12 +20,13 @@ type AccountDetailJson struct {
 	OrgEmail *string `json:"org_email,omitempty"`
 
 	// The customer ID. This key is available only in protocol version 3 and later.
-	OrgId *string `json:"org_id,omitempty"`
+	OrgID *string `json:"org_id,omitempty"`
 
 	// The SHA hash of an organization identifier. This helps Mobile Device Management
-	// (MDM) server match the hash with the organizationIdHash key in the Client
-	// Configuration API. This key is available only in protocol version 3 and later.
-	OrgIdHash *string `json:"org_id_hash,omitempty"`
+	// (MDM) server match the hash with the `organizationIdHash` key in the [Client
+	// Configuration](https://developer.apple.com/documentation/devicemanagement/client-configuration)
+	// API. This key is available only in protocol version 3 and later.
+	OrgIDHash *string `json:"org_id_hash,omitempty"`
 
 	// The organization name.
 	OrgName *string `json:"org_name,omitempty"`
@@ -33,62 +34,62 @@ type AccountDetailJson struct {
 	// The organization phone.
 	OrgPhone *string `json:"org_phone,omitempty"`
 
-	// The type of organization. Possible values are edu or org. This key is available
-	// only in protocol version 3 and later.
-	OrgType *AccountDetailJsonOrgType `json:"org_type,omitempty"`
+	// The type of organization. Possible values are `edu` or `org`. This key is
+	// available only in protocol version 3 and later.
+	OrgType *AccountDetailOrgType `json:"org_type,omitempty"`
 
-	// Possible values: v1 or v2. v1 is for Apple Deployment Programs (like Device
-	// Enrollment Program or Volume Purchase Program) organizations and v2 is for
-	// Apple School Manager (ASM) organizations. Currently v2 is applicable only to
+	// Possible values: `v1` or `v2`. `v1` is for Apple Deployment Programs (like
+	// Automated Device Enrollment or Volume Purchase Program) organizations and `v2`
+	// is for Apple School Manager organizations. Currently `v2` is applicable only to
 	// educational organizations. This key is available only in protocol version 3 and
 	// later.
-	OrgVersion *AccountDetailJsonOrgVersion `json:"org_version,omitempty"`
+	OrgVersion *AccountDetailOrgVersion `json:"org_version,omitempty"`
 
 	// The name of the MDM server.
 	ServerName *string `json:"server_name,omitempty"`
 
 	// The system-generated server identifier.
-	ServerUuid *string `json:"server_uuid,omitempty"`
+	ServerUUID *string `json:"server_uuid,omitempty"`
 
 	// The list of URLs available in the MDM service. This key is valid in
 	// X-Server-Protocol-Version 3 and later.
-	Urls []UrlJson `json:"urls,omitempty"`
+	URLs []URL `json:"urls,omitempty"`
 }
 
-type AccountDetailJsonOrgType string
+type AccountDetailOrgType string
 
-const AccountDetailJsonOrgTypeEdu AccountDetailJsonOrgType = "edu"
-const AccountDetailJsonOrgTypeOrg AccountDetailJsonOrgType = "org"
-const AccountDetailJsonOrgTypeTvprovider AccountDetailJsonOrgType = "tvprovider"
+const AccountDetailOrgTypeEdu AccountDetailOrgType = "edu"
+const AccountDetailOrgTypeOrg AccountDetailOrgType = "org"
+const AccountDetailOrgTypeTvprovider AccountDetailOrgType = "tvprovider"
 
-type AccountDetailJsonOrgVersion string
+type AccountDetailOrgVersion string
 
-const AccountDetailJsonOrgVersionV1 AccountDetailJsonOrgVersion = "v1"
-const AccountDetailJsonOrgVersionV2 AccountDetailJsonOrgVersion = "v2"
+const AccountDetailOrgVersionV1 AccountDetailOrgVersion = "v1"
+const AccountDetailOrgVersionV2 AccountDetailOrgVersion = "v2"
 
 // The details for an account-driven enrollment profile.
-type AccountDrivenEnrollmentProfileRequestJson struct {
+type AccountDrivenEnrollmentProfileRequest struct {
 	// The MDM Service Discovery URL that the system redirects the user to during
 	// account-driven enrollment.
-	MdmServiceDiscoveryUrl string `json:"mdm_service_discovery_url"`
+	MdmServiceDiscoveryURL string `json:"mdm_service_discovery_url"`
 }
 
 // Request enabling activation lock for a device.
-type ActivationLockRequestJson struct {
+type ActivationLockRequest struct {
 	// Serial number of the device (required).
 	Device string `json:"device"`
 
 	// Escrow key (optional). If the escrow key is not provided, the device will be
 	// locked to the person who created the MDM server in the portal. For information
-	// about creating an escrow key see [Creating and Using Bypass
-	// Codes](https://developer.apple.com/documentation/devicemanagement/creating-and-using-bypass-codes).
+	// about creating an escrow key see [Creating and using bypass
+	// codes](https://developer.apple.com/documentation/devicemanagement/creating-and-using-bypass-codes).
 	EscrowKey *string `json:"escrow_key,omitempty"`
 
 	// Lost message to be displayed on the device (optional).
 	LostMessage *string `json:"lost_message,omitempty"`
 }
 
-type ActivationLockStatusResponseJson struct {
+type ActivationLockStatusResponse struct {
 	// SUCCESS or one of the failure responses listed below.
 	ResponseStatus string `json:"response_status"`
 
@@ -96,62 +97,72 @@ type ActivationLockStatusResponseJson struct {
 	SerialNumber string `json:"serial_number"`
 }
 
-type AssignProfileResponseJson struct {
+type AssignProfileResponse struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]AssignProfileResponseJsonDevicesValue `json:"devices,omitempty"`
+	Devices AssignProfileResponseDevices `json:"devices,omitempty"`
 
-	// ProfileUuid corresponds to the JSON schema field "profile_uuid".
-	ProfileUuid *string `json:"profile_uuid,omitempty"`
+	// ProfileUUID corresponds to the JSON schema field "profile_uuid".
+	ProfileUUID *string `json:"profile_uuid,omitempty"`
 
 	// RetryAfterSeconds corresponds to the JSON schema field "retry_after_seconds".
 	RetryAfterSeconds *int `json:"retry_after_seconds,omitempty"`
 }
 
-type AssignProfileResponseJsonDevicesValue string
+type AssignProfileResponseDevices map[string]AssignProfileResponseDevicesValue
 
-const AssignProfileResponseJsonDevicesValueFAILED AssignProfileResponseJsonDevicesValue = "FAILED"
-const AssignProfileResponseJsonDevicesValueNOTACCESSIBLE AssignProfileResponseJsonDevicesValue = "NOT_ACCESSIBLE"
-const AssignProfileResponseJsonDevicesValueSUCCESS AssignProfileResponseJsonDevicesValue = "SUCCESS"
-const AssignProfileResponseJsonDevicesValueTHROTTLED AssignProfileResponseJsonDevicesValue = "THROTTLED"
+type AssignProfileResponseDevicesValue string
+
+const AssignProfileResponseDevicesValueFAILED AssignProfileResponseDevicesValue = "FAILED"
+const AssignProfileResponseDevicesValueNOTACCESSIBLE AssignProfileResponseDevicesValue = "NOT_ACCESSIBLE"
+const AssignProfileResponseDevicesValueSUCCESS AssignProfileResponseDevicesValue = "SUCCESS"
+const AssignProfileResponseDevicesValueTHROTTLED AssignProfileResponseDevicesValue = "THROTTLED"
 
 // The request used to remove a profile from devices.
-type ClearProfileRequestJson struct {
+type ClearProfileRequest struct {
 	// An array of strings containing device serial numbers.
 	Devices []string `json:"devices,omitempty"`
 
 	// The unique identifier for a profile.
-	ProfileUuid *string `json:"profile_uuid,omitempty"`
+	ProfileUUID *string `json:"profile_uuid,omitempty"`
 }
 
-type ClearProfileResponseJson struct {
+type ClearProfileResponse struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]ClearProfileResponseJsonDevicesValue `json:"devices,omitempty"`
+	Devices ClearProfileResponseDevices `json:"devices,omitempty"`
 }
 
-type ClearProfileResponseJsonDevicesValue string
+type ClearProfileResponseDevices map[string]ClearProfileResponseDevicesValue
 
-const ClearProfileResponseJsonDevicesValueFAILED ClearProfileResponseJsonDevicesValue = "FAILED"
-const ClearProfileResponseJsonDevicesValueNOTACCESSIBLE ClearProfileResponseJsonDevicesValue = "NOT_ACCESSIBLE"
-const ClearProfileResponseJsonDevicesValueSUCCESS ClearProfileResponseJsonDevicesValue = "SUCCESS"
+type ClearProfileResponseDevicesValue string
 
-type DefineProfileResponseJson struct {
+const ClearProfileResponseDevicesValueFAILED ClearProfileResponseDevicesValue = "FAILED"
+const ClearProfileResponseDevicesValueNOTACCESSIBLE ClearProfileResponseDevicesValue = "NOT_ACCESSIBLE"
+const ClearProfileResponseDevicesValueSUCCESS ClearProfileResponseDevicesValue = "SUCCESS"
+
+type DefineProfileResponse struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]DefineProfileResponseJsonDevicesValue `json:"devices,omitempty"`
+	Devices DefineProfileResponseDevices `json:"devices,omitempty"`
 
-	// ProfileUuid corresponds to the JSON schema field "profile_uuid".
-	ProfileUuid *string `json:"profile_uuid,omitempty"`
+	// ProfileUUID corresponds to the JSON schema field "profile_uuid".
+	ProfileUUID *string `json:"profile_uuid,omitempty"`
 }
 
-type DefineProfileResponseJsonDevicesValue string
+type DefineProfileResponseDevices map[string]DefineProfileResponseDevicesValue
 
-const DefineProfileResponseJsonDevicesValueFAILED DefineProfileResponseJsonDevicesValue = "FAILED"
-const DefineProfileResponseJsonDevicesValueNOTACCESSIBLE DefineProfileResponseJsonDevicesValue = "NOT_ACCESSIBLE"
-const DefineProfileResponseJsonDevicesValueSUCCESS DefineProfileResponseJsonDevicesValue = "SUCCESS"
+type DefineProfileResponseDevicesValue string
+
+const DefineProfileResponseDevicesValueFAILED DefineProfileResponseDevicesValue = "FAILED"
+const DefineProfileResponseDevicesValueNOTACCESSIBLE DefineProfileResponseDevicesValue = "NOT_ACCESSIBLE"
+const DefineProfileResponseDevicesValueSUCCESS DefineProfileResponseDevicesValue = "SUCCESS"
 
 // A device’s properties and their values.
-type DeviceJson struct {
+type Device struct {
 	// The device’s asset tag.
 	AssetTag *string `json:"asset_tag,omitempty"`
+
+	// The device’s Bluetooth MAC address. This key is valid in
+	// X-Server-Protocol-Version 10 and later.
+	BluetoothMACAddress *string `json:"bluetooth_mac_address,omitempty"`
 
 	// The color of the device.
 	Color *string `json:"color,omitempty"`
@@ -168,11 +179,36 @@ type DeviceJson struct {
 
 	// The device’s Apple product family: `iPad`, `iPhone`, `iPod`, `Mac`, `AppleTV`,
 	// or `Vision`. This key is valid in X-Server-Protocol-Version 2 and later.
-	DeviceFamily *DeviceJsonDeviceFamily `json:"device_family,omitempty"`
+	DeviceFamily *DeviceDeviceFamily `json:"device_family,omitempty"`
+
+	// The Embedded Identity Document (EID), sometimes known as the CSN, that uniquely
+	// identifies the eSIM chip built into the device. This key is valid in
+	// X-Server-Protocol-Version 10 and later.
+	EID *string `json:"eid,omitempty"`
+
+	// The device’s Ethernet MAC address. This key is valid in
+	// X-Server-Protocol-Version 10 and later.
+	EthernetMACAddress *string `json:"ethernet_mac_address,omitempty"`
+
+	// An array of strings containing the International Mobile Equipment Identity
+	// (IMEI) numbers that identify the device. This key is valid in
+	// X-Server-Protocol-Version 10 and later.
+	IMEI []string `json:"imei,omitempty"`
+
+	// If `true`, the device is a replacement for another device. Use [Get Replacement
+	// Details](https://developer.apple.com/documentation/devicemanagement/get-replacement-details)
+	// to retrieve information about the device it replaced. This key is valid in
+	// X-Server-Protocol-Version 10 and later.
+	IsReplacementDevice *bool `json:"is_replacement_device,omitempty"`
 
 	// A time stamp in ISO 8601 format that indicates the MDM migration deadline. This
 	// key is valid with X-Server-Protocol-Version 8 and later.
 	MdmMigrationDeadline *time.Time `json:"mdm_migration_deadline,omitempty"`
+
+	// An array of strings containing the Mobile Equipment Identifier (MEID) numbers
+	// that identify CDMA-based mobile devices. This key is valid in
+	// X-Server-Protocol-Version 10 and later.
+	MEID []string `json:"meid,omitempty"`
 
 	// The model name.
 	Model string `json:"model"`
@@ -187,15 +223,15 @@ type DeviceJson struct {
 
 	// Indicates whether the device was added (assigned to the MDM server), modified,
 	// or deleted. Contains one of the following strings: `added`, `modified`, or
-	// `deleted`.This field is only applicable with the `sync the list of devices`
+	// `deleted`. This field is only applicable with the `sync the list of devices`
 	// command.
-	OpType *DeviceJsonOpType `json:"op_type,omitempty"`
+	OpType *DeviceOpType `json:"op_type,omitempty"`
 
 	// The device’s operating system: `iOS`, `iPadOS`, `OSX`, `tvOS`, or `visionOS`.
 	// This key is valid in X-Server-Protocol-Version 2 and later.
 	// With X-Server-Protocol-Version 7 and later, iPad product os will return
 	// `iPadOS`.
-	Os *DeviceJsonOs `json:"os,omitempty"`
+	OS *DeviceOS `json:"os,omitempty"`
 
 	// A time stamp in ISO 8601 format that indicates when a profile was assigned to
 	// the device.
@@ -207,71 +243,87 @@ type DeviceJson struct {
 
 	// The status of profile installation—either `empty`, `assigned`, `pushed`, or
 	// `removed`.
-	ProfileStatus *DeviceJsonProfileStatus `json:"profile_status,omitempty"`
+	ProfileStatus *DeviceProfileStatus `json:"profile_status,omitempty"`
 
 	// The unique ID of the assigned profile.
-	ProfileUuid *string `json:"profile_uuid,omitempty"`
+	ProfileUUID *string `json:"profile_uuid,omitempty"`
+
+	// If `true`, the device was released from the MDM server because it was replaced
+	// by another device. This key is only present with [Sync the List of
+	// Devices](https://developer.apple.com/documentation/devicemanagement/sync-devices)
+	// when `op_type` is `deleted`. This key is valid in X-Server-Protocol-Version 10
+	// and later.
+	ReleasedByReplacement *bool `json:"released_by_replacement,omitempty"`
 
 	// ResponseStatus corresponds to the JSON schema field "response_status".
 	ResponseStatus *string `json:"response_status,omitempty"`
 
 	// The device’s serial number.
 	SerialNumber string `json:"serial_number"`
+
+	// The device’s Wi-Fi MAC address. This key is valid in X-Server-Protocol-Version
+	// 10 and later.
+	WiFiMACAddress *string `json:"wifi_mac_address,omitempty"`
 }
 
-type DeviceJsonDeviceFamily string
+type DeviceDeviceFamily string
 
-const DeviceJsonDeviceFamilyAppleTV DeviceJsonDeviceFamily = "AppleTV"
-const DeviceJsonDeviceFamilyIPad DeviceJsonDeviceFamily = "iPad"
-const DeviceJsonDeviceFamilyIPhone DeviceJsonDeviceFamily = "iPhone"
-const DeviceJsonDeviceFamilyIPod DeviceJsonDeviceFamily = "iPod"
-const DeviceJsonDeviceFamilyMac DeviceJsonDeviceFamily = "Mac"
-const DeviceJsonDeviceFamilyVision DeviceJsonDeviceFamily = "Vision"
+const DeviceDeviceFamilyAppleTV DeviceDeviceFamily = "AppleTV"
+const DeviceDeviceFamilyIPad DeviceDeviceFamily = "iPad"
+const DeviceDeviceFamilyIPhone DeviceDeviceFamily = "iPhone"
+const DeviceDeviceFamilyIPod DeviceDeviceFamily = "iPod"
+const DeviceDeviceFamilyMAC DeviceDeviceFamily = "Mac"
+const DeviceDeviceFamilyVision DeviceDeviceFamily = "Vision"
 
-type DeviceJsonOpType string
-
-const DeviceJsonOpTypeAdded DeviceJsonOpType = "added"
-const DeviceJsonOpTypeDeleted DeviceJsonOpType = "deleted"
-const DeviceJsonOpTypeModified DeviceJsonOpType = "modified"
-
-type DeviceJsonOs string
-
-const DeviceJsonOsIOS DeviceJsonOs = "iOS"
-const DeviceJsonOsIPadOS DeviceJsonOs = "iPadOS"
-const DeviceJsonOsOSX DeviceJsonOs = "OSX"
-const DeviceJsonOsTvOS DeviceJsonOs = "tvOS"
-const DeviceJsonOsVisionOS DeviceJsonOs = "visionOS"
-
-type DeviceJsonProfileStatus string
-
-const DeviceJsonProfileStatusAssigned DeviceJsonProfileStatus = "assigned"
-const DeviceJsonProfileStatusEmpty DeviceJsonProfileStatus = "empty"
-const DeviceJsonProfileStatusPushed DeviceJsonProfileStatus = "pushed"
-const DeviceJsonProfileStatusRemoved DeviceJsonProfileStatus = "removed"
-
-type DeviceListRequestJson struct {
-	// Devices corresponds to the JSON schema field "devices".
+// The request for a list of devices.
+type DeviceListRequest struct {
+	// An array of strings containing device serial numbers.
 	Devices []string `json:"devices,omitempty"`
 }
 
-type DeviceListResponseJson struct {
+type DeviceListResponse struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]DeviceJson `json:"devices,omitempty"`
+	Devices DeviceListResponseDevices `json:"devices,omitempty"`
 }
 
-type DeviceStatusResponseJson struct {
+type DeviceListResponseDevices map[string]Device
+
+type DeviceOS string
+
+const DeviceOSIOS DeviceOS = "iOS"
+const DeviceOSIPadOS DeviceOS = "iPadOS"
+const DeviceOSOSX DeviceOS = "OSX"
+const DeviceOSTvOS DeviceOS = "tvOS"
+const DeviceOSVisionOS DeviceOS = "visionOS"
+
+type DeviceOpType string
+
+const DeviceOpTypeAdded DeviceOpType = "added"
+const DeviceOpTypeDeleted DeviceOpType = "deleted"
+const DeviceOpTypeModified DeviceOpType = "modified"
+
+type DeviceProfileStatus string
+
+const DeviceProfileStatusAssigned DeviceProfileStatus = "assigned"
+const DeviceProfileStatusEmpty DeviceProfileStatus = "empty"
+const DeviceProfileStatusPushed DeviceProfileStatus = "pushed"
+const DeviceProfileStatusRemoved DeviceProfileStatus = "removed"
+
+type DeviceStatusResponse struct {
 	// Devices corresponds to the JSON schema field "devices".
-	Devices map[string]DeviceStatusResponseJsonDevicesValue `json:"devices,omitempty"`
+	Devices DeviceStatusResponseDevices `json:"devices,omitempty"`
 }
 
-type DeviceStatusResponseJsonDevicesValue string
+type DeviceStatusResponseDevices map[string]DeviceStatusResponseDevicesValue
 
-const DeviceStatusResponseJsonDevicesValueFAILED DeviceStatusResponseJsonDevicesValue = "FAILED"
-const DeviceStatusResponseJsonDevicesValueNOTACCESSIBLE DeviceStatusResponseJsonDevicesValue = "NOT_ACCESSIBLE"
-const DeviceStatusResponseJsonDevicesValueSUCCESS DeviceStatusResponseJsonDevicesValue = "SUCCESS"
+type DeviceStatusResponseDevicesValue string
+
+const DeviceStatusResponseDevicesValueFAILED DeviceStatusResponseDevicesValue = "FAILED"
+const DeviceStatusResponseDevicesValueNOTACCESSIBLE DeviceStatusResponseDevicesValue = "NOT_ACCESSIBLE"
+const DeviceStatusResponseDevicesValueSUCCESS DeviceStatusResponseDevicesValue = "SUCCESS"
 
 // The request for a list of devices.
-type FetchDeviceRequestJson struct {
+type FetchDeviceRequest struct {
 	// A hex string that represents the starting position for a request. Use this to
 	// retrieve the list of devices that have been added or removed since a previous
 	// request. The string can be up to 1000 characters. On the initial request, this
@@ -283,7 +335,7 @@ type FetchDeviceRequestJson struct {
 }
 
 // The response that contains a list of devices.
-type FetchDeviceResponseJson struct {
+type FetchDeviceResponse struct {
 	// Indicates when this request was processed by the server. The MDM server can use
 	// this value in future requests if it wants to retrieve only records added or
 	// removed since this request.
@@ -292,7 +344,7 @@ type FetchDeviceResponseJson struct {
 	// An array of dictionaries that provide information about devices. The devices
 	// are sorted in chronological order by the time stamp of the operation performed
 	// on the device.
-	Devices []DeviceJson `json:"devices,omitempty"`
+	Devices []Device `json:"devices,omitempty"`
 
 	// A date stamp that indicates the progress of the device fetch request, in ISO
 	// 8601 format.
@@ -305,17 +357,31 @@ type FetchDeviceResponseJson struct {
 	MoreToFollow bool `json:"more_to_follow"`
 }
 
+// Information about a replacement device, including the original device it
+// replaces and the date the replacement occurred.
+type GetReplacementDetailsResponse struct {
+	// The serial number of the original device that this device replaces.
+	OriginalDeviceSerialNumber string `json:"original_device_serial_number"`
+
+	// The date when the device replacement occurred, in ISO 8601 format with day
+	// granularity in UTC (for example, `2025-01-15`).
+	ReplacementDate string `json:"replacement_date"`
+
+	// The serial number of the replacement device.
+	SerialNumber string `json:"serial_number"`
+}
+
 // Provides a list of beta enrollment tokens available for the given organization.
-type GetSeedBuildTokenResponseJson struct {
+type GetSeedBuildTokenResponse struct {
 	// The list of beta enrollment tokens available for the given organization.
-	BetaEnrollmentTokens []SeedBuildTokenJson `json:"betaEnrollmentTokens,omitempty"`
+	BetaEnrollmentTokens []SeedBuildToken `json:"betaEnrollmentTokens,omitempty"`
 
 	// SeedBuildTokens corresponds to the JSON schema field "seedBuildTokens".
-	SeedBuildTokens []SeedBuildTokenJson `json:"seedBuildTokens,omitempty"`
+	SeedBuildTokens []SeedBuildToken `json:"seedBuildTokens,omitempty"`
 }
 
 // A ranged limit.
-type LimitJson struct {
+type Limit struct {
 	// Default value of limit.
 	Default *int `json:"default,omitempty"`
 
@@ -324,7 +390,7 @@ type LimitJson struct {
 }
 
 // A profile’s properties and their values.
-type ProfileJson struct {
+type Profile struct {
 	// Default is `true`. In iOS 13, this property was deprecated.
 	AllowPairing bool `json:"allow_pairing,omitempty"`
 
@@ -335,15 +401,17 @@ type ProfileJson struct {
 	// root certificates.
 	AnchorCerts []string `json:"anchor_certs,omitempty"`
 
-	// If set to true, the device will tell Setup Assistant to automatically advance
+	// If set to `true`, the device will tell Setup Assistant to automatically advance
 	// though its screens. Default is `false`.
+	//
 	// This key is valid in X-Server-Protocol-Version 2 and later.
+	//
 	// Available on tvOS and macOS 11 and later.
 	AutoAdvanceSetup *bool `json:"auto_advance_setup,omitempty"`
 
-	// If true, the device will not continue in Setup Assistant until the MDM server
+	// If `true`, the device will not continue in Setup Assistant until the MDM server
 	// sends a command that states the device is configured (see [Device
-	// Configured](https://developer.apple.com/documentation/devicemanagement/device-configured-command).
+	// Configured](https://developer.apple.com/documentation/devicemanagement/device-configured-command)).
 	// Default is `false`. Ignored on iOS devices if `is_supervised` is `false`. This
 	// key is valid in X-Server-Protocol-Version 2 and later.
 	AwaitDeviceConfigured *bool `json:"await_device_configured,omitempty"`
@@ -356,7 +424,7 @@ type ProfileJson struct {
 	// While the user is allowed to navigate to any site or host during
 	// authentication, the MDM enrollment profile must originate from the same host as
 	// specified in this field.
-	ConfigurationWebUrl *string `json:"configuration_web_url,omitempty"`
+	ConfigurationWebURL *string `json:"configuration_web_url,omitempty"`
 
 	// The user-defined department or location name.
 	Department *string `json:"department,omitempty"`
@@ -364,50 +432,62 @@ type ProfileJson struct {
 	// Array of strings that contains device serial numbers (may be empty).
 	Devices []string `json:"devices,omitempty"`
 
-	// If true, the device does not use the profile when it restores a backup. Default
-	// is `false`. Available in iOS 26 and later, and visionOS 26 and later; otherwise
-	// ignored by devices.
+	// If `true`, the device does not use the profile when it restores a backup,
+	// reading the current profile from the server instead. In addition with iOS 26.4
+	// and visionOS 26.4 and later, the device removes all configuration profiles when
+	// it restores a backup. This behavior will become nonelective in a future OS
+	// update. The default value is `false`. Available in iOS 26 and later, and
+	// visionOS 26 and later; otherwise ignored by devices.
 	DoNotUseProfileFromBackup *bool `json:"do_not_use_profile_from_backup,omitempty"`
 
-	// If true, the user may not skip applying the profile returned by the MDM server.
-	// Default is `false`.
-	// In iOS 13 and later, all DEP enrollments are mandatory.
+	// If `true`, the user may not skip applying the profile returned by the MDM
+	// server. Default is `false`.
+	//
+	// In iOS 13 and later, all ADE enrollments are mandatory.
 	IsMandatory *bool `json:"is_mandatory,omitempty"`
 
-	// If false, the MDM payload delivered by the configuration URL cannot be removed
-	// by the user via the user interface on the device; that is, the MDM payload is
-	// locked onto the device. This key can be set to false only if `is_supervised` is
-	// set to `true`. Defaults to `true`.
+	// If `false`, the MDM payload delivered by the configuration URL cannot be
+	// removed by the user via the user interface on the device; that is, the MDM
+	// payload is locked onto the device. This key can be set to `false` only if
+	// `is_supervised` is set to `true`. Defaults to `true`.
 	IsMdmRemovable bool `json:"is_mdm_removable"`
 
-	// If true, tells the device to configure for Shared iPad. Default is false. This
-	// key is valid only for Apple School Manager or Apple Business Manager
-	// organizations using X-Server-Protocol-Version 2 and later.
+	// If `true`, tells the device to configure for Shared iPad. Default is false.
+	// This key is valid only for Apple School Manager or Apple Business organizations
+	// using X-Server-Protocol-Version 2 and later.
+	//
 	// Devices that do not meet the Shared iPad minimum requirements do not honor this
 	// command. With iOS devices, `com.apple.mdm.per-user-connections` must be added
 	// to the MDM enrollment profile’s Server Capabilities.
 	IsMultiUser *bool `json:"is_multi_user,omitempty"`
 
-	// If true, the device is configured for Rapid Return to Service. Default is
+	// If `true`, the device is configured for Rapid Return to Service. Default is
 	// `false`. Available in iOS 26 and later, and visionOS 26 and later; otherwise
 	// ignored by devices.
 	IsReturnToService *bool `json:"is_return_to_service,omitempty"`
 
-	// If true, the device must be supervised. Defaults to `false`.
-	// In iOS 11, DEP devices that are not supervised have been deprecated.
-	// In iOS 13, all DEP devices will be supervised and the OS will ignore the
+	// If `true`, the device must be supervised. Defaults to `false`.
+	//
+	// In iOS 11, ADE devices that are not supervised have been deprecated.
+	//
+	// In iOS 13, all ADE devices will be supervised and the OS will ignore the
 	// `is_supervised` flag completely.
 	IsSupervised *bool `json:"is_supervised,omitempty"`
 
 	// A language designator is a code that represents a language.
+	//
 	// Use the two-letter ISO 639-1 standard (preferred) or the three-letter ISO 639-2
 	// standard. If an ISO 639-1 code is not available for a particular language, use
 	// the ISO 639-2 code instead.
+	//
 	// See [Language and Locale
 	// IDs](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPInternational/LanguageandLocaleIDs/LanguageandLocaleIDs.html)
 	// for more information.
+	//
 	// Example two-letter: `en`, `fr`, `ja`
+	//
 	// Example three-letter: `eng`, `fre`, `jpn`, `haw`
+	//
 	// Available on tvOS and macOS 11 and later.
 	Language *string `json:"language,omitempty"`
 
@@ -418,8 +498,8 @@ type ProfileJson struct {
 	// A human-readable name for the profile.
 	ProfileName *string `json:"profile_name,omitempty"`
 
-	// ProfileUuid corresponds to the JSON schema field "profile_uuid".
-	ProfileUuid *string `json:"profile_uuid,omitempty"`
+	// ProfileUUID corresponds to the JSON schema field "profile_uuid".
+	ProfileUUID *string `json:"profile_uuid,omitempty"`
 
 	// A region designator is a code that represents a country. Available on tvOS and
 	// macOS 11 and later.
@@ -445,23 +525,23 @@ type ProfileJson struct {
 	SupportPhoneNumber *string `json:"support_phone_number,omitempty"`
 
 	// String. The URL of the MDM server.
-	Url *string `json:"url,omitempty"`
+	URL *string `json:"url,omitempty"`
 }
 
 // The request for assigning a profile to a set of devices.
-type ProfileServiceRequestJson struct {
+type ProfileServiceRequest struct {
 	// Array of strings that contains device serial numbers.
 	Devices []string `json:"devices,omitempty"`
 
 	// The unique identifier for a profile.
-	ProfileUuid *string `json:"profile_uuid,omitempty"`
+	ProfileUUID *string `json:"profile_uuid,omitempty"`
 }
 
 // Describes a beta enrollment token available for the given organization.
-type SeedBuildTokenJson struct {
-	// The platform related to beta build. Possible values are: homePodOS, iOS, OSX,
-	// tvOS, visionOS, watchOS]
-	Os *SeedBuildTokenJsonOs `json:"os,omitempty"`
+type SeedBuildToken struct {
+	// The platform related to beta build. Possible values are: `homePodOS`, `iOS`,
+	// `OSX`, `tvOS`, `visionOS`, `watchOS`.
+	OS *SeedBuildTokenOS `json:"os,omitempty"`
 
 	// The public facing name, like “iOS 17 Public Beta”.
 	Title *string `json:"title,omitempty"`
@@ -470,17 +550,17 @@ type SeedBuildTokenJson struct {
 	Token *string `json:"token,omitempty"`
 }
 
-type SeedBuildTokenJsonOs string
+type SeedBuildTokenOS string
 
-const SeedBuildTokenJsonOsHomePodOS SeedBuildTokenJsonOs = "homePodOS"
-const SeedBuildTokenJsonOsIOS SeedBuildTokenJsonOs = "iOS"
-const SeedBuildTokenJsonOsOSX SeedBuildTokenJsonOs = "OSX"
-const SeedBuildTokenJsonOsTvOS SeedBuildTokenJsonOs = "tvOS"
-const SeedBuildTokenJsonOsVisionOS SeedBuildTokenJsonOs = "visionOS"
-const SeedBuildTokenJsonOsWatchOS SeedBuildTokenJsonOs = "watchOS"
+const SeedBuildTokenOSHomePodOS SeedBuildTokenOS = "homePodOS"
+const SeedBuildTokenOSIOS SeedBuildTokenOS = "iOS"
+const SeedBuildTokenOSOSX SeedBuildTokenOS = "OSX"
+const SeedBuildTokenOSTvOS SeedBuildTokenOS = "tvOS"
+const SeedBuildTokenOSVisionOS SeedBuildTokenOS = "visionOS"
+const SeedBuildTokenOSWatchOS SeedBuildTokenOS = "watchOS"
 
 // The request to sync the list of devices.
-type SyncDeviceRequestJson struct {
+type SyncDeviceRequest struct {
 	// A hex string that represents the starting position for a request. Use this to
 	// retrieve the list of devices that have been added or removed since a previous
 	// request. The string can be up to 1000 characters.
@@ -491,20 +571,20 @@ type SyncDeviceRequestJson struct {
 }
 
 // A URL object.
-type UrlJson struct {
-	// Possible values: GET, POST, PUT, DELETE
-	HttpMethod []UrlJsonHttpMethodElem `json:"http_method,omitempty"`
+type URL struct {
+	// Possible values: GET, POST, PUT, DELETE.
+	HTTPMethod []URLHTTPMethodElem `json:"http_method,omitempty"`
 
 	// The limit for the URL.
-	Limit *LimitJson `json:"limit,omitempty"`
+	Limit *Limit `json:"limit,omitempty"`
 
 	// URI for the API.
 	Uri *string `json:"uri,omitempty"`
 }
 
-type UrlJsonHttpMethodElem string
+type URLHTTPMethodElem string
 
-const UrlJsonHttpMethodElemDELETE UrlJsonHttpMethodElem = "DELETE"
-const UrlJsonHttpMethodElemGET UrlJsonHttpMethodElem = "GET"
-const UrlJsonHttpMethodElemPOST UrlJsonHttpMethodElem = "POST"
-const UrlJsonHttpMethodElemPUT UrlJsonHttpMethodElem = "PUT"
+const URLHTTPMethodElemDELETE URLHTTPMethodElem = "DELETE"
+const URLHTTPMethodElemGET URLHTTPMethodElem = "GET"
+const URLHTTPMethodElemPOST URLHTTPMethodElem = "POST"
+const URLHTTPMethodElemPUT URLHTTPMethodElem = "PUT"
