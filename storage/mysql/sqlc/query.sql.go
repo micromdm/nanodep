@@ -12,7 +12,14 @@ import (
 )
 
 const getAllDEPNames = `-- name: GetAllDEPNames :many
-SELECT name FROM dep_names WHERE tokenpki_staging_cert_pem IS NOT NULL LIMIT ? OFFSET ?
+SELECT
+    name
+FROM
+    dep_names
+WHERE
+    tokenpki_staging_cert_pem IS NOT NULL
+LIMIT
+    ? OFFSET ?
 `
 
 type GetAllDEPNamesParams struct {
@@ -45,12 +52,12 @@ func (q *Queries) GetAllDEPNames(ctx context.Context, arg GetAllDEPNamesParams) 
 
 const getAssignerProfile = `-- name: GetAssignerProfile :one
 SELECT
-  assigner_profile_uuid,
-  assigner_profile_uuid_at
+    assigner_profile_uuid,
+    assigner_profile_uuid_at
 FROM
-  dep_names
+    dep_names
 WHERE
-  name = ?
+    name = ?
 `
 
 type GetAssignerProfileRow struct {
@@ -67,15 +74,15 @@ func (q *Queries) GetAssignerProfile(ctx context.Context, name string) (GetAssig
 
 const getAuthTokens = `-- name: GetAuthTokens :one
 SELECT
-  consumer_key,
-  consumer_secret,
-  access_token,
-  access_secret,
-  access_token_expiry
+    consumer_key,
+    consumer_secret,
+    access_token,
+    access_secret,
+    access_token_expiry
 FROM
-  dep_names
+    dep_names
 WHERE
-  name = ?
+    name = ?
 `
 
 type GetAuthTokensRow struct {
@@ -100,7 +107,12 @@ func (q *Queries) GetAuthTokens(ctx context.Context, name string) (GetAuthTokens
 }
 
 const getConfigBaseURL = `-- name: GetConfigBaseURL :one
-SELECT config_base_url FROM dep_names WHERE name = ?
+SELECT
+    config_base_url
+FROM
+    dep_names
+WHERE
+    name = ?
 `
 
 func (q *Queries) GetConfigBaseURL(ctx context.Context, name string) (sql.NullString, error) {
@@ -112,12 +124,12 @@ func (q *Queries) GetConfigBaseURL(ctx context.Context, name string) (sql.NullSt
 
 const getCurrentKeypair = `-- name: GetCurrentKeypair :one
 SELECT
-  tokenpki_cert_pem,
-  tokenpki_key_pem
+    tokenpki_cert_pem,
+    tokenpki_key_pem
 FROM
-  dep_names
+    dep_names
 WHERE
-  name = ?
+    name = ?
 `
 
 type GetCurrentKeypairRow struct {
@@ -134,13 +146,14 @@ func (q *Queries) GetCurrentKeypair(ctx context.Context, name string) (GetCurren
 
 const getDEPNames = `-- name: GetDEPNames :many
 SELECT
-  name
+    name
 FROM
-  dep_names
+    dep_names
 WHERE
-  name IN (/*SLICE:dep_names*/?) AND
-  tokenpki_staging_cert_pem IS NOT NULL
-LIMIT ? OFFSET ?
+    name IN (/*SLICE:dep_names*/?)
+    AND tokenpki_staging_cert_pem IS NOT NULL
+LIMIT
+    ? OFFSET ?
 `
 
 type GetDEPNamesParams struct {
@@ -186,12 +199,12 @@ func (q *Queries) GetDEPNames(ctx context.Context, arg GetDEPNamesParams) ([]str
 
 const getStagingKeypair = `-- name: GetStagingKeypair :one
 SELECT
-  tokenpki_staging_cert_pem,
-  tokenpki_staging_key_pem
+    tokenpki_staging_cert_pem,
+    tokenpki_staging_key_pem
 FROM
-  dep_names
+    dep_names
 WHERE
-  name = ?
+    name = ?
 `
 
 type GetStagingKeypairRow struct {
@@ -207,7 +220,12 @@ func (q *Queries) GetStagingKeypair(ctx context.Context, name string) (GetStagin
 }
 
 const getSyncerCursor = `-- name: GetSyncerCursor :one
-SELECT syncer_cursor FROM dep_names WHERE name = ?
+SELECT
+    syncer_cursor
+FROM
+    dep_names
+WHERE
+    name = ?
 `
 
 func (q *Queries) GetSyncerCursor(ctx context.Context, name string) (sql.NullString, error) {
@@ -218,13 +236,17 @@ func (q *Queries) GetSyncerCursor(ctx context.Context, name string) (sql.NullStr
 }
 
 const storeAssignerProfile = `-- name: StoreAssignerProfile :exec
-INSERT INTO dep_names
-  (name, assigner_profile_uuid, assigner_profile_uuid_at)
+INSERT INTO
+    dep_names (
+        name,
+        assigner_profile_uuid,
+        assigner_profile_uuid_at
+    )
 VALUES
-  (?, ?, CURRENT_TIMESTAMP) AS new
-ON DUPLICATE KEY UPDATE
-  assigner_profile_uuid = new.assigner_profile_uuid,
-  assigner_profile_uuid_at = new.assigner_profile_uuid_at
+    (?, ?, CURRENT_TIMESTAMP) AS new ON DUPLICATE KEY
+UPDATE
+    assigner_profile_uuid = new.assigner_profile_uuid,
+    assigner_profile_uuid_at = new.assigner_profile_uuid_at
 `
 
 type StoreAssignerProfileParams struct {
@@ -238,16 +260,23 @@ func (q *Queries) StoreAssignerProfile(ctx context.Context, arg StoreAssignerPro
 }
 
 const storeAuthTokens = `-- name: StoreAuthTokens :exec
-INSERT INTO dep_names
-  (name, consumer_key, consumer_secret, access_token, access_secret, access_token_expiry)
+INSERT INTO
+    dep_names (
+        name,
+        consumer_key,
+        consumer_secret,
+        access_token,
+        access_secret,
+        access_token_expiry
+    )
 VALUES
-  (?, ?, ?, ?, ?, ?) AS new
-ON DUPLICATE KEY UPDATE
-  consumer_key = new.consumer_key,
-  consumer_secret = new.consumer_secret,
-  access_token = new.access_token,
-  access_secret = new.access_secret,
-  access_token_expiry = new.access_token_expiry
+    (?, ?, ?, ?, ?, ?) AS new ON DUPLICATE KEY
+UPDATE
+    consumer_key = new.consumer_key,
+    consumer_secret = new.consumer_secret,
+    access_token = new.access_token,
+    access_secret = new.access_secret,
+    access_token_expiry = new.access_token_expiry
 `
 
 type StoreAuthTokensParams struct {
@@ -272,12 +301,12 @@ func (q *Queries) StoreAuthTokens(ctx context.Context, arg StoreAuthTokensParams
 }
 
 const storeConfig = `-- name: StoreConfig :exec
-INSERT INTO dep_names
-  (name, config_base_url)
+INSERT INTO
+    dep_names (name, config_base_url)
 VALUES
-  (?, ?) AS new
-ON DUPLICATE KEY UPDATE
-  config_base_url = new.config_base_url
+    (?, ?) AS new ON DUPLICATE KEY
+UPDATE
+    config_base_url = new.config_base_url
 `
 
 type StoreConfigParams struct {
@@ -291,12 +320,12 @@ func (q *Queries) StoreConfig(ctx context.Context, arg StoreConfigParams) error 
 }
 
 const storeCursor = `-- name: StoreCursor :exec
-INSERT INTO dep_names
-  (name, syncer_cursor)
+INSERT INTO
+    dep_names (name, syncer_cursor)
 VALUES
-  (?, ?) AS new
-ON DUPLICATE KEY UPDATE
-  syncer_cursor = new.syncer_cursor
+    (?, ?) AS new ON DUPLICATE KEY
+UPDATE
+    syncer_cursor = new.syncer_cursor
 `
 
 type StoreCursorParams struct {
@@ -310,13 +339,17 @@ func (q *Queries) StoreCursor(ctx context.Context, arg StoreCursorParams) error 
 }
 
 const storeTokenPKI = `-- name: StoreTokenPKI :exec
-INSERT INTO dep_names
-  (name, tokenpki_staging_cert_pem, tokenpki_staging_key_pem)
+INSERT INTO
+    dep_names (
+        name,
+        tokenpki_staging_cert_pem,
+        tokenpki_staging_key_pem
+    )
 VALUES
-  (?, ?, ?) AS new
-ON DUPLICATE KEY UPDATE
-  tokenpki_staging_cert_pem = new.tokenpki_staging_cert_pem,
-  tokenpki_staging_key_pem = new.tokenpki_staging_key_pem
+    (?, ?, ?) AS new ON DUPLICATE KEY
+UPDATE
+    tokenpki_staging_cert_pem = new.tokenpki_staging_cert_pem,
+    tokenpki_staging_key_pem = new.tokenpki_staging_key_pem
 `
 
 type StoreTokenPKIParams struct {
@@ -332,12 +365,12 @@ func (q *Queries) StoreTokenPKI(ctx context.Context, arg StoreTokenPKIParams) er
 
 const upstageKeypair = `-- name: UpstageKeypair :exec
 UPDATE
-  dep_names
+    dep_names
 SET
-  tokenpki_cert_pem = tokenpki_staging_cert_pem,
-  tokenpki_key_pem = tokenpki_staging_key_pem
+    tokenpki_cert_pem = tokenpki_staging_cert_pem,
+    tokenpki_key_pem = tokenpki_staging_key_pem
 WHERE
-  name = ?
+    name = ?
 `
 
 func (q *Queries) UpstageKeypair(ctx context.Context, name string) error {
