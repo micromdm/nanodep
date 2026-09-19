@@ -8,6 +8,37 @@ import (
 	"database/sql"
 )
 
+type DepDevice struct {
+	SerialNumber          string
+	DepName               string
+	Model                 string
+	AssetTag              sql.NullString
+	BluetoothMacAddress   sql.NullString
+	Color                 sql.NullString
+	Description           sql.NullString
+	DeviceAssignedBy      sql.NullString
+	DeviceAssignedDate    sql.NullInt64
+	DeviceFamily          sql.NullString
+	Eid                   sql.NullString
+	EthernetMacAddress    sql.NullString
+	Imei                  []byte
+	IsReplacementDevice   sql.NullBool
+	MdmMigrationDeadline  sql.NullInt64
+	Meid                  []byte
+	OpDate                sql.NullInt64
+	OpType                sql.NullString
+	Os                    sql.NullString
+	ProfileAssignTime     sql.NullInt64
+	ProfilePushTime       sql.NullInt64
+	ProfileStatus         sql.NullString
+	ProfileUuid           sql.NullString
+	ReleasedByReplacement sql.NullBool
+	ResponseStatus        sql.NullString
+	WifiMacAddress        sql.NullString
+	CreatedAt             uint64
+	UpdatedAt             uint64
+}
+
 type DepName struct {
 	Name                   string
 	ConsumerKey            sql.NullString
