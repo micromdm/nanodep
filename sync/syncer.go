@@ -188,8 +188,23 @@ func (s *Syncer) Run(ctx context.Context) error {
 			)
 			// errors are only logged and we just try again during the next cycle
 		} else {
+			// Apple sometimes echoes the request cursor back with
+			// more-to-follow set. Blindly continuing on MoreToFollow
+			// would spin in a tight loop re-requesting the same
+			// cursor, so only continue when the response cursor
+			// advanced past the request cursor. On no progress we log
+			// here and fall through to the normal wait/return rather
+			// than resetting the cursor (which would re-fetch all
+			// devices).
+			// See https://github.com/micromdm/nanodep/issues/73 and
+			// https://github.com/micromdm/micromdm/pull/1016.
+			requestCursor := cursor
+			msg := "device sync"
+			if resp.MoreToFollow && resp.Cursor == requestCursor {
+				msg += "; same cursor with more_to_follow"
+			}
 			logs := []interface{}{
-				"msg", "device sync",
+				"msg", msg,
 				"phase", phaseLabel[doFetch],
 				"more", resp.MoreToFollow,
 				"cursor", resp.Cursor,
@@ -226,7 +241,11 @@ func (s *Syncer) Run(ctx context.Context) error {
 			}
 
 			if resp.MoreToFollow {
-				continue
+				if resp.Cursor != requestCursor {
+					continue
+				}
+				// Same cursor echoed back: already logged above, fall
+				// through to the normal wait/return (exiting sync early).
 			} else if doFetch {
 				doFetch = false
 				continue
