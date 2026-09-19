@@ -65,6 +65,91 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /v1/devices:
+    get:
+      description: Query locally-persisted synced devices (stored by depsyncer). Rows are keyed by compound (dep_name, serial_number); the same serial may exist under multiple DEP names. Sparse sync responses never wipe stored fields (last-known-non-null merge).
+      parameters:
+        - in: query
+          name: dep_name
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: serial
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 20
+            default: 100
+        - in: query
+          name: offset
+          schema:
+            type: integer
+        - in: query
+          name: cursor
+          schema:
+            type: string
+            example: afcadc29a704
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: Returns device query results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicesQueryResponse'
+        '400':
+          description: Problem with the provided API query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error querying devices.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      description: Delete locally-persisted synced devices for a single DEP name. The dep_name query parameter is required (singular); serial may repeat. An empty serial list is a no-op. Deleting a non-existent device is not an error.
+      parameters:
+        - in: query
+          name: dep_name
+          description: Single DEP name to delete devices for.
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: serial
+          description: Serial number to delete. Repeatable; empty is a no-op.
+          schema:
+            type: array
+            items:
+              type: string
+      security:
+        - basicAuth: []
+      responses:
+        '204':
+          description: Devices deleted (empty response body).
+        '400':
+          description: Problem with the provided API query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error deleting devices.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /v1/assigner/{name}:
     get:
       description: Return the assigner profile UUID for the given DEP name.
@@ -446,6 +531,93 @@ components:
             type: string
         next_cursor:
           description: For storage backends that support cursor-based pagination this will contain the next cursor value.
+          type: string
+    DevicesQueryResponse:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+        next_cursor:
+          description: For storage backends that support cursor-based pagination this will contain the next cursor value.
+          type: string
+    Device:
+      type: object
+      description: A synced DEP device plus the DEP name it synced on. Timestamps render as ISO-8601 (stored internally as Unix microseconds).
+      required:
+        - dep_name
+        - serial_number
+        - model
+      properties:
+        dep_name:
+          type: string
+          example: 'mymdmserver'
+        serial_number:
+          type: string
+          example: "07AAD449616F566C12"
+        model:
+          type: string
+          example: "iPhone16,2"
+        asset_tag:
+          type: string
+        bluetooth_mac_address:
+          type: string
+        color:
+          type: string
+        description:
+          type: string
+        device_assigned_by:
+          type: string
+        device_assigned_date:
+          type: string
+          format: date-time
+        device_family:
+          type: string
+          example: "iPhone"
+        eid:
+          type: string
+        ethernet_mac_address:
+          type: string
+        imei:
+          type: array
+          items:
+            type: string
+        is_replacement_device:
+          type: boolean
+        mdm_migration_deadline:
+          type: string
+          format: date-time
+        meid:
+          type: array
+          items:
+            type: string
+        op_date:
+          type: string
+          format: date-time
+        op_type:
+          type: string
+          example: "added"
+        os:
+          type: string
+          example: "iOS"
+        profile_assign_time:
+          type: string
+          format: date-time
+        profile_push_time:
+          type: string
+          format: date-time
+        profile_status:
+          type: string
+          example: "assigned"
+        profile_uuid:
+          type: string
+          example: "48E4F9B0DB9B76F1"
+        released_by_replacement:
+          type: boolean
+        response_status:
+          type: string
+        wifi_mac_address:
           type: string
     ErrorResponse:
       type: object
