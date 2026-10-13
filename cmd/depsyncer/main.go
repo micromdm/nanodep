@@ -36,6 +36,7 @@ func main() {
 		flOptions = flag.String("storage-options", "", "storage backend options")
 		flWebhook = flag.String("webhook-url", "", "URL to send requests to")
 		flUA      = flag.String("user-agent", godep.UserAgent, "User-Agent string to use")
+		flPersist = flag.Bool("persist-devices", true, "persist synced devices to storage")
 	)
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags] <DEPname1> [DEPname2 [...]]\nFlags:\n", os.Args[0])
@@ -146,8 +147,16 @@ func main() {
 			assignerOpts...,
 		)
 
-		// create the callback (that calls the assigner and webhook)
+		// create the callback (that stores devices and calls the assigner and webhook)
 		callback := func(ctx context.Context, isFetch bool, resp *godep.FetchDeviceResponse) error {
+			// persist synchronously in response order before fan-out;
+			// errors are logged and sync continues (cursor still advances)
+			if *flPersist && len(resp.Devices) > 0 {
+				err := storage.StoreDevices(ctx, name, resp.Devices)
+				if err != nil {
+					logger.Info("msg", "store synced devices", "err", err)
+				}
+			}
 			go func() {
 				err := assigner.ProcessDeviceResponse(ctx, resp)
 				if err != nil {

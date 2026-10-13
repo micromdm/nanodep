@@ -59,6 +59,9 @@ The `-storage`, `-storage-dsn`, and `-storage-options` flags together configure 
 
 Configure the `filekv` storage backend. This backend manages DEP authentication and configuration data within plain filesystem files and directories using a key-value storage system. It has zero dependencies, no options, and should run out of the box. The `-storage-dsn` flag specifies the filesystem directory for the database. If no `storage-dsn` is specified then `dbkv` is used as a default.
 
+> [!NOTE]
+> The `filekv` backend keeps an in-memory read cache, so separate processes sharing one database directory (e.g. `depserver` and `depsyncer`) can briefly serve stale reads until restarted.
+
 *Example:* `-storage filekv -storage-dsn /path/to/my/db`
 
 ##### file storage backend
@@ -159,6 +162,45 @@ Should return something like (if only `myMDMServer2` was query-able):
   ]
 }
 ```
+
+#### Devices query
+
+* Endpoint: `GET /v1/devices`
+
+The `/v1/devices` endpoint queries locally-persisted synced devices stored by `depsyncer` (see below). Rows are keyed by compound (`dep_name`, `serial_number`): the same serial may exist under multiple DEP "MDM servers" independently. Optional parameters are any specific `dep_name` and `serial` parameters (repeatable). Depending on the storage backend `offset` and `limit` or `cursor` parameters may be provided. For example:
+
+`http://[::1]:9001/v1/devices?dep_name=myMDMserver&serial=07AAD449616F566C12&limit=20`
+
+Should return something like:
+
+```json
+{
+  "devices": [
+    {
+      "dep_name": "myMDMserver",
+      "serial_number": "07AAD449616F566C12",
+      "model": "iPhone16,2",
+      "op_type": "added",
+      "profile_uuid": "43277A13FBCA0CFC"
+    }
+  ]
+}
+```
+
+Notes:
+
+* Stored rows hold the last-known-non-null state per column: Apple fetch and sync responses carry different field completeness, so a missing (null) field in a sync response doesn't wipe a previously stored value.
+* A sync `op_type` of `deleted` is retained as a tombstone (with the other columns intact) rather than deleting the row. Use `DELETE /v1/devices` below to actually remove rows.
+
+#### Devices delete
+
+* Endpoint: `DELETE /v1/devices`
+
+The `/v1/devices` endpoint also deletes locally-persisted synced devices for a single DEP name. The `dep_name` query parameter is required (singular); `serial` may repeat. An empty serial list is a no-op. Deleting a non-existent device is not an error. For example, using the `DELETE` HTTP method:
+
+`http://[::1]:9001/v1/devices?dep_name=myMDMserver&serial=07AAD449616F566C12`
+
+Responds `204 No Content` with an empty body on success.
 
 #### Token PKI
 
@@ -415,6 +457,33 @@ $ ./dep-device-details.sh 07AAD449616F566C12
 ...
 ```
 
+#### cfg-get-devices.sh
+
+This script queries the local `/v1/devices` endpoint (see "Devices query" above) for devices `depsyncer` has persisted — no Apple DEP API call is made. It uses the DEP name in the environment variable $DEP_NAME (see above) as a filter. Any arguments are treated as serial numbers to filter on (no serial filter is applied when no arguments are given; the endpoint default limit of 100 still applies).
+
+##### Example usage
+
+```bash
+$ ./cfg-get-devices.sh 07AAD449616F566C12
+{
+  "devices": [
+    {
+      "dep_name": "mdmserver1",
+      "serial_number": "07AAD449616F566C12",
+      "model": "iPhone16,2",
+      ...
+```
+
+#### cfg-delete-devices.sh
+
+This script deletes locally-persisted synced devices (see "Devices delete" above) for the DEP name in the environment variable $DEP_NAME. Any arguments are treated as serial numbers to delete. At least one serial should be given (an empty serial list is a no-op).
+
+##### Example usage
+
+```bash
+$ DEP_NAME=mdmserver1 ./cfg-delete-devices.sh 07AAD449616F566C12
+```
+
 #### dep-get-profile.sh
 
 For the DEP "MDM server" in the environment variable $DEP_NAME (see above) this script queries the Apple DEP API [Get a Profile](https://developer.apple.com/documentation/devicemanagement/get_a_profile) endpoint for a given DEP Profile UUID.
@@ -487,8 +556,6 @@ And then run the script again. This should give detailed HTTP response data incl
 
 `depsyncer` is a stand-alone tool for syncing devices from the Apple DEP service. It operates by continuously syncing the list of the devices from the Apple DEP "MDM server" configurations. `depsyncer` can optionally assign DEP profiles to newly added devices as it syncs devices. `depsyncer` can also optionally send a webhook HTTP call to a webserver with the synced device information.
 
-> [!NOTE]
-> `depsyncer` does not itself save any of the synced device information. The synced devices are either assigned a DEP profile or sent off to a webhook URL — ostensibly for any custom processing or saving to databases or such.
 
 ### Assignment
 
@@ -562,6 +629,12 @@ In the "sync once" mode (duration of 0) `depsyncer` could be run from, say, a cr
 * limit fetch and sync calls to this many devices (0 for server default)
 
 The limit flag specifies how many devices to fetch at a time from the Apple DEP API. [Apple's documentation](https://developer.apple.com/documentation/devicemanagement/syncdevicerequest) says there is a server-side default of 100 an upper limit of 1000.
+
+#### -persist-devices
+
+* persist synced devices to storage (default true)
+
+Set to `false` (`-persist-devices=false`) to skip persisting synced devices. Syncing, profile assignment, and the webhook are unaffected — only writing device rows to storage is skipped.
 
 #### -storage, -storage-dsn, & -storage-options
 

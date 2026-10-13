@@ -107,6 +107,11 @@ func main() {
 	namesMux.Handle("GET", apinext.NewQueryDEPNamesHandler(storage, logger.With("handler", "query-dep-names")))
 	handleStrippedAPI(namesMux, "/v1/dep_names")
 
+	devicesMux := dephttp.NewMethodMux()
+	devicesMux.Handle("GET", apinext.NewQueryDevicesHandler(storage, logger.With("handler", "query-devices")))
+	devicesMux.Handle("DELETE", apinext.NewDeleteDevicesHandler(storage, logger.With("handler", "delete-devices")))
+	handleStrippedAPI(devicesMux, "/v1/devices")
+
 	handleStrippedAPI(api.NewBypassCodeHandler(), endpointALBC)
 
 	handleStrippedAPI(
