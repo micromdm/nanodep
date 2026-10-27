@@ -5,6 +5,8 @@ package godep
 import "time"
 
 // The response that contains the details for an account.
+//
+// Introduced in Device Assignment Services 5.0.
 type AccountDetail struct {
 	// The Apple Account of the person who generated the currently in-use tokens.
 	AdminID *string `json:"admin_id,omitempty"`
@@ -68,6 +70,8 @@ const AccountDetailOrgVersionV1 AccountDetailOrgVersion = "v1"
 const AccountDetailOrgVersionV2 AccountDetailOrgVersion = "v2"
 
 // The details for an account-driven enrollment profile.
+//
+// Introduced in Device Assignment Services 5.1.
 type AccountDrivenEnrollmentProfileRequest struct {
 	// The MDM Service Discovery URL that the system redirects the user to during
 	// account-driven enrollment.
@@ -75,6 +79,8 @@ type AccountDrivenEnrollmentProfileRequest struct {
 }
 
 // Request enabling activation lock for a device.
+//
+// Introduced in Device Assignment Services 5.0.
 type ActivationLockRequest struct {
 	// Serial number of the device (required).
 	Device string `json:"device"`
@@ -104,7 +110,10 @@ type AssignProfileResponse struct {
 	// ProfileUUID corresponds to the JSON schema field "profile_uuid".
 	ProfileUUID *string `json:"profile_uuid,omitempty"`
 
-	// RetryAfterSeconds corresponds to the JSON schema field "retry_after_seconds".
+	// With `X-Server-Protocol-Version` 10 and later, the response also includes
+	// `retry_after_seconds` when at least one device is throttled. Clients should
+	// wait for at least the indicated number of seconds before retrying assignment
+	// for the throttled devices.
 	RetryAfterSeconds *int `json:"retry_after_seconds,omitempty"`
 }
 
@@ -118,6 +127,8 @@ const AssignProfileResponseDevicesValueSUCCESS AssignProfileResponseDevicesValue
 const AssignProfileResponseDevicesValueTHROTTLED AssignProfileResponseDevicesValue = "THROTTLED"
 
 // The request used to remove a profile from devices.
+//
+// Introduced in Device Assignment Services 5.0.
 type ClearProfileRequest struct {
 	// An array of strings containing device serial numbers.
 	Devices []string `json:"devices,omitempty"`
@@ -156,6 +167,8 @@ const DefineProfileResponseDevicesValueNOTACCESSIBLE DefineProfileResponseDevice
 const DefineProfileResponseDevicesValueSUCCESS DefineProfileResponseDevicesValue = "SUCCESS"
 
 // A device’s properties and their values.
+//
+// Introduced in Device Assignment Services 5.0.
 type Device struct {
 	// The device’s asset tag.
 	AssetTag *string `json:"asset_tag,omitempty"`
@@ -228,7 +241,9 @@ type Device struct {
 	OpType *DeviceOpType `json:"op_type,omitempty"`
 
 	// The device’s operating system: `iOS`, `iPadOS`, `OSX`, `tvOS`, or `visionOS`.
+	//
 	// This key is valid in X-Server-Protocol-Version 2 and later.
+	//
 	// With X-Server-Protocol-Version 7 and later, iPad product os will return
 	// `iPadOS`.
 	OS *DeviceOS `json:"os,omitempty"`
@@ -255,7 +270,7 @@ type Device struct {
 	// and later.
 	ReleasedByReplacement *bool `json:"released_by_replacement,omitempty"`
 
-	// ResponseStatus corresponds to the JSON schema field "response_status".
+	// Undocumented property returned only for the "Device Details" endpoint.
 	ResponseStatus *string `json:"response_status,omitempty"`
 
 	// The device’s serial number.
@@ -276,6 +291,8 @@ const DeviceDeviceFamilyMAC DeviceDeviceFamily = "Mac"
 const DeviceDeviceFamilyVision DeviceDeviceFamily = "Vision"
 
 // The request for a list of devices.
+//
+// Introduced in Device Assignment Services 5.0.
 type DeviceListRequest struct {
 	// An array of strings containing device serial numbers.
 	Devices []string `json:"devices,omitempty"`
@@ -323,6 +340,8 @@ const DeviceStatusResponseDevicesValueNOTACCESSIBLE DeviceStatusResponseDevicesV
 const DeviceStatusResponseDevicesValueSUCCESS DeviceStatusResponseDevicesValue = "SUCCESS"
 
 // The request for a list of devices.
+//
+// Introduced in Device Assignment Services 5.0.
 type FetchDeviceRequest struct {
 	// A hex string that represents the starting position for a request. Use this to
 	// retrieve the list of devices that have been added or removed since a previous
@@ -335,6 +354,8 @@ type FetchDeviceRequest struct {
 }
 
 // The response that contains a list of devices.
+//
+// Introduced in Device Assignment Services 5.0.
 type FetchDeviceResponse struct {
 	// Indicates when this request was processed by the server. The MDM server can use
 	// this value in future requests if it wants to retrieve only records added or
@@ -352,9 +373,22 @@ type FetchDeviceResponse struct {
 
 	// Indicates that the request’s limit and cursor values resulted in only a partial
 	// list of devices.
+	//
 	// The MDM server should immediately make another request (starting from the newly
 	// returned cursor) to obtain additional records.
 	MoreToFollow bool `json:"more_to_follow"`
+}
+
+// The details for an account-driven enrollment profile.
+//
+// Introduced in Device Assignment Services 5.1.
+type GetAccountDrivenEnrollmentProfileResponse struct {
+	// The timestamp of the most-recent update for the MDM Service Discovery URL.
+	LastUpdatedTimestamp *time.Time `json:"last_updated_timestamp,omitempty"`
+
+	// The MDM Service Discovery URL that the MDM server sets for redirection during
+	// account-driven enrollment.
+	MdmServiceDiscoveryURL *string `json:"mdm_service_discovery_url,omitempty"`
 }
 
 // Information about a replacement device, including the original device it
@@ -372,15 +406,19 @@ type GetReplacementDetailsResponse struct {
 }
 
 // Provides a list of beta enrollment tokens available for the given organization.
+//
+// Introduced in Device Assignment Services 5.1.
 type GetSeedBuildTokenResponse struct {
 	// The list of beta enrollment tokens available for the given organization.
 	BetaEnrollmentTokens []SeedBuildToken `json:"betaEnrollmentTokens,omitempty"`
 
-	// SeedBuildTokens corresponds to the JSON schema field "seedBuildTokens".
+	// Undocumented property seen from actual server responses.
 	SeedBuildTokens []SeedBuildToken `json:"seedBuildTokens,omitempty"`
 }
 
 // A ranged limit.
+//
+// Introduced in Device Assignment Services 5.0.
 type Limit struct {
 	// Default value of limit.
 	Default *int `json:"default,omitempty"`
@@ -390,6 +428,8 @@ type Limit struct {
 }
 
 // A profile’s properties and their values.
+//
+// Introduced in Device Assignment Services 5.0.
 type Profile struct {
 	// Default is `true`. In iOS 13, this property was deprecated.
 	AllowPairing bool `json:"allow_pairing,omitempty"`
@@ -419,8 +459,10 @@ type Profile struct {
 	// The URL that the clients load into a web view during setup. This site provides
 	// the appropriate UI to authenticate the user, and when satisfied, initiates the
 	// download of the MDM enrollment profile.
+	//
 	// To provide the MDM enrollment profile, the web view looks for a page with MIME
 	// type `application/x-apple-aspen-config`.
+	//
 	// While the user is allowed to navigate to any site or host during
 	// authentication, the MDM enrollment profile must originate from the same host as
 	// specified in this field.
@@ -488,7 +530,7 @@ type Profile struct {
 	//
 	// Example three-letter: `eng`, `fre`, `jpn`, `haw`
 	//
-	// Available on tvOS and macOS 11 and later.
+	// Available on tvOS and macOS 11 and later.``
 	Language *string `json:"language,omitempty"`
 
 	// A string that uniquely identifies various services that are managed by a single
@@ -503,7 +545,9 @@ type Profile struct {
 
 	// A region designator is a code that represents a country. Available on tvOS and
 	// macOS 11 and later.
+	//
 	// Use the ISO 3166-1 standard, a two-letter, capitalized code.
+	//
 	// Examples: US, GB, AU
 	Region *string `json:"region,omitempty"`
 
@@ -529,6 +573,8 @@ type Profile struct {
 }
 
 // The request for assigning a profile to a set of devices.
+//
+// Introduced in Device Assignment Services 5.0.
 type ProfileServiceRequest struct {
 	// Array of strings that contains device serial numbers.
 	Devices []string `json:"devices,omitempty"`
@@ -538,9 +584,11 @@ type ProfileServiceRequest struct {
 }
 
 // Describes a beta enrollment token available for the given organization.
+//
+// Introduced in Device Assignment Services 5.1.
 type SeedBuildToken struct {
 	// The platform related to beta build. Possible values are: `homePodOS`, `iOS`,
-	// `OSX`, `tvOS`, `visionOS`, `watchOS`.
+	// `OSX`, `tvOS`, `visionOS`, `watchOS`]
 	OS *SeedBuildTokenOS `json:"os,omitempty"`
 
 	// The public facing name, like “iOS 17 Public Beta”.
@@ -560,6 +608,8 @@ const SeedBuildTokenOSVisionOS SeedBuildTokenOS = "visionOS"
 const SeedBuildTokenOSWatchOS SeedBuildTokenOS = "watchOS"
 
 // The request to sync the list of devices.
+//
+// Introduced in Device Assignment Services 5.0.
 type SyncDeviceRequest struct {
 	// A hex string that represents the starting position for a request. Use this to
 	// retrieve the list of devices that have been added or removed since a previous
@@ -571,6 +621,8 @@ type SyncDeviceRequest struct {
 }
 
 // A URL object.
+//
+// Introduced in Device Assignment Services 5.0.
 type URL struct {
 	// Possible values: GET, POST, PUT, DELETE.
 	HTTPMethod []URLHTTPMethodElem `json:"http_method,omitempty"`
