@@ -39,6 +39,7 @@ type config struct {
 	db              *sql.DB
 	connMaxLifetime time.Duration
 	connMaxIdleTime time.Duration
+	maxOpenConns    int
 }
 
 // Option allows configuring a MySQLStorage.
@@ -89,6 +90,18 @@ func WithConnMaxIdleTime(d time.Duration) Option {
 }
 
 // New creates and returns a new MySQLStorage.
+// WithMaxOpenConns sets the maximum number of open connections to the
+// database. A non-positive value leaves database/sql's default of no limit,
+// under which a burst of concurrent requests opens a connection per in-flight
+// request until the server refuses them. A bounded pool makes those requests
+// wait for a connection instead, which [database/sql.DB.Stats] reports as a
+// wait count and a wait duration.
+func WithMaxOpenConns(n int) Option {
+	return func(c *config) {
+		c.maxOpenConns = n
+	}
+}
+
 func New(opts ...Option) (*MySQLStorage, error) {
 	cfg := &config{
 		driver: "mysql",
@@ -108,6 +121,9 @@ func New(opts ...Option) (*MySQLStorage, error) {
 	}
 	if cfg.connMaxIdleTime != 0 {
 		cfg.db.SetConnMaxIdleTime(cfg.connMaxIdleTime)
+	}
+	if cfg.maxOpenConns > 0 {
+		cfg.db.SetMaxOpenConns(cfg.maxOpenConns)
 	}
 	if err = cfg.db.Ping(); err != nil {
 		return nil, err
