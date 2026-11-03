@@ -4,6 +4,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -64,6 +65,15 @@ func mysqlStorage(dsn, options string) (*mysql.MySQLStorage, error) {
 					return nil, fmt.Errorf("invalid value for conn_max_idle_time option: %w", err)
 				}
 				opts = append(opts, mysql.WithConnMaxIdleTime(d))
+			case "max_open_conns":
+				n, err := strconv.Atoi(v)
+				if err != nil {
+					return nil, fmt.Errorf("invalid value for max_open_conns option: %w", err)
+				}
+				if n < 0 {
+					return nil, fmt.Errorf("invalid value for max_open_conns option: %d is negative", n)
+				}
+				opts = append(opts, mysql.WithMaxOpenConns(n))
 			default:
 				return nil, fmt.Errorf("invalid option: %q", k)
 			}
