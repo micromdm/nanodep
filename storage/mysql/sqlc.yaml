@@ -1,7 +1,9 @@
 version: 2
 sql:
   - engine: "mysql"
-    queries: "query.sql"
+    queries:
+      - "query.sql"
+      - "devices.sql"
     schema: "schema.sql"
     gen:
       go:
@@ -21,6 +23,17 @@ sql:
               type: "byte"
               slice: true
           - column: "dep_names.tokenpki_staging_key_pem"
+            go_type:
+              type: "byte"
+              slice: true
+          # map nullable JSON to []byte (nil = NULL): database/sql
+          # cannot scan NULL into *json.RawMessage, but NULL into
+          # *[]byte is fine. Same approach as pgsql jsonb override.
+          - column: "dep_devices.imei"
+            go_type:
+              type: "byte"
+              slice: true
+          - column: "dep_devices.meid"
             go_type:
               type: "byte"
               slice: true

@@ -32,6 +32,8 @@ const (
 	keyPfxCertStaging = "cert_staging."
 	keyPfxKey         = "key."
 	keyPfxKeyStaging  = "key_staging."
+
+	keyPfxDevice = "device."
 )
 
 type KV struct {

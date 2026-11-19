@@ -25,4 +25,7 @@ type AllStorage interface {
 	api.TokenPKIUpstager
 	api.AssignerProfileStorer
 	DEPNamesQuery
+	DevicesQuery
+	DeviceStorer
+	DeviceDeleter
 }

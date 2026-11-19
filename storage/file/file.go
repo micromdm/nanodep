@@ -13,10 +13,15 @@ import (
 	"time"
 
 	"github.com/micromdm/nanodep/client"
+	"github.com/micromdm/nanodep/godep"
 	"github.com/micromdm/nanodep/storage"
 )
 
 const defaultFileMode = 0644
+
+// ErrNotImplemented is returned by file backend methods that are not
+// implemented (the file backend is deprecated).
+var ErrNotImplemented = errors.New("not implemented")
 
 // FileStorage implements filesystem-based storage for DEP services.
 type FileStorage struct {
@@ -238,5 +243,20 @@ func (s *FileStorage) retrieveTokenPKIExtn(name, extn string) ([]byte, []byte, e
 
 // QueryDEPNames queries and returns DEP names.
 func (s *FileStorage) QueryDEPNames(ctx context.Context, req *storage.DEPNamesQueryRequest) (*storage.DEPNamesQueryResult, error) {
-	return nil, errors.New("not implemented")
+	return nil, ErrNotImplemented
+}
+
+// StoreDevices is not implemented for the deprecated file backend.
+func (s *FileStorage) StoreDevices(_ context.Context, _ string, _ []godep.Device) error {
+	return ErrNotImplemented
+}
+
+// QueryDevices is not implemented for the deprecated file backend.
+func (s *FileStorage) QueryDevices(_ context.Context, _ *storage.DevicesQueryRequest) (*storage.DevicesQueryResult, error) {
+	return nil, ErrNotImplemented
+}
+
+// DeleteDevices is not implemented for the deprecated file backend.
+func (s *FileStorage) DeleteDevices(_ context.Context, _ string, _ []string) error {
+	return ErrNotImplemented
 }
