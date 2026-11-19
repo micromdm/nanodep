@@ -51,14 +51,14 @@ func NewMAIDJWTHandler(store MAIDJWTStorage, logger log.Logger, newJTI func() st
 				return
 			}
 
-			if detail.ServerUuid == nil {
+			if detail.ServerUUID == nil {
 				err = errors.New("nil server UUID")
 				logger.Info("msg", "validating account detail", "err", err)
 				jsonError(w, err)
 				return
 			}
 
-			serverUUID = *detail.ServerUuid
+			serverUUID = *detail.ServerUUID
 		}
 
 		_, keyBytes, err := store.RetrieveCurrentTokenPKI(r.Context(), name)

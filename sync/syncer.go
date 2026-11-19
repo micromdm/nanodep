@@ -24,7 +24,7 @@ type CursorStorage interface {
 }
 
 // DeviceResponseCallback is called every time a fetch or sync operation completes.
-type DeviceResponseCallback func(context.Context, bool, *godep.FetchDeviceResponseJson) error
+type DeviceResponseCallback func(context.Context, bool, *godep.FetchDeviceResponse) error
 
 // Syncer performs the fetch and sync cursor operations to sync devices from
 // the Apple DEP service. Depending on the options supplied it can perform the
@@ -130,7 +130,7 @@ var phaseLabel = map[bool]string{
 // (i.e. is in "run once" mode).
 func (s *Syncer) Run(ctx context.Context) error {
 	doFetch := true
-	var resp *godep.FetchDeviceResponseJson
+	var resp *godep.FetchDeviceResponse
 	cursor, err := s.store.RetrieveCursor(ctx, s.name)
 	if err != nil {
 		return err
@@ -188,8 +188,23 @@ func (s *Syncer) Run(ctx context.Context) error {
 			)
 			// errors are only logged and we just try again during the next cycle
 		} else {
+			// Apple sometimes echoes the request cursor back with
+			// more-to-follow set. Blindly continuing on MoreToFollow
+			// would spin in a tight loop re-requesting the same
+			// cursor, so only continue when the response cursor
+			// advanced past the request cursor. On no progress we log
+			// here and fall through to the normal wait/return rather
+			// than resetting the cursor (which would re-fetch all
+			// devices).
+			// See https://github.com/micromdm/nanodep/issues/73 and
+			// https://github.com/micromdm/micromdm/pull/1016.
+			requestCursor := cursor
+			msg := "device sync"
+			if resp.MoreToFollow && resp.Cursor == requestCursor {
+				msg += "; same cursor with more_to_follow"
+			}
 			logs := []interface{}{
-				"msg", "device sync",
+				"msg", msg,
 				"phase", phaseLabel[doFetch],
 				"more", resp.MoreToFollow,
 				"cursor", resp.Cursor,
@@ -226,7 +241,11 @@ func (s *Syncer) Run(ctx context.Context) error {
 			}
 
 			if resp.MoreToFollow {
-				continue
+				if resp.Cursor != requestCursor {
+					continue
+				}
+				// Same cursor echoed back: already logged above, fall
+				// through to the normal wait/return (exiting sync early).
 			} else if doFetch {
 				doFetch = false
 				continue
@@ -250,7 +269,7 @@ func (s *Syncer) Run(ctx context.Context) error {
 
 // logCountsForOpTypes tries to aggregate the various device "op_type"
 // attributes so they can be logged.
-func logCountsForOpTypes(isFetch bool, devices []godep.DeviceJson) []interface{} {
+func logCountsForOpTypes(isFetch bool, devices []godep.Device) []interface{} {
 	opTypes := map[string]int{"added": 0, "modified": 0, "deleted": 0, "other": 0}
 	var opType string
 	for _, device := range devices {
@@ -276,12 +295,12 @@ func logCountsForOpTypes(isFetch bool, devices []godep.DeviceJson) []interface{}
 	return logs
 }
 
-func logDevice(device godep.DeviceJson) []interface{} {
+func logDevice(device godep.Device) []interface{} {
 	logs := []interface{}{
 		"serial_number", device.SerialNumber,
 		"device_assigned_by", deref(device.DeviceAssignedBy),
 		"op_type", deref(device.OpType),
-		"profile_uuid", deref(device.ProfileUuid),
+		"profile_uuid", deref(device.ProfileUUID),
 		"profile_status", deref(device.ProfileStatus),
 	}
 	if device.OpDate != nil && !device.OpDate.IsZero() {

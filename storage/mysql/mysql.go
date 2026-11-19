@@ -18,6 +18,15 @@ import (
 //go:embed schema.sql
 var Schema string
 
+// Connection pool recycling is left at database/sql's defaults unless
+// configured. Pooled connections should be recycled well before the shortest
+// idle timeout in the network path (the istio-proxy sidecar reaps idle TCP
+// connections at ~1h, Aurora's wait_timeout is longer). Without recycling,
+// database/sql hands out long-idle connections that the far end has already
+// closed, producing "broken pipe" writes and "closing bad idle connection:
+// EOF" errors. Set WithConnMaxLifetime / WithConnMaxIdleTime per-deployment to
+// enable recycling for the path's idle timeout.
+
 // MySQLStorage implements a storage.AllStorage using MySQL.
 type MySQLStorage struct {
 	db *sql.DB
@@ -25,9 +34,12 @@ type MySQLStorage struct {
 }
 
 type config struct {
-	driver string
-	dsn    string
-	db     *sql.DB
+	driver          string
+	dsn             string
+	db              *sql.DB
+	connMaxLifetime time.Duration
+	connMaxIdleTime time.Duration
+	maxOpenConns    int
 }
 
 // Option allows configuring a MySQLStorage.
@@ -59,9 +71,41 @@ func WithDB(db *sql.DB) Option {
 	}
 }
 
+// WithConnMaxLifetime sets the maximum amount of time a connection may be
+// reused. It should be shorter than the shortest idle timeout in the network
+// path to the database. A non-positive value keeps connections forever.
+func WithConnMaxLifetime(d time.Duration) Option {
+	return func(c *config) {
+		c.connMaxLifetime = d
+	}
+}
+
+// WithConnMaxIdleTime sets the maximum amount of time a connection may be idle
+// before it is closed. A non-positive value never closes connections due to
+// idle time.
+func WithConnMaxIdleTime(d time.Duration) Option {
+	return func(c *config) {
+		c.connMaxIdleTime = d
+	}
+}
+
 // New creates and returns a new MySQLStorage.
+// WithMaxOpenConns sets the maximum number of open connections to the
+// database. A non-positive value leaves database/sql's default of no limit,
+// under which a burst of concurrent requests opens a connection per in-flight
+// request until the server refuses them. A bounded pool makes those requests
+// wait for a connection instead, which [database/sql.DB.Stats] reports as a
+// wait count and a wait duration.
+func WithMaxOpenConns(n int) Option {
+	return func(c *config) {
+		c.maxOpenConns = n
+	}
+}
+
 func New(opts ...Option) (*MySQLStorage, error) {
-	cfg := &config{driver: "mysql"}
+	cfg := &config{
+		driver: "mysql",
+	}
 	for _, opt := range opts {
 		opt(cfg)
 	}
@@ -71,6 +115,15 @@ func New(opts ...Option) (*MySQLStorage, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+	if cfg.connMaxLifetime != 0 {
+		cfg.db.SetConnMaxLifetime(cfg.connMaxLifetime)
+	}
+	if cfg.connMaxIdleTime != 0 {
+		cfg.db.SetConnMaxIdleTime(cfg.connMaxIdleTime)
+	}
+	if cfg.maxOpenConns > 0 {
+		cfg.db.SetMaxOpenConns(cfg.maxOpenConns)
 	}
 	if err = cfg.db.Ping(); err != nil {
 		return nil, err
@@ -107,26 +160,14 @@ func (s *MySQLStorage) RetrieveAuthTokens(ctx context.Context, name string) (*cl
 
 // StoreAuthTokens saves the DEP OAuth tokens for the DEP name.
 func (s *MySQLStorage) StoreAuthTokens(ctx context.Context, name string, tokens *client.OAuth1Tokens) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names 
-	(name, consumer_key, consumer_secret, access_token, access_secret, access_token_expiry)
-VALUES 
-	(?, ?, ?, ?, ?, ?) as new
-ON DUPLICATE KEY UPDATE 
-	consumer_key = new.consumer_key,
-	consumer_secret = new.consumer_secret,
-	access_token = new.access_token,
-	access_secret = new.access_secret,
-	access_token_expiry = new.access_token_expiry;`,
-		name,
-		tokens.ConsumerKey,
-		tokens.ConsumerSecret,
-		tokens.AccessToken,
-		tokens.AccessSecret,
-		tokens.AccessTokenExpiry.Format(timestampFormat),
-	)
-	return err
+	return s.q.StoreAuthTokens(ctx, sqlc.StoreAuthTokensParams{
+		Name:              name,
+		ConsumerKey:       sql.NullString{String: tokens.ConsumerKey, Valid: true},
+		ConsumerSecret:    sql.NullString{String: tokens.ConsumerSecret, Valid: true},
+		AccessToken:       sql.NullString{String: tokens.AccessToken, Valid: true},
+		AccessSecret:      sql.NullString{String: tokens.AccessSecret, Valid: true},
+		AccessTokenExpiry: sql.NullString{String: tokens.AccessTokenExpiry.Format(timestampFormat), Valid: true},
+	})
 }
 
 // RetrieveConfig reads the JSON DEP config of a DEP name.
@@ -153,18 +194,10 @@ func (s *MySQLStorage) RetrieveConfig(ctx context.Context, name string) (*client
 
 // StoreConfig saves the DEP config for name (DEP name).
 func (s *MySQLStorage) StoreConfig(ctx context.Context, name string, config *client.Config) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names
-	(name, config_base_url)
-VALUES 
-	(?, ?) as new
-ON DUPLICATE KEY UPDATE
-	config_base_url = new.config_base_url;`,
-		name,
-		config.BaseURL,
-	)
-	return err
+	return s.q.StoreConfig(ctx, sqlc.StoreConfigParams{
+		Name:          name,
+		ConfigBaseUrl: sql.NullString{String: config.BaseURL, Valid: true},
+	})
 }
 
 // RetrieveAssignerProfile reads the assigner profile UUID and its timestamp for name (DEP name).
@@ -190,19 +223,10 @@ func (s *MySQLStorage) RetrieveAssignerProfile(ctx context.Context, name string)
 
 // StoreAssignerProfile saves the assigner profile UUID for name (DEP name).
 func (s *MySQLStorage) StoreAssignerProfile(ctx context.Context, name string, profileUUID string) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names
-	(name, assigner_profile_uuid, assigner_profile_uuid_at)
-VALUES
-	(?, ?, CURRENT_TIMESTAMP) as new
-ON DUPLICATE KEY UPDATE
-	assigner_profile_uuid = new.assigner_profile_uuid,
-	assigner_profile_uuid_at = new.assigner_profile_uuid_at;`,
-		name,
-		profileUUID,
-	)
-	return err
+	return s.q.StoreAssignerProfile(ctx, sqlc.StoreAssignerProfileParams{
+		Name:                name,
+		AssignerProfileUuid: sql.NullString{String: profileUUID, Valid: true},
+	})
 }
 
 // RetrieveCursor reads the reads the DEP fetch and sync cursor for name (DEP name).
@@ -224,36 +248,19 @@ func (s *MySQLStorage) RetrieveCursor(ctx context.Context, name string) (string,
 
 // StoreCursor saves the DEP fetch and sync cursor for name (DEP name).
 func (s *MySQLStorage) StoreCursor(ctx context.Context, name, cursor string) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names
-	(name, syncer_cursor)
-VALUES
-	(?, ?) as new
-ON DUPLICATE KEY UPDATE
-	syncer_cursor = new.syncer_cursor`,
-		name,
-		cursor,
-	)
-	return err
+	return s.q.StoreCursor(ctx, sqlc.StoreCursorParams{
+		Name:         name,
+		SyncerCursor: sql.NullString{String: cursor, Valid: true},
+	})
 }
 
 // StoreTokenPKI stores the staging PEM bytes in pemCert and pemKey for name (DEP name).
 func (s *MySQLStorage) StoreTokenPKI(ctx context.Context, name string, pemCert []byte, pemKey []byte) error {
-	_, err := s.db.ExecContext(
-		ctx, `
-INSERT INTO dep_names
-	(name, tokenpki_staging_cert_pem, tokenpki_staging_key_pem)
-VALUES
-	(?, ?, ?) as new
-ON DUPLICATE KEY UPDATE
-	tokenpki_staging_cert_pem = new.tokenpki_staging_cert_pem,
-	tokenpki_staging_key_pem = new.tokenpki_staging_key_pem;`,
-		name,
-		pemCert,
-		pemKey,
-	)
-	return err
+	return s.q.StoreTokenPKI(ctx, sqlc.StoreTokenPKIParams{
+		Name:                   name,
+		TokenpkiStagingCertPem: pemCert,
+		TokenpkiStagingKeyPem:  pemKey,
+	})
 }
 
 // UpstageTokenPKI copies the staging PKI certificate and private key to the

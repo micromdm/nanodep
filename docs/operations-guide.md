@@ -101,6 +101,17 @@ Configures the MySQL storage backend. The `-dsn` flag should be in the [format t
 
 *Example:* `-storage mysql -dsn nanodep:nanodep/mydepdb`
 
+Options are specified as a comma-separated list of "key=value" pairs. The mysql backend supports these options:
+
+* `conn_max_lifetime=duration`
+  * This option sets the maximum amount of time a pooled connection may be reused. The value is a [Go duration string](https://pkg.go.dev/time#ParseDuration) such as `30s`, `3m`, or `1h`. When unset, connection lifetime is left at database/sql's default (connections are reused indefinitely). A value of `0` keeps connections forever.
+* `conn_max_idle_time=duration`
+  * This option sets the maximum amount of time a pooled connection may sit idle before it is closed. The value is a duration string, as above. When unset, idle time is left at database/sql's default (idle connections are not closed by age). A value of `0` never closes connections due to idle time.
+* `max_open_conns=count`
+  * This option sets the maximum number of open connections to the database. When unset, or set to `0`, the pool size is left at database/sql's default of no limit: a burst of concurrent requests opens a connection per in-flight request until the database refuses them. A bounded pool makes those requests wait for a connection instead, which the `wait count` and `wait duration` in [DB.Stats](https://pkg.go.dev/database/sql#DBStats) report. Size it against the database's own connection limit, divided by the number of NanoDEP instances sharing it.
+
+*Example:* `-storage mysql -storage-dsn nanodep:nanodep/mydepdb -storage-options conn_max_lifetime=30s,conn_max_idle_time=15s,max_open_conns=25`
+
 ##### pgsql storage backend
 
 * `-storage pgsql`
@@ -139,7 +150,7 @@ Returns a JSON response with the version of the running NanoDEP server.
 
 The `/v1/dep_names` endpoint queries and returns DEP names. The DEP names need to have an upstaged (uploaded) DEP PKI operation to be considered query-able. Optional parameters are any specific `dep_name` parameters. Depending on the storage backend `offset` and `limit` or `cursor` parameters may be provided. For example:
 
-`http://[::1]9001/v1/dep_names?dep_name=myMDMserver&dep_name=myMDMserver2&limit=2&offset=3`
+`http://[::1]:9001/v1/dep_names?dep_name=myMDMserver&dep_name=myMDMserver2&limit=2&offset=3`
 
 Should return something like (if only `myMDMServer2` was query-able):
 
@@ -560,9 +571,9 @@ In the "sync once" mode (duration of 0) `depsyncer` could be run from, say, a cr
 
 The limit flag specifies how many devices to fetch at a time from the Apple DEP API. [Apple's documentation](https://developer.apple.com/documentation/devicemanagement/syncdevicerequest) says there is a server-side default of 100 an upper limit of 1000.
 
-#### -storage & -storage-dsn
+#### -storage, -storage-dsn, & -storage-options
 
-See the "-storage & -storage-dsn" section, above, for `depserver`. The syntax and capabilities are the same.
+See the "-storage, -storage-dsn, & -storage-options" section, above, for `depserver`. The syntax and capabilities are the same.
 
 #### -version
 

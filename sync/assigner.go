@@ -75,7 +75,7 @@ func WithAssignerDeadline() AssignerOption {
 // ProcessDeviceResponse processes the device response from the device sync
 // DEP API endpoints and assigns the profile UUID associated with the DEP
 // client DEP name.
-func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchDeviceResponseJson) error {
+func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchDeviceResponse) error {
 	if len(resp.Devices) < 1 {
 		// no devices means we can't assign anything
 		return nil
@@ -143,7 +143,7 @@ func (a *Assigner) ProcessDeviceResponse(ctx context.Context, resp *godep.FetchD
 
 // shouldAssignDevice decides whether a device "event" should be passed
 // off to the assigner.
-func shouldAssignDevice(device godep.DeviceJson, deadline bool) bool {
+func shouldAssignDevice(device godep.Device, deadline bool) bool {
 	// we currently only listen for an op_type of "added." the other
 	// op_types are ambiguous and it would be needless to assign the
 	// profile UUID every single time we get an update.
@@ -161,7 +161,7 @@ func shouldAssignDevice(device godep.DeviceJson, deadline bool) bool {
 }
 
 // logCountsForResults tries to aggregate the result types and log the counts.
-func logCountsForResults(deviceResults map[string]godep.AssignProfileResponseJsonDevicesValue) (out []interface{}) {
+func logCountsForResults(deviceResults map[string]godep.AssignProfileResponseDevicesValue) (out []interface{}) {
 	results := map[string]int{"success": 0, "not_accessible": 0, "failed": 0, "other": 0}
 	for _, result := range deviceResults {
 		l := strings.ToLower(string(result))
