@@ -315,5 +315,11 @@ func logDevice(device godep.Device) []interface{} {
 	if device.ProfilePushTime != nil && !device.ProfilePushTime.IsZero() {
 		logs = append(logs, "push_push_time", *device.ProfilePushTime)
 	}
+	if device.MdmMigrationDeadline != nil {
+		logs = append(logs,
+			"mdm_migration", true,
+			"migration_deadline", device.MdmMigrationDeadline.String(),
+		)
+	}
 	return logs
 }
